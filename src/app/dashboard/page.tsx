@@ -10,12 +10,14 @@ import { ErrorMessage } from '@/components/common/error-message';
 import Link from 'next/link';
 import { CalendarIcon } from '@heroicons/react/24/outline';
 import type { User } from '@/types';
+import UserEditDrawer from '@/components/dashboard/user-edit-drawer';
 
 export default function Dashboard() {
   const { user: auth0User, isLoading: isUserLoading } = useUser();
   const [serverUser, setServerUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -81,10 +83,16 @@ export default function Dashboard() {
       {serverUser && (
         <div className="mt-6">
           <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6">
+            <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
               <h3 className="text-lg leading-6 font-medium text-gray-900">
                 Doctor Information
               </h3>
+              <button
+                onClick={() => setIsDrawerOpen(true)}
+                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              >
+                Edit Profile
+              </button>
             </div>
             <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
               <dl className="sm:divide-y sm:divide-gray-200">
@@ -141,6 +149,14 @@ export default function Dashboard() {
             {/* Add more dashboard cards as needed */}
           </div>
         </div>
+      )}
+      {serverUser && (
+        <UserEditDrawer
+          user={serverUser}
+          isOpen={isDrawerOpen}
+          onClose={() => setIsDrawerOpen(false)}
+          onUserUpdate={(updatedUser) => setServerUser(updatedUser)}
+        />
       )}
     </div>
   );

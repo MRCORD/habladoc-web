@@ -68,7 +68,7 @@ const UserEditDrawer = ({ user, isOpen, onClose, onUserUpdate }: UserEditDrawerP
               <div className="flex-1 h-0 overflow-y-auto">
                 <div className="px-4 py-6 sm:px-6">
                   <div className="flex items-start justify-between">
-                    <h2 className="text-lg font-medium text-gray-900">Edit Profile</h2>
+                    <h2 className="text-lg font-medium text-gray-900">Editar Perfil</h2>
                     <button
                       type="button"
                       onClick={onClose}
@@ -86,7 +86,7 @@ const UserEditDrawer = ({ user, isOpen, onClose, onUserUpdate }: UserEditDrawerP
                     <form onSubmit={handleSubmit} className="space-y-6">
                       <div>
                         <label htmlFor="first_name" className="block text-sm font-medium text-gray-700">
-                          First Name
+                          Nombre
                         </label>
                         <input
                           type="text"
@@ -100,7 +100,7 @@ const UserEditDrawer = ({ user, isOpen, onClose, onUserUpdate }: UserEditDrawerP
 
                       <div>
                         <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
-                          Last Name
+                          Apellido
                         </label>
                         <input
                           type="text"
@@ -114,7 +114,7 @@ const UserEditDrawer = ({ user, isOpen, onClose, onUserUpdate }: UserEditDrawerP
 
                       <div>
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                          Email
+                          Correo Electrónico
                         </label>
                         <input
                           type="email"
@@ -128,7 +128,7 @@ const UserEditDrawer = ({ user, isOpen, onClose, onUserUpdate }: UserEditDrawerP
 
                       <div>
                         <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                          Phone
+                          Teléfono
                         </label>
                         <input
                           type="tel"
@@ -145,14 +145,14 @@ const UserEditDrawer = ({ user, isOpen, onClose, onUserUpdate }: UserEditDrawerP
                           onClick={onClose}
                           className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                         >
-                          Cancel
+                          Cancelar
                         </button>
                         <button
                           type="submit"
                           disabled={isSubmitting}
                           className="inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                         >
-                          {isSubmitting ? <LoadingSpinner /> : 'Save'}
+                          {isSubmitting ? <LoadingSpinner /> : 'Guardar'}
                         </button>
                       </div>
                     </form>

@@ -4,17 +4,15 @@
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { UserCircle, Mail, Phone, Clipboard, Globe2, DollarSign } from 'lucide-react';
+import { Calendar, Clock, CircleDot, BarChart2, Mic } from 'lucide-react';
 import api from '@/lib/api';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
-import UserEditDrawer from '@/components/dashboard/user-edit-drawer';
-import type { User, DoctorProfile, Specialty } from '@/types';
+import type { User, DoctorProfile } from '@/types';
 
 interface CombinedProfile {
   user: User;
   doctor: DoctorProfile;
-  specialty?: Specialty;
 }
 
 export default function Dashboard() {
@@ -22,7 +20,6 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<CombinedProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -30,45 +27,28 @@ export default function Dashboard() {
       if (!auth0User) return;
       
       try {
-        console.log('🔄 Loading user and doctor profiles...');
         setIsLoading(true);
         
-        // Step 1: Verify/create user
+        // Verify/create user
         const userResponse = await api.post('/api/v1/users/auth/verify');
-        console.log('✅ User verification response:', userResponse.data);
-        
         if (!userResponse.data.success) {
           throw new Error(userResponse.data.message || 'Failed to verify user');
         }
 
         const userData: User = userResponse.data.data;
 
-        // Step 2: If user has doctor role, get doctor profile
+        // Get doctor profile
         if (userData.roles.includes('doctor')) {
           try {
-            console.log('🔄 Fetching doctor profile...');
             const profileResponse = await api.get('/api/v1/doctors/profile/me');
             
             if (profileResponse.data.success) {
-              const doctorData: DoctorProfile = profileResponse.data.data;
-              
-              // Step 3: Get specialty details if available
-              let specialtyData = undefined;
-              if (doctorData.specialty_id) {
-                const specialtyResponse = await api.get(`/api/v1/specialties/${doctorData.specialty_id}`);
-                if (specialtyResponse.data.success) {
-                  specialtyData = specialtyResponse.data.data;
-                }
-              }
-              
               setProfile({
                 user: userData,
-                doctor: doctorData,
-                specialty: specialtyData
+                doctor: profileResponse.data.data
               });
             }
           } catch (err: any) {
-            // If profile not found, redirect to complete profile
             if (err.response?.status === 404) {
               router.push('/dashboard/complete-profile');
               return;
@@ -79,7 +59,7 @@ export default function Dashboard() {
 
         setIsLoading(false);
       } catch (err) {
-        console.error('❌ Error loading profiles:', err);
+        console.error('Error loading profiles:', err);
         if (err instanceof Error) {
           setError(err.message);
         } else {
@@ -94,15 +74,6 @@ export default function Dashboard() {
     }
   }, [auth0User, isUserLoading, router]);
 
-  const handleUserUpdate = (updatedUser: User) => {
-    if (profile) {
-      setProfile({
-        ...profile,
-        user: updatedUser
-      });
-    }
-  };
-
   if (isUserLoading || isLoading) {
     return <LoadingSpinner />;
   }
@@ -115,88 +86,90 @@ export default function Dashboard() {
     return null;
   }
 
+  // Placeholder data for demonstration
+  const stats = [
+    { name: 'Sesiones Hoy', value: '3', icon: Calendar },
+    { name: 'Próxima Sesión', value: '2:30 PM', icon: Clock },
+    { name: 'Sesiones Activas', value: '1', icon: CircleDot },
+    { name: 'Sesiones Completadas', value: '42', icon: BarChart2 },
+  ];
+
+  const recentSessions = [
+    { id: 1, patientName: 'Maria Garcia', date: '2024-01-18', status: 'completada', duration: '30 min' },
+    { id: 2, patientName: 'Juan Rodriguez', date: '2024-01-18', status: 'programada', duration: '45 min' },
+    { id: 3, patientName: 'Ana Martinez', date: '2024-01-17', status: 'cancelada', duration: '30 min' },
+  ];
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        {/* Profile Header */}
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <UserCircle className="h-12 w-12 text-gray-400" />
-              <div className="ml-4">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {profile.user.first_name} {profile.user.last_name}
-                </h2>
-                {profile.specialty && (
-                  <p className="text-sm text-gray-500">{profile.specialty.name}</p>
-                )}
-              </div>
-            </div>
-            <button
-              onClick={() => setIsDrawerOpen(true)}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            >
-              Edit Profile
-            </button>
-          </div>
-        </div>
-
-        {/* Profile Content */}
-        <div className="px-4 py-5 sm:p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Contact Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Contact Information</h3>
-              <div className="space-y-3">
-                <div className="flex items-center text-gray-700">
-                  <Mail className="h-5 w-5 mr-2" />
-                  <span>{profile.user.email}</span>
-                </div>
-                {profile.user.phone && (
-                  <div className="flex items-center text-gray-700">
-                    <Phone className="h-5 w-5 mr-2" />
-                    <span>{profile.user.phone}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Professional Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Professional Information</h3>
-              <div className="space-y-3">
-                <div className="flex items-center text-gray-700">
-                  <Clipboard className="h-5 w-5 mr-2" />
-                  <span>License Number: {profile.doctor.license_number}</span>
-                </div>
-                {profile.doctor.metadata?.languages && (
-                  <div className="flex items-center text-gray-700">
-                    <Globe2 className="h-5 w-5 mr-2" />
-                    <span>Languages: {(profile.doctor.metadata.languages as string[])
-                      .map(lang => lang === 'es' ? 'Spanish' : 'English')
-                      .join(', ')}
-                    </span>
-                  </div>
-                )}
-                {profile.doctor.metadata?.consultation_fee && (
-                  <div className="flex items-center text-gray-700">
-                    <DollarSign className="h-5 w-5 mr-2" />
-                    <span>Consultation Fee: ${profile.doctor.metadata.consultation_fee} USD</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Welcome Section */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900">
+          Bienvenido, Dr. {profile.user.last_name}
+        </h1>
+        <p className="text-gray-500">Esto es lo que está pasando con tus sesiones hoy</p>
       </div>
 
-      {/* Edit Profile Drawer */}
-      <UserEditDrawer
-        user={profile.user}
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onUserUpdate={handleUserUpdate}
-      />
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        {stats.map((stat) => (
+          <div
+            key={stat.name}
+            className="bg-white overflow-hidden shadow rounded-lg"
+          >
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <stat.icon className="h-6 w-6 text-gray-400" aria-hidden="true" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">{stat.name}</dt>
+                    <dd className="text-lg font-medium text-gray-900">{stat.value}</dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Recent Sessions */}
+      <div className="bg-white shadow rounded-lg">
+        <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
+          <h2 className="text-lg font-medium text-gray-900">Sesiones Recientes</h2>
+          <button
+            onClick={() => router.push('/dashboard/new-session')}
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90"
+          >
+            <Mic className="h-4 w-4 mr-2" />
+            Nueva Sesión
+          </button>
+        </div>
+        <div className="border-t border-gray-200">
+          <ul role="list" className="divide-y divide-gray-200">
+            {recentSessions.map((session) => (
+              <li key={session.id} className="px-4 py-4 sm:px-6 hover:bg-gray-50 cursor-pointer">
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <p className="text-sm font-medium text-gray-900">{session.patientName}</p>
+                    <p className="text-sm text-gray-500">{session.date}</p>
+                  </div>
+                  <div className="flex items-center">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
+                      ${session.status === 'completada' ? 'bg-green-100 text-green-800' : 
+                        session.status === 'programada' ? 'bg-blue-100 text-blue-800' : 
+                        'bg-red-100 text-red-800'}`}>
+                      {session.status}
+                    </span>
+                    <span className="ml-4 text-sm text-gray-500">{session.duration}</span>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </div>
   );
 }

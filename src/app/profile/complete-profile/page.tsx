@@ -133,9 +133,9 @@ export default function CompleteProfile() {
     <div className="max-w-2xl mx-auto py-8">
       <div className="space-y-12">
         <div className="border-b border-gray-900/10 pb-12">
-          <h2 className="text-base font-semibold leading-7 text-gray-900">Complete Your Profile</h2>
+          <h2 className="text-base font-semibold leading-7 text-gray-900">Completa tu perfil</h2>
           <p className="mt-1 text-sm leading-6 text-gray-600">
-            Please provide your professional information to complete your registration.
+            Por favor proporciona tu información profesional para completar tu registro.
           </p>
 
           {error && <ErrorMessage message={error} />}
@@ -144,7 +144,7 @@ export default function CompleteProfile() {
             <div className="space-y-6">
               <div className="relative" ref={dropdownRef}>
                 <label htmlFor="specialty" className="block text-sm font-medium leading-6 text-gray-900">
-                  Medical Specialty
+                  Especialidad Médica
                 </label>
                 <div className="mt-2 relative">
                   <div className="relative">
@@ -157,7 +157,7 @@ export default function CompleteProfile() {
                         setIsDropdownOpen(true);
                       }}
                       onFocus={() => setIsDropdownOpen(true)}
-                      placeholder="Search for a specialty..."
+                      placeholder="Buscar especialidad..."
                       className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       required
                     />
@@ -181,7 +181,7 @@ export default function CompleteProfile() {
 
               <div>
                 <label htmlFor="license" className="block text-sm font-medium leading-6 text-gray-900">
-                  Medical License Number
+                  Número de Licencia Médica
                 </label>
                 <div className="mt-2">
                   <input
@@ -197,7 +197,7 @@ export default function CompleteProfile() {
 
               <div>
                 <label htmlFor="languages" className="block text-sm font-medium leading-6 text-gray-900">
-                  Languages Spoken
+                  Idiomas Hablados
                 </label>
                 <div className="mt-2 space-y-2">
                   {['es', 'en'].map((lang) => (
@@ -215,7 +215,7 @@ export default function CompleteProfile() {
                         className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                       />
                       <label htmlFor={`lang-${lang}`} className="ml-2 text-sm text-gray-900">
-                        {lang === 'es' ? 'Spanish' : 'English'}
+                        {lang === 'es' ? 'Español' : 'Inglés'}
                       </label>
                     </div>
                   ))}
@@ -224,7 +224,7 @@ export default function CompleteProfile() {
 
               <div>
                 <label htmlFor="fee" className="block text-sm font-medium leading-6 text-gray-900">
-                  Consultation Fee (USD)
+                  Tarifa de Consulta (USD)
                 </label>
                 <div className="mt-2">
                   <input
@@ -245,14 +245,14 @@ export default function CompleteProfile() {
                 onClick={() => router.back()}
                 className="text-sm font-semibold leading-6 text-gray-900"
               >
-                Cancel
+                Cancelar
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
                 className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
               >
-                {isSubmitting ? 'Saving...' : 'Save Profile'}
+                {isSubmitting ? 'Guardando...' : 'Guardar Perfil'}
               </button>
             </div>
           </form>

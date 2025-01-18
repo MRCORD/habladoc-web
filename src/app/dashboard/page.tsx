@@ -4,160 +4,199 @@
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { verifyOrCreateUser } from '@/lib/api';
+import { UserCircle, Mail, Phone, Clipboard, Globe2, DollarSign } from 'lucide-react';
+import api from '@/lib/api';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
-import Link from 'next/link';
-import { CalendarIcon } from '@heroicons/react/24/outline';
-import type { User } from '@/types';
 import UserEditDrawer from '@/components/dashboard/user-edit-drawer';
+import type { User, DoctorProfile, Specialty } from '@/types';
+
+interface CombinedProfile {
+  user: User;
+  doctor: DoctorProfile;
+  specialty?: Specialty;
+}
 
 export default function Dashboard() {
   const { user: auth0User, isLoading: isUserLoading } = useUser();
-  const [serverUser, setServerUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [profile, setProfile] = useState<CombinedProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    async function verifyUser() {
+    async function loadProfiles() {
       if (!auth0User) return;
       
       try {
-        console.log('🔄 Starting user verification...', {
-          auth0User: {
-            sub: auth0User.sub,
-            email: auth0User.email
-          }
-        });
-        
+        console.log('🔄 Loading user and doctor profiles...');
         setIsLoading(true);
-        const userData = await verifyOrCreateUser();
         
-        console.log('✅ User verification completed:', userData);
+        // Step 1: Verify/create user
+        const userResponse = await api.post('/api/v1/users/auth/verify');
+        console.log('✅ User verification response:', userResponse.data);
         
-        if (userData.success) {
-          setServerUser(userData.data);
-          
-          if (userData.is_new && userData.data.roles.includes('doctor')) {
-            console.log('🔄 Redirecting new doctor to complete profile');
-            router.push('/dashboard/complete-profile');
-          }
-        } else {
-          console.warn('⚠️ User verification failed:', userData.message);
-          setError(userData.message || 'Failed to verify user');
+        if (!userResponse.data.success) {
+          throw new Error(userResponse.data.message || 'Failed to verify user');
         }
+
+        const userData: User = userResponse.data.data;
+
+        // Step 2: If user has doctor role, get doctor profile
+        if (userData.roles.includes('doctor')) {
+          try {
+            console.log('🔄 Fetching doctor profile...');
+            const profileResponse = await api.get('/api/v1/doctors/profile/me');
+            
+            if (profileResponse.data.success) {
+              const doctorData: DoctorProfile = profileResponse.data.data;
+              
+              // Step 3: Get specialty details if available
+              let specialtyData = undefined;
+              if (doctorData.specialty_id) {
+                const specialtyResponse = await api.get(`/api/v1/specialties/${doctorData.specialty_id}`);
+                if (specialtyResponse.data.success) {
+                  specialtyData = specialtyResponse.data.data;
+                }
+              }
+              
+              setProfile({
+                user: userData,
+                doctor: doctorData,
+                specialty: specialtyData
+              });
+            }
+          } catch (err: any) {
+            // If profile not found, redirect to complete profile
+            if (err.response?.status === 404) {
+              router.push('/dashboard/complete-profile');
+              return;
+            }
+            throw err;
+          }
+        }
+
+        setIsLoading(false);
       } catch (err) {
-        console.error('❌ Error in user verification:', err);
-        setError('Failed to verify user status');
-      } finally {
+        console.error('❌ Error loading profiles:', err);
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unexpected error occurred');
+        }
         setIsLoading(false);
       }
     }
 
     if (auth0User && !isUserLoading) {
-      console.log('🔄 Auth0 user loaded, starting verification');
-      verifyUser();
+      loadProfiles();
     }
   }, [auth0User, isUserLoading, router]);
 
+  const handleUserUpdate = (updatedUser: User) => {
+    if (profile) {
+      setProfile({
+        ...profile,
+        user: updatedUser
+      });
+    }
+  };
+
   if (isUserLoading || isLoading) {
-    console.log('⏳ Loading dashboard...');
     return <LoadingSpinner />;
   }
 
   if (error) {
-    console.error('❌ Dashboard error:', error);
     return <ErrorMessage message={error} />;
   }
 
-  if (!auth0User) {
-    console.log('⚠️ No Auth0 user found');
+  if (!profile) {
     return null;
   }
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-gray-900">Dashboard</h1>
-      {serverUser && (
-        <div className="mt-6">
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Doctor Information
-              </h3>
-              <button
-                onClick={() => setIsDrawerOpen(true)}
-                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-              >
-                Edit Profile
-              </button>
-            </div>
-            <div className="border-t border-gray-200 px-4 py-5 sm:p-0">
-              <dl className="sm:divide-y sm:divide-gray-200">
-                <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Full name</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {serverUser.first_name} {serverUser.last_name}
-                  </dd>
-                </div>
-                <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Email</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {serverUser.email}
-                  </dd>
-                </div>
-                <div className="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Role</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                    {serverUser.roles.join(', ')}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-
-          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <CalendarIcon className="h-6 w-6 text-gray-400" aria-hidden="true" />
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">
-                        Upcoming Appointments
-                      </dt>
-                      <dd className="flex items-baseline">
-                        <div className="text-2xl font-semibold text-gray-900">0</div>
-                      </dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-              <div className="bg-gray-50 px-5 py-3">
-                <div className="text-sm">
-                  <Link href="/dashboard/appointments" className="font-medium text-primary hover:text-primary/90">
-                    View all
-                  </Link>
-                </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        {/* Profile Header */}
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <UserCircle className="h-12 w-12 text-gray-400" />
+              <div className="ml-4">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  {profile.user.first_name} {profile.user.last_name}
+                </h2>
+                {profile.specialty && (
+                  <p className="text-sm text-gray-500">{profile.specialty.name}</p>
+                )}
               </div>
             </div>
-
-            {/* Add more dashboard cards as needed */}
+            <button
+              onClick={() => setIsDrawerOpen(true)}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            >
+              Edit Profile
+            </button>
           </div>
         </div>
-      )}
-      {serverUser && (
-        <UserEditDrawer
-          user={serverUser}
-          isOpen={isDrawerOpen}
-          onClose={() => setIsDrawerOpen(false)}
-          onUserUpdate={(updatedUser) => setServerUser(updatedUser)}
-        />
-      )}
+
+        {/* Profile Content */}
+        <div className="px-4 py-5 sm:p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Contact Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900">Contact Information</h3>
+              <div className="space-y-3">
+                <div className="flex items-center text-gray-700">
+                  <Mail className="h-5 w-5 mr-2" />
+                  <span>{profile.user.email}</span>
+                </div>
+                {profile.user.phone && (
+                  <div className="flex items-center text-gray-700">
+                    <Phone className="h-5 w-5 mr-2" />
+                    <span>{profile.user.phone}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Professional Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900">Professional Information</h3>
+              <div className="space-y-3">
+                <div className="flex items-center text-gray-700">
+                  <Clipboard className="h-5 w-5 mr-2" />
+                  <span>License Number: {profile.doctor.license_number}</span>
+                </div>
+                {profile.doctor.metadata?.languages && (
+                  <div className="flex items-center text-gray-700">
+                    <Globe2 className="h-5 w-5 mr-2" />
+                    <span>Languages: {(profile.doctor.metadata.languages as string[])
+                      .map(lang => lang === 'es' ? 'Spanish' : 'English')
+                      .join(', ')}
+                    </span>
+                  </div>
+                )}
+                {profile.doctor.metadata?.consultation_fee && (
+                  <div className="flex items-center text-gray-700">
+                    <DollarSign className="h-5 w-5 mr-2" />
+                    <span>Consultation Fee: ${profile.doctor.metadata.consultation_fee} USD</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Edit Profile Drawer */}
+      <UserEditDrawer
+        user={profile.user}
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        onUserUpdate={handleUserUpdate}
+      />
     </div>
   );
 }

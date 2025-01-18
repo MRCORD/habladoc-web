@@ -6,7 +6,8 @@ const api = axios.create({
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
-  }
+  },
+  timeout: 10000,
 });
 
 // Request interceptor
@@ -37,19 +38,44 @@ api.interceptors.response.use(
   (response) => {
     console.log('✅ API Response:', {
       url: response.config.url,
-      status: response.status
+      status: response.status,
+      headers: response.headers,
+      data: response.data  // Add this to see the response data
     });
     return response;
   },
   (error) => {
-    console.error('❌ API Error:', {
-      url: error.config?.url,
-      status: error.response?.status,
-      message: error.message
-    });
+    if (error.response) {
+      console.error('❌ API Error:', {
+        url: error.config?.url,
+        status: error.response.status,
+        data: error.response.data,
+        headers: error.response.headers
+      });
+    } else {
+      console.error('❌ Network Error:', {
+        url: error.config?.url,
+        message: error.message,
+        error: error  // Add full error object
+      });
+    }
     return Promise.reject(error);
   }
 );
+
+// Add retry logic for failed requests
+api.interceptors.response.use(undefined, async (error) => {
+  if (error.code === 'ERR_NETWORK' || error.response?.status === 429) {
+    const config = error.config;
+    
+    // Only retry once
+    if (!config._retry) {
+      config._retry = true;
+      return api(config);
+    }
+  }
+  return Promise.reject(error);
+});
 
 export async function verifyOrCreateUser() {
   try {

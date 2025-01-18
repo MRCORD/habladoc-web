@@ -29,3 +29,17 @@ export interface ApiResponse<T> {
   data: T;
   is_new?: boolean;
 }
+
+export interface Specialty {
+  id: string;
+  name: string;
+  description?: string;
+  created_at: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  is_new?: boolean;
+}

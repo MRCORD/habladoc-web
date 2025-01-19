@@ -4,6 +4,7 @@ export interface User {
   auth_id: string;
   email: string;
   phone: string | null;
+  document_number: string | null;
   first_name: string;
   last_name: string;
   roles: string[];

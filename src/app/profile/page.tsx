@@ -130,6 +130,7 @@ export default function ProfilePage() {
                 {profile.specialty && (
                   <p className="text-sm text-gray-500">{profile.specialty.name}</p>
                 )}
+                <p className="text-sm text-gray-500">DNI: {profile.user.document_number}</p>
               </div>
             </div>
             <button

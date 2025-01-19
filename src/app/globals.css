@@ -5,12 +5,14 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --input-text: #171717;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --input-text: #ededed;
   }
 }
 
@@ -18,4 +20,10 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Ensure all inputs use the correct text color */
+input, textarea, select {
+  @apply text-black;
+  color: var(--input-text); /* Fallback to CSS variables for dark mode */
 }

@@ -9,8 +9,11 @@ module.exports = {
     extend: {
       colors: {
         primary: '#0066CC',
+        background: 'var(--background)',
+        foreground: 'var(--foreground)',
+        inputText: 'var(--input-text)',
       },
     },
   },
   plugins: [],
-}
+};

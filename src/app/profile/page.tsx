@@ -115,89 +115,89 @@ export default function ProfilePage() {
     return null;
   }
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        {/* Profile Header */}
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <UserCircle className="h-12 w-12 text-gray-400" />
-              <div className="ml-4">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {profile.user.first_name} {profile.user.last_name}
-                </h2>
-                {profile.specialty && (
-                  <p className="text-sm text-gray-500">{profile.specialty.name}</p>
-                )}
-                <p className="text-sm text-gray-500">DNI: {profile.user.document_number}</p>
-              </div>
+return (
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 profile-page">
+    <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+      {/* Profile Header */}
+      <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <UserCircle className="h-12 w-12 text-gray-400" />
+            <div className="ml-4">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {profile.user.first_name} {profile.user.last_name}
+              </h2>
+              {profile.specialty && (
+                <p className="text-sm text-gray-500">{profile.specialty.name}</p>
+              )}
+              <p className="text-sm text-gray-500">DNI: {profile.user.document_number}</p>
             </div>
-            <button
-              onClick={() => setIsDrawerOpen(true)}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            >
-              Editar Perfil
-            </button>
           </div>
+          <button
+            onClick={() => setIsDrawerOpen(true)}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          >
+            Editar Perfil
+          </button>
         </div>
+      </div>
 
-        {/* Profile Content */}
-        <div className="px-4 py-5 sm:p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Contact Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Información de Contacto</h3>
-              <div className="space-y-3">
-                <div className="flex items-center text-gray-700">
-                  <Mail className="h-5 w-5 mr-2" />
-                  <span>{profile.user.email}</span>
-                </div>
-                {profile.user.phone && (
-                  <div className="flex items-center text-gray-700">
-                    <Phone className="h-5 w-5 mr-2" />
-                    <span>{profile.user.phone}</span>
-                  </div>
-                )}
+      {/* Profile Content */}
+      <div className="px-4 py-5 sm:p-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Contact Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900">Información de Contacto</h3>
+            <div className="space-y-3">
+              <div className="flex items-center text-gray-700">
+                <Mail className="h-5 w-5 mr-2" />
+                <span>{profile.user.email}</span>
               </div>
+              {profile.user.phone && (
+                <div className="flex items-center text-gray-700">
+                  <Phone className="h-5 w-5 mr-2" />
+                  <span>{profile.user.phone}</span>
+                </div>
+              )}
             </div>
+          </div>
 
-            {/* Professional Information */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Información Profesional</h3>
-              <div className="space-y-3">
-                <div className="flex items-center text-gray-700">
-                  <Clipboard className="h-5 w-5 mr-2" />
-                  <span>Número de Licencia: {profile.doctor.license_number}</span>
-                </div>
-                {profile.doctor.metadata?.languages && (
-                  <div className="flex items-center text-gray-700">
-                    <Globe2 className="h-5 w-5 mr-2" />
-                    <span>Idiomas: {(profile.doctor.metadata.languages as string[])
-                      .map(lang => lang === 'es' ? 'Español' : 'Inglés')
-                      .join(', ')}
-                    </span>
-                  </div>
-                )}
-                {profile.doctor.metadata?.consultation_fee && (
-                  <div className="flex items-center text-gray-700">
-                    <DollarSign className="h-5 w-5 mr-2" />
-                    <span>Tarifa de Consulta: ${profile.doctor.metadata.consultation_fee} USD</span>
-                  </div>
-                )}
+          {/* Professional Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900">Información Profesional</h3>
+            <div className="space-y-3">
+              <div className="flex items-center text-gray-700">
+                <Clipboard className="h-5 w-5 mr-2" />
+                <span>Número de Licencia: {profile.doctor.license_number}</span>
               </div>
+              {profile.doctor.metadata?.languages && (
+                <div className="flex items-center text-gray-700">
+                  <Globe2 className="h-5 w-5 mr-2" />
+                  <span>Idiomas: {(profile.doctor.metadata.languages as string[])
+                    .map(lang => lang === 'es' ? 'Español' : 'Inglés')
+                    .join(', ')}
+                  </span>
+                </div>
+              )}
+              {profile.doctor.metadata?.consultation_fee && (
+                <div className="flex items-center text-gray-700">
+                  <DollarSign className="h-5 w-5 mr-2" />
+                  <span>Tarifa de Consulta: ${profile.doctor.metadata.consultation_fee} USD</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
-
-      {/* Edit Profile Drawer */}
-      <UserEditDrawer
-        user={profile.user}
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onUserUpdate={handleUserUpdate}
-      />
     </div>
-  );
+
+    {/* Edit Profile Drawer */}
+    <UserEditDrawer
+      user={profile.user}
+      isOpen={isDrawerOpen}
+      onClose={() => setIsDrawerOpen(false)}
+      onUserUpdate={handleUserUpdate}
+    />
+  </div>
+);
 }

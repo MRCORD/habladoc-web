@@ -158,7 +158,7 @@ export default function CompleteProfile() {
                       }}
                       onFocus={() => setIsDropdownOpen(true)}
                       placeholder="Buscar especialidad..."
-                      className="block w-full rounded-md border-0 py-1.5 pl-10 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                      className="block w-full rounded-md border-0 py-1.5 pl-10 text-black shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                       required
                     />
                     <Search className="absolute left-3 top-2 h-4 w-4 text-gray-400" />
@@ -189,7 +189,7 @@ export default function CompleteProfile() {
                     id="license"
                     value={formData.license_number}
                     onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border-0 py-1.5 text-black shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                     required
                   />
                 </div>
@@ -232,7 +232,7 @@ export default function CompleteProfile() {
                     id="fee"
                     value={formData.consultation_fee}
                     onChange={(e) => setFormData({ ...formData, consultation_fee: e.target.value })}
-                    className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
+                    className="block w-full rounded-md border-0 py-1.5 text-black shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
                     required
                   />
                 </div>

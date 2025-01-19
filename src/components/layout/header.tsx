@@ -73,7 +73,7 @@ export function Header() {
                                 'block px-4 py-2 text-sm text-gray-700'
                               )}
                             >
-                              Profile
+                              Perfil
                             </Link>
                           )}
                         </Menu.Item>
@@ -86,7 +86,7 @@ export function Header() {
                                 'block px-4 py-2 text-sm text-gray-700'
                               )}
                             >
-                              Sign out
+                              Cerrar sesión
                             </a>
                           )}
                         </Menu.Item>
@@ -99,13 +99,13 @@ export function Header() {
                       href="/api/auth/login"
                       className="text-sm font-medium text-gray-700 hover:text-gray-900"
                     >
-                      Sign in
+                      Iniciar sesión
                     </a>
                     <a
                       href="/api/auth/login?screen_hint=signup"
                       className="text-sm font-medium bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90"
                     >
-                      Sign up
+                      Registrarse
                     </a>
                   </div>
                 )}

@@ -1,12 +1,20 @@
-// src/app/dashboard/new-session/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@auth0/nextjs-auth0/client';
 import { ArrowLeft } from 'lucide-react';
 import api from '@/lib/api';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
+
+interface DoctorProfile {
+  id: string;
+  user_id: string;
+  specialty_id: string;
+  license_number: string;
+  is_active: boolean;
+}
 
 interface PatientData {
   user: {
@@ -27,11 +35,38 @@ interface PatientData {
 
 export default function NewSessionPage() {
   const router = useRouter();
+  const { user } = useUser();
   const [documentNumber, setDocumentNumber] = useState('');
   const [patientData, setPatientData] = useState<PatientData | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [doctorProfile, setDoctorProfile] = useState<DoctorProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // Start with loading true
   const [error, setError] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
+
+  // Load doctor profile on mount
+  useEffect(() => {
+    const loadDoctorProfile = async () => {
+      try {
+        console.log('Loading doctor profile...');
+        const response = await api.get('/api/v1/doctors/profile/me');
+        console.log('Doctor profile response:', response.data);
+        if (response.data.success) {
+          setDoctorProfile(response.data.data);
+        } else {
+          setError('Failed to load doctor profile');
+        }
+      } catch (err: any) {
+        console.error('Error loading doctor profile:', err);
+        setError(err.response?.data?.message || 'Error loading doctor profile');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (user) {
+      loadDoctorProfile();
+    }
+  }, [user]);
 
   const searchPatient = async () => {
     if (!documentNumber.trim()) {
@@ -58,6 +93,63 @@ export default function NewSessionPage() {
       setIsLoading(false);
     }
   };
+
+  const startSession = async () => {
+    if (!patientData || !doctorProfile) {
+      setError('Missing required data to start session');
+      console.error('Missing data:', { patientData, doctorProfile });
+      return;
+    }
+    
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      console.log('Creating session with data:', {
+        doctor_id: doctorProfile.id,
+        patient_id: patientData.profile.id
+      });
+
+      const response = await api.post('/api/v1/sessions', {
+        doctor_id: doctorProfile.id,
+        patient_id: patientData.profile.id,
+        status: 'in_progress',
+        session_type: 'standard', // Using the correct enum value from database
+        scheduled_for: new Date().toISOString(),
+        metadata: {
+          started_immediately: true
+        }
+      });
+
+      if (response.data.success) {
+        // Updated route path to match the correct file structure
+        router.push(`/session/${response.data.data.id}`);
+      }
+    } catch (err: any) {
+      console.error('Error starting session:', err);
+      setError(err.response?.data?.message || 'Error starting session');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Show loading while fetching doctor profile
+  if (isLoading && !doctorProfile) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  // Show error if doctor profile failed to load
+  if (!doctorProfile && !isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <ErrorMessage message="Failed to load doctor profile. Please try again later." />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -136,10 +228,11 @@ export default function NewSessionPage() {
 
           <div className="mt-6">
             <button
-              onClick={() => {/* Handle continue to session */}}
+              onClick={startSession}
+              disabled={isLoading}
               className="inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             >
-              Continuar con la Sesión
+              {isLoading ? <LoadingSpinner /> : 'Iniciar Sesión'}
             </button>
           </div>
         </div>

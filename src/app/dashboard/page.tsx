@@ -8,11 +8,20 @@ import { Calendar, Clock, CircleDot, BarChart2, Mic } from 'lucide-react';
 import api from '@/lib/api';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
+import { SessionStatusBadge } from '@/components/common/status-badges';
 import type { User, DoctorProfile } from '@/types';
 
 interface CombinedProfile {
   user: User;
   doctor: DoctorProfile;
+}
+
+interface RecentSession {
+  id: number;
+  patientName: string;
+  date: string;
+  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+  duration: string;
 }
 
 export default function Dashboard() {
@@ -94,10 +103,10 @@ export default function Dashboard() {
     { name: 'Sesiones Completadas', value: '42', icon: BarChart2 },
   ];
 
-  const recentSessions = [
-    { id: 1, patientName: 'Maria Garcia', date: '2024-01-18', status: 'completada', duration: '30 min' },
-    { id: 2, patientName: 'Juan Rodriguez', date: '2024-01-18', status: 'programada', duration: '45 min' },
-    { id: 3, patientName: 'Ana Martinez', date: '2024-01-17', status: 'cancelada', duration: '30 min' },
+  const recentSessions: RecentSession[] = [
+    { id: 1, patientName: 'Maria Garcia', date: '2024-01-18', status: 'completed', duration: '30 min' },
+    { id: 2, patientName: 'Juan Rodriguez', date: '2024-01-18', status: 'scheduled', duration: '45 min' },
+    { id: 3, patientName: 'Ana Martinez', date: '2024-01-17', status: 'cancelled', duration: '30 min' },
   ];
 
   return (
@@ -157,8 +166,8 @@ export default function Dashboard() {
                   </div>
                   <div className="flex items-center">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
-                      ${session.status === 'completada' ? 'bg-green-100 text-green-800' : 
-                        session.status === 'programada' ? 'bg-blue-100 text-blue-800' : 
+                      ${session.status === 'completed' ? 'bg-green-100 text-green-800' : 
+                        session.status === 'scheduled' ? 'bg-blue-100 text-blue-800' : 
                         'bg-red-100 text-red-800'}`}>
                       {session.status}
                     </span>

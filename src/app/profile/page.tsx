@@ -70,7 +70,7 @@ export default function ProfilePage() {
           } catch (err: any) {
             // If profile not found, redirect to complete profile
             if (err.response?.status === 404) {
-              router.push('/dashboard/complete-profile');
+              router.push('/profile/complete-profile');
               return;
             }
             throw err;

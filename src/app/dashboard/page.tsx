@@ -86,7 +86,7 @@ export default function Dashboard() {
             }
           } catch (err: any) {
             if (err.response?.status === 404) {
-              router.push('/dashboard/complete-profile');
+              router.push('/profile/complete-profile');
               return;
             }
             throw err;

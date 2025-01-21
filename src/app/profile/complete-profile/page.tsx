@@ -24,12 +24,12 @@ export default function CompleteProfile() {
   const [specialtySearch, setSpecialtySearch] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
+
   const [formData, setFormData] = useState<FormData>({
     specialty_id: '',
     license_number: '',
     languages: ['es'], // Spanish by default
-    consultation_fee: ''
+    consultation_fee: '',
   });
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,7 +52,7 @@ export default function CompleteProfile() {
         const userResponse = await api.post('/api/v1/users/auth/verify');
         if (userResponse.data.success) {
           setServerUser(userResponse.data.data);
-          
+
           const specialtiesResponse = await api.get('/api/v1/specialties');
           if (specialtiesResponse.data.success) {
             setSpecialties(specialtiesResponse.data.data);
@@ -64,11 +64,7 @@ export default function CompleteProfile() {
         }
       } catch (err) {
         console.error('Failed to load data:', err);
-        if (err instanceof Error) {
-          setError(err.message || 'Failed to load required data');
-        } else {
-          setError('Failed to load required data');
-        }
+        setError(err instanceof Error ? err.message : 'Failed to load required data');
       } finally {
         setIsLoading(false);
       }
@@ -79,7 +75,7 @@ export default function CompleteProfile() {
     }
   }, [auth0User]);
 
-  const filteredSpecialties = specialties.filter(specialty =>
+  const filteredSpecialties = specialties.filter((specialty) =>
     specialty.name.toLowerCase().includes(specialtySearch.toLowerCase())
   );
 
@@ -89,17 +85,13 @@ export default function CompleteProfile() {
     setIsDropdownOpen(false);
   };
 
-  const selectedSpecialty = specialties.find(s => s.id === formData.specialty_id);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError(null);
 
     try {
-      if (!serverUser) {
-        throw new Error('User data not found');
-      }
+      if (!serverUser) throw new Error('User data not found');
 
       const profileData = {
         user_id: serverUser.id,
@@ -108,16 +100,14 @@ export default function CompleteProfile() {
         is_active: true,
         metadata: {
           languages: formData.languages,
-          consultation_fee: formData.consultation_fee
-        }
+          consultation_fee: formData.consultation_fee,
+        },
       };
 
       const response = await api.post('/api/v1/doctors/profile', profileData);
-      
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to create profile');
-      }
-      
+
+      if (!response.data.success) throw new Error(response.data.message || 'Failed to create profile');
+
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to create doctor profile');
@@ -130,133 +120,129 @@ export default function CompleteProfile() {
   if (!auth0User || !serverUser) return null;
 
   return (
-    <div className="max-w-2xl mx-auto py-8">
-      <div className="space-y-12">
-        <div className="border-b border-gray-900/10 pb-12">
-          <h2 className="text-base font-semibold leading-7 text-gray-900">Completa tu perfil</h2>
-          <p className="mt-1 text-sm leading-6 text-gray-600">
-            Por favor proporciona tu información profesional para completar tu registro.
+    <div className="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl mx-auto bg-white shadow sm:rounded-lg p-6 space-y-6">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900">Completa tu perfil</h2>
+          <p className="mt-2 text-sm text-gray-600">
+            Proporciona tu información profesional para completar tu registro.
           </p>
+        </div>
 
-          {error && <ErrorMessage message={error} />}
+        {error && <ErrorMessage message={error} />}
 
-          <form onSubmit={handleSubmit} className="mt-10 space-y-8 divide-y divide-gray-200">
-            <div className="space-y-6">
-              <div className="relative" ref={dropdownRef}>
-                <label htmlFor="specialty" className="block text-sm font-medium leading-6 text-gray-900">
-                  Especialidad Médica
-                </label>
-                <div className="mt-2 relative">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      id="specialty"
-                      value={specialtySearch}
-                      onChange={(e) => {
-                        setSpecialtySearch(e.target.value);
-                        setIsDropdownOpen(true);
-                      }}
-                      onFocus={() => setIsDropdownOpen(true)}
-                      placeholder="Buscar especialidad..."
-                      className="block w-full rounded-md border-0 py-1.5 pl-10 text-black shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
-                      required
-                    />
-                    <Search className="absolute left-3 top-2 h-4 w-4 text-gray-400" />
-                  </div>
-                  {isDropdownOpen && filteredSpecialties.length > 0 && (
-                    <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
-                      {filteredSpecialties.map((specialty) => (
-                        <div
-                          key={specialty.id}
-                          onClick={() => handleSpecialtySelect(specialty)}
-                          className="cursor-pointer px-4 py-2 text-sm text-gray-900 hover:bg-gray-100"
-                        >
-                          {specialty.name}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="license" className="block text-sm font-medium leading-6 text-gray-900">
-                  Número de Licencia Médica
-                </label>
-                <div className="mt-2">
-                  <input
-                    type="text"
-                    id="license"
-                    value={formData.license_number}
-                    onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
-                    className="block w-full rounded-md border-0 py-1.5 text-black shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="languages" className="block text-sm font-medium leading-6 text-gray-900">
-                  Idiomas Hablados
-                </label>
-                <div className="mt-2 space-y-2">
-                  {['es', 'en'].map((lang) => (
-                    <div key={lang} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        id={`lang-${lang}`}
-                        checked={formData.languages.includes(lang)}
-                        onChange={(e) => {
-                          const languages = e.target.checked
-                            ? [...formData.languages, lang]
-                            : formData.languages.filter(l => l !== lang);
-                          setFormData({ ...formData, languages });
-                        }}
-                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <label htmlFor={`lang-${lang}`} className="ml-2 text-sm text-gray-900">
-                        {lang === 'es' ? 'Español' : 'Inglés'}
-                      </label>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Specialty */}
+          <div className="relative" ref={dropdownRef}>
+            <label htmlFor="specialty" className="block text-sm font-medium text-gray-900">
+              Especialidad Médica
+            </label>
+            <div className="mt-2 relative">
+              <input
+                type="text"
+                id="specialty"
+                value={specialtySearch}
+                onChange={(e) => {
+                  setSpecialtySearch(e.target.value);
+                  setIsDropdownOpen(true);
+                }}
+                onFocus={() => setIsDropdownOpen(true)}
+                placeholder="Buscar especialidad..."
+                className="block w-full rounded-md border py-2 pl-10 pr-4 text-black shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
+                required
+              />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              {isDropdownOpen && filteredSpecialties.length > 0 && (
+                <div className="absolute z-10 mt-1 w-full max-h-60 overflow-auto bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
+                  {filteredSpecialties.map((specialty) => (
+                    <div
+                      key={specialty.id}
+                      onClick={() => handleSpecialtySelect(specialty)}
+                      className="cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      {specialty.name}
                     </div>
                   ))}
                 </div>
-              </div>
+              )}
+            </div>
+          </div>
 
-              <div>
-                <label htmlFor="fee" className="block text-sm font-medium leading-6 text-gray-900">
-                  Tarifa de Consulta (USD)
-                </label>
-                <div className="mt-2">
+          {/* License Number */}
+          <div>
+            <label htmlFor="license" className="block text-sm font-medium text-gray-900">
+              Número de Licencia Médica
+            </label>
+            <input
+              type="text"
+              id="license"
+              value={formData.license_number}
+              onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
+              className="mt-2 block w-full rounded-md border py-2 text-black shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
+              required
+            />
+          </div>
+
+          {/* Languages */}
+          <div>
+            <label htmlFor="languages" className="block text-sm font-medium text-gray-900">
+              Idiomas Hablados
+            </label>
+            <div className="mt-2 flex gap-x-4">
+              {['es', 'en'].map((lang) => (
+                <label key={lang} className="flex items-center text-sm">
                   <input
-                    type="number"
-                    id="fee"
-                    value={formData.consultation_fee}
-                    onChange={(e) => setFormData({ ...formData, consultation_fee: e.target.value })}
-                    className="block w-full rounded-md border-0 py-1.5 text-black shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6"
-                    required
+                    type="checkbox"
+                    checked={formData.languages.includes(lang)}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        languages: e.target.checked
+                          ? [...prev.languages, lang]
+                          : prev.languages.filter((l) => l !== lang),
+                      }))
+                    }
+                    className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
                   />
-                </div>
-              </div>
+                  <span className="ml-2">{lang === 'es' ? 'Español' : 'Inglés'}</span>
+                </label>
+              ))}
             </div>
+          </div>
 
-            <div className="pt-6 flex items-center justify-end gap-x-6">
-              <button
-                type="button"
-                onClick={() => router.back()}
-                className="text-sm font-semibold leading-6 text-gray-900"
-              >
-                Cancelar
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-              >
-                {isSubmitting ? 'Guardando...' : 'Guardar Perfil'}
-              </button>
-            </div>
-          </form>
-        </div>
+          {/* Fee */}
+          <div>
+            <label htmlFor="fee" className="block text-sm font-medium text-gray-900">
+              Tarifa de Consulta (USD)
+            </label>
+            <input
+              type="number"
+              id="fee"
+              value={formData.consultation_fee}
+              onChange={(e) => setFormData({ ...formData, consultation_fee: e.target.value })}
+              className="mt-2 block w-full rounded-md border py-2 text-black shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
+              required
+            />
+          </div>
+
+          {/* Buttons */}
+          <div className="flex items-center justify-end gap-x-4">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="text-sm font-medium text-gray-600 hover:text-gray-900"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            >
+              {isSubmitting ? 'Guardando...' : 'Guardar Perfil'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

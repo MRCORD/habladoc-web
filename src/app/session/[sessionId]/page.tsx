@@ -11,6 +11,28 @@ import { SessionStatusBadge, type SessionStatus } from '@/components/common/stat
 import { use } from 'react';
 import AudioRecorder from '@/components/session/audio-recorder';
 import { RecordingsList } from '@/components/session/recordings-list';
+import { PatientData } from '@/components/session/patient-info';  // Import the PatientData component
+
+interface User {
+  id: string;
+  email: string;
+  phone: string;
+  first_name: string;
+  last_name: string;
+  document_number: string;
+}
+
+interface Patient {
+  id: string;
+  date_of_birth: string;
+  gender: string;
+  blood_type: string;
+  allergies: any;
+  emergency_contact: string | null;
+  insurance_info: any;
+  metadata: any;
+  user: User;
+}
 
 interface SessionData {
   id: string;
@@ -20,6 +42,7 @@ interface SessionData {
   session_type: string;
   scheduled_for: string;
   metadata: any;
+  patient: Patient;
 }
 
 interface Recording {
@@ -83,56 +106,38 @@ export default function SessionPage({ params }: { params: Promise<{ sessionId: s
     <>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="mb-8">
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-black bg-transparent hover:bg-gray-200 mb-4"
-          >
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            Volver al Dashboard
-          </button>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Sesión en Progreso</h1>
-              {/* <p className="text-gray-500">ID: {sessionData.id}</p> */}
-            </div>
+        <div className="flex items-center justify-between mb-8 flex-wrap">
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="p-2 text-black bg-transparent hover:bg-gray-200 rounded-full"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-900">
+              Sesión en Progreso
+            </h1>
+          </div>
+          <div className="mt-2 sm:mt-0">
             <SessionStatusBadge status={sessionData.status} />
           </div>
         </div>
 
-        {/* (Optional) Recordings List */}
-        {recordings.length > 0 && (
-          <div className="bg-white shadow rounded-lg p-6 mb-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Grabaciones</h2>
-            <RecordingsList 
-              recordings={recordings}
-              onError={(msg) => setError(msg)}
-            />
-          </div>
-        )}
+        {/* Common container for Patient Data and Recordings List */}
+        <div className="max-w-screen-lg mx-auto space-y-6">
+          {/* Patient Data Component placed under the heading */}
+          <PatientData patient={sessionData.patient} />
 
-        {/* Session Info */}
-        <div className="bg-white shadow rounded-lg p-6 mb-24">
-          {/* added `mb-24` so the fixed bottom recorder doesn't cover content */}
-          <h2 className="text-lg font-medium text-gray-900 mb-4">Información de la Sesión</h2>
-          <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Tipo de Sesión</dt>
-              <dd className="mt-1 text-sm text-gray-900">{sessionData.session_type}</dd>
+          {/* (Optional) Recordings List */}
+          {recordings.length > 0 && (
+            <div className="bg-white shadow rounded-lg p-6 mb-6">
+              <h2 className="text-lg font-medium text-gray-900 mb-4">Grabaciones</h2>
+              <RecordingsList 
+                recordings={recordings}
+                onError={(msg) => setError(msg)}
+              />
             </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Estado</dt>
-              <dd className="mt-1 text-sm text-gray-900">
-                <SessionStatusBadge status={sessionData.status} />
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Fecha y Hora</dt>
-              <dd className="mt-1 text-sm text-gray-900">
-                {new Date(sessionData.scheduled_for).toLocaleString()}
-              </dd>
-            </div>
-          </dl>
+          )}
         </div>
       </div>
 

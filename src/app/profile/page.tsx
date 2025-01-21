@@ -116,15 +116,15 @@ export default function ProfilePage() {
   }
 
 return (
-  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 profile-page">
-    <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+  <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 profile-page">
+    <div className="bg-white shadow-md rounded-lg overflow-hidden">
       {/* Profile Header */}
       <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center space-x-4">
             <UserCircle className="h-12 w-12 text-gray-400" />
-            <div className="ml-4">
-              <h2 className="text-2xl font-bold text-gray-900">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
                 {profile.user.first_name} {profile.user.last_name}
               </h2>
               {profile.specialty && (
@@ -133,18 +133,20 @@ return (
               <p className="text-sm text-gray-500">DNI: {profile.user.document_number}</p>
             </div>
           </div>
-          <button
-            onClick={() => setIsDrawerOpen(true)}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-          >
-            Editar Perfil
-          </button>
+          <div className="mt-4 sm:mt-0 sm:ml-4">
+            <button
+              onClick={() => setIsDrawerOpen(true)}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            >
+              Editar Perfil
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Profile Content */}
       <div className="px-4 py-5 sm:p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* Contact Information */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-gray-900">Información de Contacto</h3>

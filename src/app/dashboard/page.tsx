@@ -172,24 +172,16 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         {stats.map((stat) => (
           <div
             key={stat.name}
-            className="bg-white overflow-hidden shadow rounded-lg"
+            className="bg-white shadow-md rounded-lg p-4 flex flex-col items-center space-y-3 hover:shadow-lg transition-shadow min-w-[120px]"
           >
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <stat.icon className="h-6 w-6 text-gray-400" aria-hidden="true" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">{stat.name}</dt>
-                    <dd className="text-lg font-medium text-gray-900">{stat.value}</dd>
-                  </dl>
-                </div>
-              </div>
+            <stat.icon className="w-8 h-8 text-gray-500" aria-hidden="true" />
+            <div className="text-center">
+              <p className="text-sm text-gray-500 whitespace-nowrap">{stat.name}</p>
+              <p className="text-xl font-bold text-gray-900">{stat.value}</p>
             </div>
           </div>
         ))}

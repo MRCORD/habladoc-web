@@ -25,7 +25,7 @@ export default function Home() {
   if (user) return null;
 
   return (
-    <div className="relative isolate px-6 pt-14 lg:px-8 bg-gradient-to-b from-blue-50 to-white">
+    <div className="relative isolate px-6 pt-20 lg:px-8 bg-gradient-to-b from-blue-50 to-white min-h-screen">
       <div className="mx-auto max-w-2xl py-24 sm:py-36 lg:py-48">
         <div className="text-center space-y-6">
           {/* Headline */}

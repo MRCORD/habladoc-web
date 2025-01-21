@@ -124,15 +124,15 @@ export default function CompleteProfile() {
 
       // Prepare data for complete profile
       const completeProfileData = {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
-        email: formData.email,
-        phone: formData.phone,
-        document_number: formData.document_number,
+        first_name: formData.first_name || null,
+        last_name: formData.last_name || null,
+        email: formData.email || null,
+        phone: formData.phone || null,
+        document_number: formData.document_number || null,
         specialty_id: formData.specialty_id,
         license_number: formData.license_number,
         languages: formData.languages,
-        consultation_fee: parseFloat(formData.consultation_fee)
+        consultation_fee: formData.consultation_fee ? parseFloat(formData.consultation_fee) : null
       };
 
       console.log('Completing profile with data:', completeProfileData);

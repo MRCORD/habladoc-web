@@ -74,8 +74,11 @@ const AudioRecorder = ({
       // Configurar RecordRTC con MediaStreamRecorder (audio/webm, audio/mp4, etc.)
       recordRtcRef.current = new RecordRTC(stream, {
         type: "audio",
-        mimeType: "audio/webm", // Prueba "audio/mp4" o "audio/mpeg" en Safari
+        mimeType: "audio/mp4", // Prueba "audio/mp4" o "audio/mpeg" en Safari
         recorderType: RecordRTC.MediaStreamRecorder,
+        timeSlice: 1000,
+        desiredSampRate: 16000,
+        numberOfAudioChannels: 1,
       });
 
       recordRtcRef.current.startRecording();
@@ -148,33 +151,70 @@ const AudioRecorder = ({
     setIsUploading(true);
     setError(null);
 
+    let uploadedFilePath = '';
+
     try {
       const response = await fetch(audioUrl);
       const blob = await response.blob();
 
-      const { path, size, mimeType, error: uploadError } =
-        await recordingsStorage.upload(blob, doctorId, sessionId);
-      if (uploadError) throw uploadError;
-
-      const recordingResponse = await api.post("/api/v1/recordings", {
-        session_id: sessionId,
-        file_path: path,
-        file_size: size,
-        mime_type: mimeType,
-        duration: duration,
-        status: "pending",
-      });
-
-      if (!recordingResponse.data.success) {
-        throw new Error("No se pudo guardar la grabación");
+      // Step 1: Upload the file to storage
+      const uploadResult = await recordingsStorage.upload(blob, doctorId, sessionId);
+      if (uploadResult.error) {
+        throw uploadResult.error;
       }
 
+      uploadedFilePath = uploadResult.path;
+
+      console.log('File uploaded successfully, creating recording record:', {
+        path: uploadedFilePath,
+        size: uploadResult.size,
+        mimeType: uploadResult.mimeType,
+        duration
+      });
+
+      // Step 2: Create the recording record in database
+      const recordingData = {
+        session_id: sessionId,
+        duration,
+        file_path: uploadedFilePath,
+        file_size: uploadResult.size,
+        mime_type: uploadResult.mimeType || 'audio/mp4',
+        status: "pending",
+        metadata: {
+          sample_rate: 16000,
+          channels: 1,
+          duration_seconds: duration,
+          original_name: `recording-${new Date().toISOString()}.mp4`
+        }
+      };
+
+      const recordingResponse = await api.post("/api/v1/recordings", recordingData);
+
+      if (!recordingResponse.data.success) {
+        throw new Error(recordingResponse.data.message || "Failed to save recording");
+      }
+
+      console.log('Recording created successfully:', recordingResponse.data);
+
+      // Clear the UI and notify parent
       setAudioUrl(null);
       setDuration(0);
       onRecordingComplete();
+
     } catch (err) {
-      console.error("Upload error:", err);
-      setError("Error al subir la grabación");
+      console.error('Upload process error:', err);
+      
+      // If we uploaded the file but failed to create the record, clean up the file
+      if (uploadedFilePath) {
+        console.log('Cleaning up uploaded file after error:', uploadedFilePath);
+        try {
+          await recordingsStorage.delete(uploadedFilePath);
+        } catch (deleteErr) {
+          console.error('Failed to clean up file:', deleteErr);
+        }
+      }
+
+      setError(err instanceof Error ? err.message : 'Error al subir la grabación');
     } finally {
       setIsUploading(false);
     }

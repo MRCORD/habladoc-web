@@ -1,16 +1,13 @@
 // src/lib/storage.ts
 import { createClient } from '@supabase/supabase-js';
 
-// Ensure environment variables are set
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+// Environment variables validation
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
-
-// Create Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Types
 export interface UploadResult {
@@ -23,20 +20,24 @@ export interface FileMetadata {
   type: string;
 }
 
-// Base storage service class
 export class StorageService {
   private bucket: string;
+  private client: any;
 
   constructor(bucket: string = 'storage') {
     this.bucket = bucket;
+    this.client = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    });
   }
 
-  /**
-   * Upload a file to storage
-   * @param file - File to upload
-   * @param path - Path where file should be stored (without filename)
-   * @param filename - Optional filename (if not provided, original name is used)
-   */
+  setAuth(token: string) {
+    this.client.auth.setSession({ access_token: token });
+  }
+
   async upload(
     file: File | Blob,
     path: string,
@@ -53,15 +54,25 @@ export class StorageService {
       // Construct full path
       const fullPath = `${cleanPath}/${finalFilename}`;
 
+      console.log('Uploading file:', {
+        bucket: this.bucket,
+        path: fullPath,
+        size: file.size,
+        type: file instanceof File ? file.type : 'application/octet-stream'
+      });
+
       // Upload file
-      const { error } = await supabase.storage
+      const { data, error } = await this.client.storage
         .from(this.bucket)
         .upload(fullPath, file, {
           cacheControl: '3600',
           upsert: false
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase storage error:', error);
+        throw error;
+      }
 
       return {
         path: fullPath,
@@ -77,14 +88,16 @@ export class StorageService {
     }
   }
 
-  /**
-   * Delete one or more files from storage
-   * @param paths - Single path or array of paths to delete
-   */
   async delete(paths: string | string[]): Promise<{ error: Error | null }> {
     try {
       const pathsArray = Array.isArray(paths) ? paths : [paths];
-      const { error } = await supabase.storage
+      
+      console.log('Deleting files:', {
+        bucket: this.bucket,
+        paths: pathsArray
+      });
+
+      const { error } = await this.client.storage
         .from(this.bucket)
         .remove(pathsArray);
 
@@ -99,13 +112,14 @@ export class StorageService {
     }
   }
 
-  /**
-   * Get file metadata
-   * @param path - Path to the file
-   */
   async getMetadata(path: string): Promise<FileMetadata | null> {
     try {
-      const { data, error } = await supabase.storage
+      console.log('Getting metadata for file:', {
+        bucket: this.bucket,
+        path
+      });
+
+      const { data, error } = await this.client.storage
         .from(this.bucket)
         .list('', {
           search: path
@@ -113,7 +127,7 @@ export class StorageService {
 
       if (error) throw error;
 
-      const file = data.find(item => item.name === path.split('/').pop());
+      const file = data.find((item: { name: string; metadata: { size: number; mimetype: string } }) => item.name === path.split('/').pop());
       if (!file) return null;
 
       return {
@@ -126,17 +140,44 @@ export class StorageService {
     }
   }
 
-  /**
-   * Create a signed URL for temporary access
-   * @param path - Path to the file
-   * @param expiresIn - Expiration time in seconds (default: 1 hour)
-   */
+  async getUrl(path: string): Promise<{ signedUrl: string | null; error: Error | null }> {
+    try {
+      console.log('Getting URL for file:', {
+        bucket: this.bucket,
+        path
+      });
+
+      // For public bucket, we can use getPublicUrl
+      const { data } = this.client.storage
+        .from(this.bucket)
+        .getPublicUrl(path);
+
+      return {
+        signedUrl: data.publicUrl,
+        error: null
+      };
+    } catch (error) {
+      console.error('Get URL error:', error);
+      return {
+        signedUrl: null,
+        error: error instanceof Error ? error : new Error('Failed to get URL')
+      };
+    }
+  }
+
+  // Legacy method kept for compatibility
   async createSignedUrl(
     path: string,
     expiresIn: number = 3600
   ): Promise<{ signedUrl: string | null; error: Error | null }> {
     try {
-      const { data, error } = await supabase.storage
+      console.log('Creating signed URL:', {
+        bucket: this.bucket,
+        path,
+        expiresIn
+      });
+
+      const { data, error } = await this.client.storage
         .from(this.bucket)
         .createSignedUrl(path, expiresIn);
 
@@ -156,5 +197,5 @@ export class StorageService {
   }
 }
 
-// Create instance with default bucket
+// Export singleton instance
 export const storage = new StorageService();

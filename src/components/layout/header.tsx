@@ -96,13 +96,13 @@ export function Header() {
                 ) : (
                   <div className="flex items-center space-x-4">
                     <a
-                      href="/api/auth/login"
+                      href="/api/auth/login" // Default login route
                       className="text-sm font-medium text-gray-700 hover:text-gray-900"
                     >
                       Iniciar sesión
                     </a>
                     <a
-                      href="/api/auth/login?screen_hint=signup"
+                      href="/api/auth/signup" // Correctly points to the custom signup API route
                       className="text-sm font-medium bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90"
                     >
                       Registrarse

@@ -11,7 +11,7 @@ interface RecordingsListProps {
 export const RecordingsList = ({ recordings, onError }: RecordingsListProps) => {
   const [recordingUrls, setRecordingUrls] = React.useState<Record<string, string>>({});
 
-  const getSignedUrl = async (recording: Recording) => {
+  const getSignedUrl = React.useCallback(async (recording: Recording) => {
     try {
       const { signedUrl, error } = await recordingsStorage.getUrl(recording.file_path);
       if (error) throw error;
@@ -26,7 +26,7 @@ export const RecordingsList = ({ recordings, onError }: RecordingsListProps) => 
       const errorMessage = err instanceof Error ? err.message : 'Error getting recording URL';
       onError(errorMessage);
     }
-  };
+  }, [onError]);
 
   React.useEffect(() => {
     recordings.forEach(recording => {
@@ -34,7 +34,7 @@ export const RecordingsList = ({ recordings, onError }: RecordingsListProps) => 
         getSignedUrl(recording);
       }
     });
-  }, [recordings]);
+  }, [recordings, recordingUrls, getSignedUrl]);
 
   return (
     <div className="space-y-4">

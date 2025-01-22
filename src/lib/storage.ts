@@ -1,5 +1,4 @@
-// src/lib/storage.ts
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Environment variables validation
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -22,20 +21,23 @@ export interface FileMetadata {
 
 export class StorageService {
   private bucket: string;
-  private client: any;
+  private client: SupabaseClient; // Correctly typed as SupabaseClient
 
   constructor(bucket: string = 'storage') {
     this.bucket = bucket;
     this.client = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         autoRefreshToken: false,
-        persistSession: false
-      }
+        persistSession: false,
+      },
     });
   }
 
-  setAuth(token: string) {
-    this.client.auth.setSession({ access_token: token });
+  setAuth(accessToken: string, refreshToken: string) {
+    this.client.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
   }
 
   async upload(
@@ -46,11 +48,11 @@ export class StorageService {
     try {
       // Clean path and ensure no leading/trailing slashes
       const cleanPath = path.replace(/^\/+|\/+$/g, '');
-      
+
       // Generate filename if not provided
-      const finalFilename = filename || 
-        (file instanceof File ? file.name : `${Date.now()}.file`);
-      
+      const finalFilename =
+        filename || (file instanceof File ? file.name : `${Date.now()}.file`);
+
       // Construct full path
       const fullPath = `${cleanPath}/${finalFilename}`;
 
@@ -58,7 +60,7 @@ export class StorageService {
         bucket: this.bucket,
         path: fullPath,
         size: file.size,
-        type: file instanceof File ? file.type : 'application/octet-stream'
+        type: file instanceof File ? file.type : 'application/octet-stream',
       });
 
       // Upload file
@@ -66,7 +68,7 @@ export class StorageService {
         .from(this.bucket)
         .upload(fullPath, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
         });
 
       if (error) {
@@ -76,14 +78,13 @@ export class StorageService {
 
       return {
         path: fullPath,
-        error: null
+        error: null,
       };
-
     } catch (error) {
       console.error('Upload error:', error);
       return {
         path: '',
-        error: error instanceof Error ? error : new Error('Upload failed')
+        error: error instanceof Error ? error : new Error('Upload failed'),
       };
     }
   }
@@ -91,10 +92,10 @@ export class StorageService {
   async delete(paths: string | string[]): Promise<{ error: Error | null }> {
     try {
       const pathsArray = Array.isArray(paths) ? paths : [paths];
-      
+
       console.log('Deleting files:', {
         bucket: this.bucket,
-        paths: pathsArray
+        paths: pathsArray,
       });
 
       const { error } = await this.client.storage
@@ -107,7 +108,7 @@ export class StorageService {
     } catch (error) {
       console.error('Delete error:', error);
       return {
-        error: error instanceof Error ? error : new Error('Delete failed')
+        error: error instanceof Error ? error : new Error('Delete failed'),
       };
     }
   }
@@ -116,23 +117,27 @@ export class StorageService {
     try {
       console.log('Getting metadata for file:', {
         bucket: this.bucket,
-        path
+        path,
       });
 
       const { data, error } = await this.client.storage
         .from(this.bucket)
         .list('', {
-          search: path
+          search: path,
         });
 
       if (error) throw error;
 
-      const file = data.find((item: { name: string; metadata: { size: number; mimetype: string } }) => item.name === path.split('/').pop());
-      if (!file) return null;
+      const file = data.find(
+        (item: { name: string; metadata: Record<string, any> }) =>
+          item.name === path.split('/').pop()
+      );
+
+      if (!file || !file.metadata) return null;
 
       return {
-        size: file.metadata.size,
-        type: file.metadata.mimetype
+        size: file.metadata.size || 0,
+        type: file.metadata.mimetype || 'unknown',
       };
     } catch (error) {
       console.error('Get metadata error:', error);
@@ -144,23 +149,21 @@ export class StorageService {
     try {
       console.log('Getting URL for file:', {
         bucket: this.bucket,
-        path
+        path,
       });
 
       // For public bucket, we can use getPublicUrl
-      const { data } = this.client.storage
-        .from(this.bucket)
-        .getPublicUrl(path);
+      const { data } = this.client.storage.from(this.bucket).getPublicUrl(path);
 
       return {
         signedUrl: data.publicUrl,
-        error: null
+        error: null,
       };
     } catch (error) {
       console.error('Get URL error:', error);
       return {
         signedUrl: null,
-        error: error instanceof Error ? error : new Error('Failed to get URL')
+        error: error instanceof Error ? error : new Error('Failed to get URL'),
       };
     }
   }
@@ -174,7 +177,7 @@ export class StorageService {
       console.log('Creating signed URL:', {
         bucket: this.bucket,
         path,
-        expiresIn
+        expiresIn,
       });
 
       const { data, error } = await this.client.storage
@@ -185,13 +188,13 @@ export class StorageService {
 
       return {
         signedUrl: data.signedUrl,
-        error: null
+        error: null,
       };
     } catch (error) {
       console.error('Create signed URL error:', error);
       return {
         signedUrl: null,
-        error: error instanceof Error ? error : new Error('Failed to create signed URL')
+        error: error instanceof Error ? error : new Error('Failed to create signed URL'),
       };
     }
   }

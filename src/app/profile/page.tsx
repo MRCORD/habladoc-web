@@ -1,7 +1,7 @@
-// app/profile/page.tsx
+// src/app/profile/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react'; // Add useEffect import
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { UserCircle, Mail, Phone, Clipboard, Globe2, DollarSign } from 'lucide-react';
 import { useUserStore } from '@/stores/userStore';
@@ -10,11 +10,16 @@ import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
 import UserEditDrawer from '@/components/profile/user-edit-drawer';
 
+interface DoctorMetadata {
+  languages?: string[];
+  consultation_fee?: number;
+  [key: string]: unknown;
+}
+
 export default function ProfilePage() {
   const router = useRouter();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   
-  // Get all data from user store
   const { 
     user, 
     doctorProfile, 
@@ -23,7 +28,6 @@ export default function ProfilePage() {
     error 
   } = useUserStore();
   
-  // Load initial data
   const { isLoading: isInitialLoading } = useInitialLoad();
 
   // Redirect to complete profile if doctor profile is missing
@@ -48,6 +52,10 @@ export default function ProfilePage() {
   if (!user || !doctorProfile) {
     return null;
   }
+
+  const metadata = doctorProfile.metadata as DoctorMetadata;
+  const languages = metadata?.languages;
+  const consultationFee = metadata?.consultation_fee;
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 profile-page">
@@ -106,19 +114,20 @@ export default function ProfilePage() {
                   <Clipboard className="h-5 w-5 mr-2" />
                   <span>Número de Licencia: {doctorProfile.license_number}</span>
                 </div>
-                {doctorProfile.metadata?.languages && (
+                {languages && (
                   <div className="flex items-center text-gray-700">
                     <Globe2 className="h-5 w-5 mr-2" />
-                    <span>Idiomas: {(doctorProfile.metadata.languages as string[])
-                      .map(lang => lang === 'es' ? 'Español' : 'Inglés')
-                      .join(', ')}
+                    <span>
+                      Idiomas: {languages
+                        .map(lang => lang === 'es' ? 'Español' : 'Inglés')
+                        .join(', ')}
                     </span>
                   </div>
                 )}
-                {doctorProfile.metadata?.consultation_fee && (
+                {consultationFee !== undefined && (
                   <div className="flex items-center text-gray-700">
                     <DollarSign className="h-5 w-5 mr-2" />
-                    <span>Tarifa de Consulta: ${doctorProfile.metadata.consultation_fee} USD</span>
+                    <span>Tarifa de Consulta: ${consultationFee} USD</span>
                   </div>
                 )}
               </div>
@@ -133,7 +142,6 @@ export default function ProfilePage() {
         onClose={() => setIsDrawerOpen(false)}
         user={user}
         onUserUpdate={(updatedUser) => {
-          // Update user store with the updated user information
           useUserStore.setState({ user: updatedUser });
         }}
       />

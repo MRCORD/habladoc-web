@@ -1,4 +1,3 @@
-// src/components/session/patient-info.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -13,7 +12,35 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import type { User } from '@/types';
-import { cn } from '@/lib/utils';
+
+interface EmergencyContact {
+  name?: string;
+  relationship?: string;
+  phone?: string;
+  email?: string;
+}
+
+interface InsuranceInformation {
+  provider?: string;
+  status?: string;
+  plan_name?: string;
+  policy_number?: string;
+  expiration_date?: string;
+  [key: string]: string | undefined;
+}
+
+interface MedicalCondition {
+  name: string;
+  type: string;
+  status: string;
+}
+
+interface PatientMetadata {
+  medical_conditions?: MedicalCondition[];
+  last_visit?: string;
+  preferred_language?: string;
+  [key: string]: unknown;
+}
 
 interface PatientDataProps {
   patientData: {
@@ -25,21 +52,9 @@ interface PatientDataProps {
     blood_type?: string;
     date_of_birth?: string;
     gender?: string;
-    emergency_contact?: any;
-    insurance_info?: {
-      provider?: string;
-      status?: string;
-      plan_name?: string;
-      [key: string]: any;
-    };
-    metadata?: {
-      medical_conditions?: Array<{
-        name: string;
-        type: string;
-        status: string;
-      }>;
-      [key: string]: any;
-    };
+    emergency_contact?: EmergencyContact;
+    insurance_info?: InsuranceInformation;
+    metadata?: PatientMetadata;
     medical_history?: string[];
   };
 }

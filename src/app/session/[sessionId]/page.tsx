@@ -1,37 +1,22 @@
 // src/app/session/[sessionId]/page.tsx
 "use client";
 
-import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
-import { useSessionData } from '@/hooks/apiHooks';
-import { useSessionStore } from '@/stores/sessionStore';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
-import { ErrorMessage } from '@/components/common/error-message';
-import { SessionStatusBadge } from '@/components/common/status-badges';
-import AudioRecorder from '@/components/session/audio-recorder';
-import { RecordingsList } from '@/components/session/recordings-list';
-import { PatientData } from '@/components/session/patient-info';
-import type { Patient, Recording, ApiRecording } from '@/types';
-import { convertApiRecording } from '@/types';
+import { useParams, useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 
-interface PatientValidation {
-  user: {
-    first_name: string;
-    last_name: string;
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
-}
+import { useSessionData } from "@/hooks/apiHooks";
+import { useSessionStore } from "@/stores/sessionStore";
+import { LoadingSpinner } from "@/components/common/loading-spinner";
+import { ErrorMessage } from "@/components/common/error-message";
+import { SessionStatusBadge } from "@/components/common/status-badges";
+import AudioRecorder from "@/components/session/audio-recorder";
+import { RecordingsList } from "@/components/session/recordings-list";
+import { PatientData } from "@/components/session/patient-info";
 
-function isValidPatient(patient: unknown): patient is Patient {
-  const validation = patient as PatientValidation;
-  return Boolean(
-    validation &&
-    typeof validation.user === 'object' &&
-    validation.user &&
-    typeof validation.user.first_name === 'string' &&
-    typeof validation.user.last_name === 'string'
-  );
+import type { Recording } from "@/types";
+
+function convertApiRecording(apiRec: any): Recording {
+  return apiRec as Recording;
 }
 
 export default function SessionPage() {
@@ -39,10 +24,10 @@ export default function SessionPage() {
   const params = useParams();
   const sessionId = params?.sessionId as string;
 
-  const { 
-    session: sessionData, 
-    recordings: apiRecordings, 
-    isLoading, 
+  const {
+    session: sessionData,
+    recordings: apiRecordings,
+    isLoading,
     error,
   } = useSessionData(sessionId);
 
@@ -66,12 +51,28 @@ export default function SessionPage() {
     return <ErrorMessage message={error} />;
   }
 
-  if (!sessionData || !isValidPatient(sessionData.patient)) {
+  if (!sessionData?.patient) {
     return null;
   }
 
-  // Convert API recordings to frontend format
-  const recordings: Recording[] = (apiRecordings as ApiRecording[]).map(convertApiRecording);
+  // Helper function to convert null to undefined
+  const nullToUndefined = <T,>(value: T | null): T | undefined => 
+    value === null ? undefined : value;
+
+  // Pass the patient data directly, just converting nulls to undefined
+  const patientData = {
+    ...sessionData.patient,
+    allergies: nullToUndefined(sessionData.patient.allergies),
+    blood_type: nullToUndefined(sessionData.patient.blood_type),
+    date_of_birth: nullToUndefined(sessionData.patient.date_of_birth),
+    gender: nullToUndefined(sessionData.patient.gender),
+    emergency_contact: nullToUndefined(sessionData.patient.emergency_contact),
+    insurance_info: nullToUndefined(sessionData.patient.insurance_info),
+    metadata: nullToUndefined(sessionData.patient.metadata)
+  };
+
+  const safeRecordings = Array.isArray(apiRecordings) ? apiRecordings : [];
+  const recordings: Recording[] = safeRecordings.map(convertApiRecording);
 
   return (
     <>
@@ -80,7 +81,7 @@ export default function SessionPage() {
         <div className="flex items-center justify-between mb-8 flex-wrap">
           <div className="flex items-center space-x-2">
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push("/dashboard")}
               className="p-2 text-black bg-transparent hover:bg-gray-200 rounded-full"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -97,13 +98,15 @@ export default function SessionPage() {
         {/* Common container for Patient Data and Recordings List */}
         <div className="max-w-screen-lg mx-auto space-y-6">
           {/* Patient Data Component */}
-          <PatientData patient={sessionData.patient} />
+          <PatientData patientData={patientData} />
 
           {/* Recordings List */}
           {recordings.length > 0 && (
             <div className="bg-white shadow rounded-lg p-6 mb-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">Grabaciones</h2>
-              <RecordingsList 
+              <h2 className="text-lg font-medium text-gray-900 mb-4">
+                Grabaciones
+              </h2>
+              <RecordingsList
                 recordings={recordings}
                 onError={(msg) => useSessionStore.setState({ error: msg })}
               />
@@ -113,9 +116,9 @@ export default function SessionPage() {
       </div>
 
       {/* Fixed bottom audio recorder */}
-      <AudioRecorder 
+      <AudioRecorder
         sessionId={sessionId}
-        doctorId={sessionData.doctorId}
+        doctorId={sessionData.doctor_id}
         onRecordingComplete={handleRecordingComplete}
       />
     </>

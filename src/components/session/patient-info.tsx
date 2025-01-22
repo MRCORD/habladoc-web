@@ -11,142 +11,194 @@ import {
   HeartPulse,
   BriefcaseMedical,
   AlertCircle,
-  LifeBuoy,
-  Globe2,
 } from 'lucide-react';
-import type { Patient, AllergyCondition } from '@/types';
+import type { User } from '@/types';
+import { cn } from '@/lib/utils';
 
 interface PatientDataProps {
-  patient: Patient;
+  patientData: {
+    id: string;
+    user: User;
+    allergies?: {
+      conditions: Array<string | { name: string; severity?: string; notes?: string }>;
+    };
+    blood_type?: string;
+    date_of_birth?: string;
+    gender?: string;
+    emergency_contact?: any;
+    insurance_info?: {
+      provider?: string;
+      status?: string;
+      plan_name?: string;
+      [key: string]: any;
+    };
+    metadata?: {
+      medical_conditions?: Array<{
+        name: string;
+        type: string;
+        status: string;
+      }>;
+      [key: string]: any;
+    };
+    medical_history?: string[];
+  };
 }
 
-export const PatientData: React.FC<PatientDataProps> = ({ patient }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
-  const fullName = `${patient.user.first_name} ${patient.user.last_name}`;
-  const formattedDOB = new Date(patient.date_of_birth).toLocaleDateString();
+const InsuranceInfo: React.FC<{ info: NonNullable<PatientDataProps['patientData']['insurance_info']> }> = ({ info }) => (
+  <div className="flex flex-wrap items-center gap-2 text-sm">
+    <span>{info.provider}</span>
+    <span className="text-gray-300 hidden sm:inline">•</span>
+    <span>{info.plan_name}</span>
+  </div>
+);
 
-  const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
+export const PatientData: React.FC<PatientDataProps> = ({ patientData }) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString + 'T00:00:00');
+    return date.toLocaleDateString('es-ES', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
   };
 
-  const formatAllergyLabel = (allergy: string | AllergyCondition): string => {
-    if (typeof allergy === 'string') {
-      return allergy;
+  const calculateAge = (birthDate: string) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
     }
-    return allergy.name || 'Desconocido';
+    
+    return age;
   };
 
   return (
-    <div className="bg-white shadow-md rounded-md p-4 sm:p-6 space-y-6 mb-6 max-w-screen-lg mx-auto">
-      {/* Header: Full Name + Doc Badge + Toggle Button */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <UserCircle className="w-7 h-7 text-gray-500" />
-          <h2 className="text-lg font-semibold text-gray-800">{fullName}</h2>
+    <div className="bg-white shadow rounded-lg overflow-hidden">
+      {/* Header */}
+      <div className="p-4 sm:p-6 flex items-center justify-between border-b border-gray-100">
+        <div className="flex items-start gap-3">
+          <UserCircle className="w-8 h-8 sm:w-6 sm:h-6 text-gray-400 mt-1" />
+          <div>
+            <h2 className="text-lg font-medium text-gray-900">{patientData.user.first_name} {patientData.user.last_name}</h2>
+            <p className="text-sm text-gray-500">DNI: {patientData.user.document_number}</p>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          {patient.user.document_number && (
-            <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700">
-              {patient.user.document_number}
-            </span>
-          )}
-          <button
-            onClick={toggleExpanded}
-            className="flex items-center justify-center text-gray-600 hover:text-gray-800 focus:outline-none"
-          >
-            {isExpanded ? (
-              <ChevronUp className="w-5 h-5" aria-label="Collapse section" />
-            ) : (
-              <ChevronDown className="w-5 h-5" aria-label="Expand section" />
-            )}
-          </button>
-        </div>
+        <button
+          onClick={() => setIsExpanded(!isExpanded)}
+          className="p-2 -mr-2 text-gray-400 hover:text-gray-500 hover:bg-gray-50 rounded-full transition-colors"
+        >
+          {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+        </button>
       </div>
 
-      {/* Collapsible Section */}
+      {/* Content */}
       {isExpanded && (
-        <>
-          {/* Basic Info */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            <div className="flex items-start space-x-2">
-              <Calendar className="w-5 h-5 text-gray-500 mt-0.5" />
+        <div className="p-4 sm:p-6 space-y-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-3">
+            {/* Birth Date */}
+            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+              <Calendar className="w-5 h-5 text-gray-400 mt-1" />
               <div>
-                <p className="text-sm text-gray-500">Nacimiento</p>
-                <p className="font-medium text-gray-700">{formattedDOB}</p>
+                <div className="text-sm text-gray-500">Nacimiento</div>
+                <div className="text-sm font-medium text-gray-900">{patientData.date_of_birth && formatDate(patientData.date_of_birth)}</div>
+                <div className="text-sm text-gray-500">{patientData.date_of_birth && `${calculateAge(patientData.date_of_birth)} años`}</div>
               </div>
             </div>
-            <div className="flex items-start space-x-2">
-              <HeartPulse className="w-5 h-5 text-gray-500 mt-0.5" />
+
+            {/* Gender */}
+            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+              <HeartPulse className="w-5 h-5 text-gray-400 mt-1" />
               <div>
-                <p className="text-sm text-gray-500">Género</p>
-                <p className="font-medium text-gray-700">{patient.gender}</p>
+                <div className="text-sm text-gray-500">Género</div>
+                <div className="mt-1">
+                  <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">
+                    {patientData.gender === 'male' ? 'Masculino' : 'Femenino'}
+                  </span>
+                </div>
               </div>
             </div>
-            <div className="flex items-start space-x-2">
-              <Droplet className="w-5 h-5 text-gray-500 mt-0.5" />
+
+            {/* Blood Type */}
+            <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+              <Droplet className="w-5 h-5 text-gray-400 mt-1" />
               <div>
-                <p className="text-sm text-gray-500">Sangre</p>
-                <p className="font-medium text-gray-700">{patient.blood_type}</p>
+                <div className="text-sm text-gray-500">Tipo de Sangre</div>
+                <div className="text-sm font-medium text-gray-900">{patientData.blood_type}</div>
               </div>
             </div>
+
+            {/* Insurance */}
+            {patientData.insurance_info && (
+              <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                <BriefcaseMedical className="w-5 h-5 text-gray-500 shrink-0 mt-1" />
+                <div>
+                  <div className="text-sm text-gray-500">Seguro médico</div>
+                  <InsuranceInfo info={patientData.insurance_info} />
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Insurance Info */}
-          {patient.insurance_info && (
-            Object.keys(patient.insurance_info).length > 0 && (
-              <div>
-                <div className="flex items-center space-x-2 mb-3">
-                  <BriefcaseMedical className="w-5 h-5 text-gray-500" />
-                  <h3 className="text-md font-semibold text-gray-800">Seguro</h3>
-                </div>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  {patient.insurance_info.provider && (
-                    <div className="flex items-start space-x-2">
-                      <Globe2 className="w-5 h-5 text-gray-500 mt-0.5" />
-                      <div>
-                        <p className="text-sm text-gray-500">Proveedor</p>
-                        <p className="font-medium text-gray-700">
-                          {patient.insurance_info.provider}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )
-          )}
-
-          {/* Allergies */}
-          {patient.allergies?.conditions?.length > 0 && (
-            <div>
-              <div className="flex items-center space-x-2 mb-3">
-                <AlertCircle className="w-5 h-5 text-red-500" />
-                <h3 className="text-md font-semibold text-gray-800">Alergias</h3>
+          {/* Medical Conditions */}
+          {patientData.metadata?.medical_conditions && patientData.metadata.medical_conditions.length > 0 && (
+            <div className="mt-6 space-y-3">
+              <div className="flex items-center gap-2">
+                <HeartPulse className="w-5 h-5 text-gray-400" />
+                <h3 className="text-sm font-medium text-gray-900">Condiciones Médicas</h3>
               </div>
               <div className="flex flex-wrap gap-2">
-                {patient.allergies.conditions.map((allergy, idx) => (
+                {patientData.metadata.medical_conditions.map((condition, idx) => (
                   <span
                     key={idx}
-                    className="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-800"
+                    className="inline-flex items-center rounded-md bg-orange-50 px-2.5 py-1.5 text-sm font-medium text-orange-700"
                   >
-                    {formatAllergyLabel(allergy)}
+                    {condition.name}
                   </span>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Emergency Contact */}
-          {patient.emergency_contact && (
-            <div>
-              <div className="flex items-center space-x-2 mb-2">
-                <LifeBuoy className="w-5 h-5 text-gray-500" />
-                <h3 className="text-md font-semibold text-gray-800">Emergencia</h3>
+          {/* Allergies */}
+          {patientData.allergies?.conditions && patientData.allergies.conditions.length > 0 && (
+            <div className="mt-6 space-y-3">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-gray-400" />
+                <h3 className="text-sm font-medium text-gray-900">Alergias</h3>
               </div>
-              <p className="text-sm font-medium text-gray-700">{patient.emergency_contact}</p>
+              <div className="flex flex-wrap gap-2">
+                {patientData.allergies.conditions.map((allergy, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-flex items-center rounded-md bg-red-50 px-2.5 py-1.5 text-sm font-medium text-red-700"
+                  >
+                    {typeof allergy === 'string' ? allergy : allergy.name}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
-        </>
+
+          {/* Medical History */}
+          {patientData.medical_history && (
+            <div className="mt-6 space-y-3">
+              <div className="flex items-center gap-2">
+                <HeartPulse className="w-5 h-5 text-gray-400" />
+                <h3 className="text-sm font-medium text-gray-900">Historial Médico</h3>
+              </div>
+              <ul className="list-disc list-inside space-y-2">
+                {patientData.medical_history.map((history, index) => (
+                  <li key={index} className="text-sm text-gray-900">{history}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

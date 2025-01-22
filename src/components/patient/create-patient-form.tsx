@@ -1,17 +1,26 @@
-// components/patient/create-patient-form.tsx
 import { useState } from 'react';
 import { usePatientStore } from '@/stores/patientStore';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
-import type { User, Patient } from '@/types';
+import type { User, PatientProfile } from '@/types';
+import { UserRole } from '@/types';
 
 interface CreatePatientFormProps {
   documentNumber: string;
   onCancel: () => void;
 }
 
+interface PatientFormData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  date_of_birth: string;
+  gender: string;
+}
+
 export function CreatePatientForm({ documentNumber, onCancel }: CreatePatientFormProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<PatientFormData>({
     first_name: '',
     last_name: '',
     email: '',
@@ -25,19 +34,20 @@ export function CreatePatientForm({ documentNumber, onCancel }: CreatePatientFor
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Prepare patient data with proper typing
     const patientData = {
       user: {
         first_name: formData.first_name,
         last_name: formData.last_name,
         email: formData.email || undefined,
         phone: formData.phone || undefined,
-        document_number: documentNumber
+        document_number: documentNumber,
+        roles: [UserRole.PATIENT]
       } satisfies Partial<User>,
       profile: {
         date_of_birth: formData.date_of_birth || undefined,
         gender: formData.gender || undefined,
-      } satisfies Partial<Patient>
+        is_active: true
+      } satisfies Partial<PatientProfile>
     };
 
     const success = await createPatient(patientData);

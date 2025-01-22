@@ -1,14 +1,43 @@
-//src/types/index.ts
+// src/types/index.ts
+
+// Enums that match backend
+export enum UserRole {
+  ADMIN = "admin",
+  DOCTOR = "doctor",
+  PATIENT = "patient"
+}
+
+export enum SessionType {
+  STANDARD = "standard",
+  ONE_TIME = "one_time",
+  FOLLOW_UP = "follow_up"
+}
+
+export enum SessionStatus {
+  SCHEDULED = "scheduled",
+  IN_PROGRESS = "in_progress",
+  COMPLETED = "completed",
+  CANCELLED = "cancelled"
+}
+
+export enum RecordingStatus {
+  PENDING = "pending",
+  PROCESSING = "processing",
+  PROCESSED = "processed",
+  FAILED = "failed"
+}
+
+// Base interfaces that match DB schemas
 export interface User {
   id: string;
-  auth_id?: string;  // Made optional
-  email: string;
-  phone: string | null;
-  document_number: string | null;
+  auth0_id?: string;
   first_name: string;
   last_name: string;
-  roles: string[];
-  metadata: Record<string, unknown> | null;
+  email?: string | null;
+  phone?: string | null;
+  document_number?: string | null;
+  roles: UserRole[];
+  metadata?: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 }
@@ -19,7 +48,62 @@ export interface DoctorProfile {
   specialty_id: string;
   license_number: string;
   is_active: boolean;
-  metadata: Record<string, unknown> | null;
+  metadata?: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PatientProfile {
+  id: string;
+  user_id: string;
+  date_of_birth?: string | null;
+  gender?: string | null;
+  blood_type?: string | null;
+  allergies?: {
+    conditions: Array<string | AllergyCondition>;
+  } | null;
+  emergency_contact?: Record<string, unknown> | null;
+  insurance_info?: Record<string, unknown> | null;
+  metadata?: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+}
+
+export interface Session {
+  id: string;
+  doctor_id: string;
+  patient_id: string;
+  doctor_patient_id?: string;
+  status: SessionStatus;
+  session_type: SessionType;
+  scheduled_for: string;
+  started_at?: string | null;
+  ended_at?: string | null;
+  duration?: number | null;
+  summary?: string | null;
+  notes?: Record<string, unknown> | null;
+  metadata?: Record<string, unknown> | null;
+  created_at: string;
+  updated_at: string;
+  patient?: {
+    id: string;
+    first_name?: string;
+    last_name?: string;
+    document_number?: string;
+  };
+}
+
+export interface Recording {
+  id: string;
+  session_id: string;
+  status: RecordingStatus;
+  duration?: number | null;
+  file_path?: string | null;
+  file_size?: number | null;
+  mime_type?: string | null;
+  is_processed: boolean;
+  metadata?: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 }
@@ -31,91 +115,46 @@ export interface Specialty {
   created_at: string;
 }
 
-export type SessionType = 'standard' | 'one_time' | 'follow_up';
-export type SessionStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+// API Response interfaces
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  is_new?: boolean;
+}
 
-export interface SessionData {
-  doctorId: string;
-  patientId: string;
+export interface SessionWithDetails extends Omit<Session, 'patient'> {
+  patient: PatientProfile & {
+    user: User;
+  };
+}
+
+// Utility types for creating/updating
+export type UserCreateData = Omit<User, 'id' | 'created_at' | 'updated_at'>;
+export type UserUpdateData = Partial<Omit<User, 'id' | 'created_at' | 'updated_at'>>;
+
+export type SessionCreateData = {
+  doctor_id: string;
+  patient_id: string;
   status: SessionStatus;
-  sessionType: SessionType;
-  scheduledFor?: string;
+  session_type: SessionType;
+  scheduled_for?: string;
   metadata?: Record<string, unknown>;
-}
+};
 
-export interface Session {
-  id: string;
-  doctorId: string;
-  patientId: string;
-  status: SessionStatus;
-  sessionType: SessionType;
-  scheduledFor: string;
-  startedAt?: string;
-  endedAt?: string;
-  duration?: number;
-  summary?: string;
-  notes?: Record<string, unknown>;
-  metadata?: Record<string, unknown>;
-  createdAt: string;
-  updatedAt: string;
-  doctorPatientId?: string;
-  patient?: Patient;
-}
+export type SessionUpdateData = Partial<Omit<Session, 'id' | 'created_at' | 'updated_at'>>;
 
-export interface Recording {
-  id: string;
-  sessionId: string;
-  status: 'pending' | 'processing' | 'processed' | 'failed';
-  startTime: string;
-  endTime?: string;
-  duration?: number;
-  filePath: string;
-  fileSize?: number;
-  mimeType?: string;
-  isProcessed: boolean;
-  metadata?: Record<string, unknown>;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ApiRecording {
-  id: string;
+export type RecordingCreateData = {
   session_id: string;
-  status: 'pending' | 'processing' | 'processed' | 'failed';
-  start_time: string;
-  end_time?: string;
+  status: RecordingStatus;
   duration?: number;
-  file_path: string;
+  file_path?: string;
   file_size?: number;
   mime_type?: string;
-  is_processed: boolean;
   metadata?: Record<string, unknown>;
-  created_at: string;
-  updated_at: string;
-}
+};
 
-export const convertApiRecording = (apiRecording: ApiRecording): Recording => ({
-  id: apiRecording.id,
-  sessionId: apiRecording.session_id,
-  status: apiRecording.status,
-  startTime: apiRecording.start_time,
-  endTime: apiRecording.end_time,
-  duration: apiRecording.duration,
-  filePath: apiRecording.file_path,
-  fileSize: apiRecording.file_size,
-  mimeType: apiRecording.mime_type,
-  isProcessed: apiRecording.is_processed,
-  metadata: apiRecording.metadata,
-  createdAt: apiRecording.created_at,
-  updatedAt: apiRecording.updated_at
-});
-
-export interface Allergy {
-  name: string;
-  severity?: string;
-  notes?: string;
-}
-
+// Additional types
 export interface AllergyCondition {
   name: string;
   severity?: string;
@@ -130,38 +169,15 @@ export interface InsuranceInfo {
   [key: string]: unknown;
 }
 
-export interface Patient {
-  id: string;
-  date_of_birth: string;
-  gender: string;
-  blood_type: string;
-  allergies: {
-    conditions: (string | AllergyCondition)[];
-  };
-  emergency_contact: string | null;
-  insurance_info: InsuranceInfo;
-  metadata: Record<string, unknown>;
-  user: User;
-}
-
-export interface PatientSearchResult {
-  profile: {
-    id: string;
-    user_id: string;
-    date_of_birth: string | null;
-    gender: string | null;
-    blood_type: string | null;
-    allergies: { conditions: (string | AllergyCondition)[] } | null;
-    emergency_contact: string | null;
-    insurance_info: Record<string, unknown> | null;
-    metadata: Record<string, unknown> | null;
-  };
-  user: User;
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-  is_new?: boolean;
+// Complete profile type that matches the backend
+export interface CompleteProfileData {
+  first_name: string;
+  last_name: string;
+  email?: string;
+  phone?: string;
+  document_number?: string;
+  specialty_id: string;
+  license_number: string;
+  languages: string[];
+  consultation_fee: number;
 }

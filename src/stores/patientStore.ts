@@ -2,12 +2,12 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import api from '@/lib/api';
-import type { Patient, User, ApiResponse } from '@/types';
+import type { PatientProfile, User, ApiResponse } from '@/types';
 
 // Interface for patient search/create response
 interface PatientWithUser {
   user: User;
-  profile: Patient;
+  profile: PatientProfile;
 }
 
 // Interface for API errors
@@ -29,7 +29,7 @@ interface PatientState {
   searchPatient: (documentNumber: string) => Promise<void>;
   createPatient: (patientData: {
     user: Partial<User>;
-    profile: Partial<Patient>;
+    profile: Partial<PatientProfile>;
   }) => Promise<boolean>;
   reset: () => void;
   setShowCreateForm: (show: boolean) => void;
@@ -72,7 +72,7 @@ export const usePatientStore = create<PatientState>()(
 
       createPatient: async (patientData: {
         user: Partial<User>;
-        profile: Partial<Patient>;
+        profile: Partial<PatientProfile>;
       }) => {
         try {
           set({ isLoading: true, error: null });

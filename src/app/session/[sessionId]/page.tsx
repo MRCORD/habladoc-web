@@ -13,7 +13,7 @@ import AudioRecorder from "@/components/session/audio-recorder";
 import { RecordingsList } from "@/components/session/recordings-list";
 import { PatientData } from "@/components/session/patient-info";
 
-import type { Recording, InsuranceInfo } from "@/types";
+import type { InsuranceInfo } from "@/types";
 
 export default function SessionPage() {
   const router = useRouter();

@@ -74,7 +74,7 @@ const AudioRecorder = ({
       // Configurar RecordRTC con MediaStreamRecorder (audio/webm, audio/mp4, etc.)
       recordRtcRef.current = new RecordRTC(stream, {
         type: "audio",
-        mimeType: "audio/mp4", // Prueba "audio/mp4" o "audio/mpeg" en Safari
+        mimeType: "audio/webm", // Changed from "audio/mp4" to "audio/webm"
         recorderType: RecordRTC.MediaStreamRecorder,
         timeSlice: 1000,
         desiredSampRate: 16000,
@@ -184,7 +184,7 @@ const AudioRecorder = ({
           sample_rate: 16000,
           channels: 1,
           duration_seconds: duration,
-          original_name: `recording-${new Date().toISOString()}.mp4`
+          original_name: `recording-${new Date().toISOString()}.webm` // Changed from .mp4 to .webm
         }
       };
 

@@ -1,14 +1,7 @@
 // src/components/session/recordings-list.tsx
 import React from 'react';
 import { recordingsStorage } from '@/lib/recordings';
-
-interface Recording {
-  id: string;
-  file_path: string;
-  duration: number;
-  status: string;
-  created_at: string;
-}
+import { Recording } from '@/types';
 
 interface RecordingsListProps {
   recordings: Recording[];

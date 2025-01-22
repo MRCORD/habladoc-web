@@ -1,7 +1,8 @@
 // src/lib/auth0-config.ts
-import { InitAuth0 } from '@auth0/nextjs-auth0';
+import { ConfigParameters } from '@auth0/nextjs-auth0';
 
-export const auth0Config: InitAuth0 = {
+export const auth0Config: ConfigParameters = {
+  auth0Logout: true,
   baseURL: process.env.AUTH0_BASE_URL,
   issuerBaseURL: process.env.AUTH0_ISSUER_BASE_URL,
   clientID: process.env.AUTH0_CLIENT_ID,
@@ -10,7 +11,7 @@ export const auth0Config: InitAuth0 = {
   routes: {
     callback: '/api/auth/callback',
     login: '/api/auth/login',
-    logout: '/api/auth/logout'
+    postLogoutRedirect: '/api/auth/logout'  // Updated from 'logout' to 'postLogoutRedirect'
   },
   session: {
     rollingDuration: 60 * 60 * 24, // 24 hours

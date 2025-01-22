@@ -2,161 +2,117 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@auth0/nextjs-auth0/client';
 import { Search } from 'lucide-react';
-import api from '@/lib/api';
+import { useUserStore } from '@/stores/userStore';
+import { useSpecialtyStore } from '@/stores/specialtyStore';
+import { useInitialLoad } from '@/hooks/apiHooks';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
-import type { User, Specialty } from '@/types';
-
-interface FormData {
-  // User data
-  first_name: string;
-  last_name: string;
-  email: string;
-  phone: string;
-  document_number: string;
-
-  // Doctor profile data
-  specialty_id: string;
-  license_number: string;
-  languages: string[];
-  consultation_fee: string;
-}
+import type { Specialty } from '@/types';
 
 export default function CompleteProfile() {
   const router = useRouter();
-  const { user: auth0User, isLoading: isAuth0Loading } = useUser();
-  const [serverUser, setServerUser] = useState<User | null>(null);
-  const [specialties, setSpecialties] = useState<Specialty[]>([]);
-  const [specialtySearch, setSpecialtySearch] = useState('');
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Get store data
+  const { 
+    user, 
+    completeProfile, 
+    isLoading: isUserLoading, 
+    error: userError 
+  } = useUserStore();
+  
+  const { 
+    specialties, 
+    searchTerm, 
+    isDropdownOpen,
+    setSearchTerm,
+    setDropdownOpen,
+    fetchSpecialties 
+  } = useSpecialtyStore();
 
-  const [formData, setFormData] = useState<FormData>({
-    // User data
+  // Form state
+  const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
     email: '',
     phone: '',
     document_number: '',
-
-    // Doctor profile data
     specialty_id: '',
     license_number: '',
-    languages: ['es'], // Spanish by default
+    languages: ['es'],
     consultation_fee: '',
   });
-  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Handle clicking outside the dropdown
+  // Load initial data
+  useInitialLoad();
+
+  // Load specialties on mount
+  useEffect(() => {
+    fetchSpecialties();
+  }, [fetchSpecialties]);
+
+  // Update form when user data is loaded
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        first_name: user.first_name || '',
+        last_name: user.last_name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        document_number: user.document_number || '',
+      }));
+    }
+  }, [user]);
+
+  // Handle clicking outside dropdown
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
+        setDropdownOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    async function loadData() {
-      try {
-        // Get user data
-        const userResponse = await api.post('/api/v1/users/auth/verify');
-        if (userResponse.data.success) {
-          const userData = userResponse.data.data;
-          setServerUser(userData);
-          // Pre-fill user data
-          setFormData(prev => ({
-            ...prev,
-            first_name: userData.first_name || '',
-            last_name: userData.last_name || '',
-            email: userData.email || '',
-            phone: userData.phone || '',
-            document_number: userData.document_number || ''
-          }));
-        }
-
-        // Get specialties
-        const specialtiesResponse = await api.get('/api/v1/specialties');
-        if (specialtiesResponse.data.success) {
-          setSpecialties(specialtiesResponse.data.data);
-        }
-      } catch (err) {
-        console.error('Failed to load data:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load required data');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    if (auth0User) {
-      loadData();
-    }
-  }, [auth0User]);
+  }, [setDropdownOpen]);
 
   const filteredSpecialties = specialties.filter((specialty) =>
-    specialty.name.toLowerCase().includes(specialtySearch.toLowerCase())
+    specialty.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSpecialtySelect = (specialty: Specialty) => {
-    setFormData({ ...formData, specialty_id: specialty.id });
-    setSpecialtySearch(specialty.name);
-    setIsDropdownOpen(false);
+    setFormData(prev => ({ ...prev, specialty_id: specialty.id }));
+    setSearchTerm(specialty.name);
+    setDropdownOpen(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setError(null);
 
-    try {
-      // Validation
-      if (!serverUser) throw new Error('User data not found');
-      if (!formData.specialty_id) throw new Error('Please select a specialty');
-      if (!formData.license_number) throw new Error('License number is required');
-
-      console.log('Starting profile completion process...');
-
-      // Prepare data for complete profile
-      const completeProfileData = {
-        first_name: formData.first_name || null,
-        last_name: formData.last_name || null,
-        email: formData.email || null,
-        phone: formData.phone || null,
-        document_number: formData.document_number || null,
-        specialty_id: formData.specialty_id,
-        license_number: formData.license_number,
-        languages: formData.languages,
-        consultation_fee: formData.consultation_fee ? parseFloat(formData.consultation_fee) : null
-      };
-
-      console.log('Completing profile with data:', completeProfileData);
-
-      const response = await api.post('/api/v1/doctors/complete-profile', completeProfileData);
-
-      console.log('Profile completion response:', response);
-
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to complete profile');
-      }
-
-      console.log('Profile completed successfully, redirecting...');
-      router.push('/profile');
-    } catch (err: any) {
-      console.error('Error in profile completion:', err);
-      setError(err.response?.data?.message || err.message || 'Failed to complete profile');
-    } finally {
+    // Validate required fields
+    if (!formData.specialty_id) {
+      useUserStore.setState({ error: 'Please select a specialty' });
       setIsSubmitting(false);
+      return;
     }
+
+    const success = await completeProfile({
+      ...formData,
+      consultation_fee: formData.consultation_fee ? parseFloat(formData.consultation_fee) : null
+    });
+
+    if (success) {
+      router.push('/profile');
+    }
+    
+    setIsSubmitting(false);
   };
 
-  if (isAuth0Loading || isLoading) return <LoadingSpinner />;
-  if (!auth0User || !serverUser) return null;
+  if (isUserLoading) return <LoadingSpinner />;
+  if (!user) return null;
 
   return (
     <div className="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
@@ -168,7 +124,7 @@ export default function CompleteProfile() {
           </p>
         </div>
 
-        {error && <ErrorMessage message={error} />}
+        {userError && <ErrorMessage message={userError} />}
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Personal Information Section */}
@@ -250,7 +206,7 @@ export default function CompleteProfile() {
           <div className="space-y-6">
             <h3 className="text-lg font-medium text-gray-900">Información Profesional</h3>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              {/* Specialty */}
+              {/* Specialty Dropdown */}
               <div className="relative" ref={dropdownRef}>
                 <label htmlFor="specialty" className="block text-sm font-medium text-gray-700">
                   Especialidad Médica
@@ -259,12 +215,9 @@ export default function CompleteProfile() {
                   <input
                     type="text"
                     id="specialty"
-                    value={specialtySearch}
-                    onChange={(e) => {
-                      setSpecialtySearch(e.target.value);
-                      setIsDropdownOpen(true);
-                    }}
-                    onFocus={() => setIsDropdownOpen(true)}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onFocus={() => setDropdownOpen(true)}
                     placeholder="Buscar especialidad..."
                     className="block w-full rounded-md border py-2 pl-10 pr-4 text-black shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
                     required
@@ -345,8 +298,8 @@ export default function CompleteProfile() {
             </div>
           </div>
 
-          {/* Buttons */}
-          <div className="flex items-center justify-end gap-x-4">
+          {/* Submit Buttons */}
+          <div className="flex justify-end space-x-4">
             <button
               type="button"
               onClick={() => router.back()}

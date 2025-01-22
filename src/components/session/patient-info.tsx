@@ -1,4 +1,3 @@
-// src/components/session/patient-info.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -15,47 +14,24 @@ import {
   LifeBuoy,
   Globe2,
   Clipboard,
+  Phone,
 } from 'lucide-react';
+import type { Patient, User } from '@/types';
 
-interface AllergyData {
-  conditions: any[];
-}
-
-interface InsuranceInfo {
-  provider: string;
-  plan_name: string;
+interface AllergyCondition {
+  name?: string;
+  [key: string]: any;
 }
 
 interface MedicalCondition {
   name: string;
   type: string;
-  status: string;
-}
-
-interface Metadata {
-  medical_conditions?: MedicalCondition[];
   [key: string]: any;
 }
 
-interface User {
-  id: string;
-  email: string;
-  phone: string;
-  first_name: string;
-  last_name: string;
-  document_number: string;
-}
-
-interface Patient {
-  id: string;
-  date_of_birth: string;
-  gender: string;
-  blood_type: string;
-  allergies?: AllergyData;
-  emergency_contact?: string | null;
-  insurance_info?: InsuranceInfo;
-  metadata?: Metadata;
-  user: User;
+interface MetaData {
+  medical_conditions?: MedicalCondition[];
+  [key: string]: any;
 }
 
 interface PatientDataProps {
@@ -106,6 +82,14 @@ export const PatientData: React.FC<PatientDataProps> = ({ patient }) => {
       {/* --------- Collapsible Section --------- */}
       {isExpanded && (
         <>
+          {/* Phone number */}
+          {user.phone && (
+            <div className="flex items-center text-gray-700">
+              <Phone className="h-5 w-5 mr-2" />
+              <span>{user.phone}</span>
+            </div>
+          )}
+
           {/* Row: Birthdate, Gender, Blood Type */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
             {/* Birthdate */}
@@ -166,7 +150,7 @@ export const PatientData: React.FC<PatientDataProps> = ({ patient }) => {
             </div>
           )}
 
-          {/* Allergies */}
+          {/* Allergies - now with proper typing */}
           {allergies?.conditions?.length ? (
             <div>
               <div className="flex items-center space-x-2 mb-3">
@@ -174,7 +158,7 @@ export const PatientData: React.FC<PatientDataProps> = ({ patient }) => {
                 <h3 className="text-md font-semibold text-gray-800">Alergias</h3>
               </div>
               <div className="flex flex-wrap gap-2">
-                {allergies.conditions.map((allergy, idx) => {
+                {allergies.conditions.map((allergy: AllergyCondition | string, idx: number) => {
                   const allergyLabel =
                     typeof allergy === 'object' && allergy !== null
                       ? allergy.name ?? 'Desconocido'
@@ -192,8 +176,8 @@ export const PatientData: React.FC<PatientDataProps> = ({ patient }) => {
             </div>
           ) : null}
 
-          {/* Medical Conditions */}
-          {metadata?.medical_conditions?.length ? (
+          {/* Medical Conditions - now with proper typing */}
+          {(metadata as MetaData)?.medical_conditions?.length ? (
             <div>
               <div className="flex items-center space-x-2 mb-3">
                 <BriefcaseMedical className="w-5 h-5 text-gray-500" />
@@ -202,7 +186,7 @@ export const PatientData: React.FC<PatientDataProps> = ({ patient }) => {
                 </h3>
               </div>
               <div className="flex flex-wrap gap-2">
-                {metadata.medical_conditions.map((condition, idx) => (
+                {(metadata as MetaData).medical_conditions?.map((condition: MedicalCondition, idx: number) => (
                   <span
                     key={idx}
                     className="inline-flex items-center rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800"

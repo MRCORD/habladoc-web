@@ -1,164 +1,46 @@
 // app/dashboard/page.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useUser } from '@auth0/nextjs-auth0/client';
+import React from 'react';
 import { useRouter } from 'next/navigation';
-import { Calendar, Clock, CircleDot, BarChart2, Mic } from 'lucide-react';
+import { Mic } from 'lucide-react';
 import { format } from 'date-fns';
-import api from '@/lib/api';
+import { useUserStore } from '@/stores/userStore';
+import { useInitialLoad, useTodaySessions } from '@/hooks/apiHooks';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
-import { SessionStatusBadge } from '@/components/common/status-badges';
-import type { User, DoctorProfile } from '@/types';
+import SessionListItem from '@/components/dashboard/session-list-item';
+import StatsGrid from '@/components/dashboard/stats-grid';
+import type { Session, SessionStatus } from '@/types';
 
-interface CombinedProfile {
-  user: User;
-  doctor: DoctorProfile;
-}
-
-interface RecentSession {
-  id: number;
-  patientName: string;
-  date: string;
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-  duration: string;
-}
-
-// Mock data as fallback
-const mockSessions: RecentSession[] = [
-  { id: 1, patientName: 'Maria Garcia', date: '2024-01-18', status: 'completed', duration: '30 min' },
-  { id: 2, patientName: 'Juan Rodriguez', date: '2024-01-18', status: 'scheduled', duration: '45 min' },
-  { id: 3, patientName: 'Ana Martinez', date: '2024-01-17', status: 'cancelled', duration: '30 min' },
+// Mock data as fallback with proper typing
+const mockSessions = [
+  { id: 1, patientName: 'Maria Garcia', date: '2024-01-18', status: 'completed' as SessionStatus, duration: '30 min' },
+  { id: 2, patientName: 'Juan Rodriguez', date: '2024-01-18', status: 'scheduled' as SessionStatus, duration: '45 min' },
+  { id: 3, patientName: 'Ana Martinez', date: '2024-01-17', status: 'cancelled' as SessionStatus, duration: '30 min' },
 ];
 
-interface Session {
-  id: string;
-  patient_id: string;
-  status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-  scheduled_for: string;
-  started_at?: string;
-  ended_at?: string;
-  duration?: number;
-  patient?: {
-    first_name: string;
-    last_name: string;
-  };
-}
-
 export default function Dashboard() {
-  const { user: auth0User, isLoading: isUserLoading } = useUser();
-  const [profile, setProfile] = useState<CombinedProfile | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [todaySessions, setTodaySessions] = useState<Session[]>([]);
-  const [isLoadingSessions, setIsLoadingSessions] = useState(false);
   const router = useRouter();
+  
+  const { user, doctorProfile, error: userError } = useUserStore();
+  const { isLoading: isInitialLoading } = useInitialLoad();
+  const { todaySessions, isLoading: isSessionsLoading, error: sessionsError } = 
+    useTodaySessions(doctorProfile?.id);
 
-  useEffect(() => {
-    async function loadProfiles() {
-      if (!auth0User) return;
-      
-      try {
-        setIsLoading(true);
-        
-        // Verify/create user
-        const userResponse = await api.post('/api/v1/users/auth/verify');
-        if (!userResponse.data.success) {
-          throw new Error(userResponse.data.message || 'Failed to verify user');
-        }
-
-        const userData: User = userResponse.data.data;
-
-        // Get doctor profile
-        if (userData.roles.includes('doctor')) {
-          try {
-            const profileResponse = await api.get('/api/v1/doctors/profile/me');
-            
-            if (profileResponse.data.success) {
-              setProfile({
-                user: userData,
-                doctor: profileResponse.data.data
-              });
-
-              // Load today's sessions
-              await loadTodaySessions(profileResponse.data.data.id);
-            }
-          } catch (err: any) {
-            if (err.response?.status === 404) {
-              router.push('/profile/complete-profile');
-              return;
-            }
-            throw err;
-          }
-        }
-
-        setIsLoading(false);
-      } catch (err) {
-        console.error('Error loading profiles:', err);
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('An unexpected error occurred');
-        }
-        setIsLoading(false);
-      }
-    }
-
-    if (auth0User && !isUserLoading) {
-      loadProfiles();
-    }
-  }, [auth0User, isUserLoading, router]);
-
-  async function loadTodaySessions(doctorId: string) {
-    try {
-      setIsLoadingSessions(true);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-
-      const response = await api.get(`/api/v1/sessions/doctor/${doctorId}/list`, {
-        params: {
-          from_date: today.toISOString(),
-          to_date: tomorrow.toISOString()
-        }
-      });
-
-      if (response.data) {
-        setTodaySessions(response.data);
-      }
-    } catch (err) {
-      console.error('Error loading sessions:', err);
-      // We'll still show mock sessions as fallback
-    } finally {
-      setIsLoadingSessions(false);
-    }
-  }
-
-  if (isUserLoading || isLoading) {
+  if (isInitialLoading || isSessionsLoading) {
     return <LoadingSpinner />;
   }
 
-  if (error) {
-    return <ErrorMessage message={error} />;
+  if (userError || sessionsError) {
+    return <ErrorMessage message={userError || sessionsError || 'An error occurred'} />;
   }
 
-  if (!profile) {
+  if (!user || !doctorProfile) {
     return null;
   }
 
-  const stats = [
-    { name: 'Sesiones Hoy', value: todaySessions.length || '0', icon: Calendar },
-    { name: 'Próxima Sesión', value: todaySessions.find(s => s.status === 'scheduled')?.scheduled_for ? 
-      format(new Date(todaySessions.find(s => s.status === 'scheduled')!.scheduled_for), 'HH:mm') : 
-      'No hay', icon: Clock },
-    { name: 'Sesiones Activas', value: todaySessions.filter(s => s.status === 'in_progress').length.toString() || '0', icon: CircleDot },
-    { name: 'Sesiones Completadas', value: todaySessions.filter(s => s.status === 'completed').length.toString() || '0', icon: BarChart2 },
-  ];
-
-  // Combine real sessions with mock ones if needed
+  // Sessions display logic
   const displaySessions = todaySessions.length > 0 ? todaySessions : mockSessions;
 
   return (
@@ -166,26 +48,13 @@ export default function Dashboard() {
       {/* Welcome Section */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">
-          Bienvenido, Dr. {profile.user.last_name}
+          Bienvenido, Dr. {user.last_name}
         </h1>
         <p className="text-gray-500">Esto es lo que está pasando con tus sesiones hoy</p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        {stats.map((stat) => (
-          <div
-            key={stat.name}
-            className="bg-white shadow-md rounded-lg p-4 flex flex-col items-center space-y-3 hover:shadow-lg transition-shadow min-w-[120px]"
-          >
-            <stat.icon className="w-8 h-8 text-gray-500" aria-hidden="true" />
-            <div className="text-center">
-              <p className="text-sm text-gray-500 whitespace-nowrap">{stat.name}</p>
-              <p className="text-xl font-bold text-gray-900">{stat.value}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+      <StatsGrid todaySessions={todaySessions} />
 
       {/* Recent Sessions */}
       <div className="bg-white shadow rounded-lg">
@@ -200,43 +69,15 @@ export default function Dashboard() {
           </button>
         </div>
         <div className="border-t border-gray-200">
-          {isLoadingSessions ? (
-            <div className="p-4 flex justify-center">
-              <LoadingSpinner />
-            </div>
-          ) : (
-            <ul role="list" className="divide-y divide-gray-200">
-              {displaySessions.map((session) => (
-                <li 
-                  key={session.id} 
-                  className="px-4 py-4 sm:px-6 hover:bg-gray-50 cursor-pointer"
-                  onClick={() => router.push(`/session/${session.id}`)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <p className="text-sm font-medium text-gray-900">
-                        {/* Handle both mock and real session data */}
-                        {('patientName' in session) ? 
-                          session.patientName : 
-                          `${session.patient?.first_name || 'Paciente'} ${session.patient?.last_name || ''}`}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {format(new Date(('date' in session) ? session.date : session.scheduled_for), 'dd/MM/yyyy HH:mm')}
-                      </p>
-                    </div>
-                    <div className="flex items-center">
-                      <SessionStatusBadge status={session.status} />
-                      <span className="ml-4 text-sm text-gray-500">
-                        {('duration' in session) ? 
-                          session.duration : 
-                          session.duration ? `${session.duration} min` : '---'}
-                      </span>
-                    </div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+          <ul role="list" className="divide-y divide-gray-200">
+            {displaySessions.map((session) => (
+              <SessionListItem
+                key={session.id}
+                session={session}
+                onSelect={() => router.push(`/session/${session.id}`)}
+              />
+            ))}
+          </ul>
         </div>
       </div>
     </div>

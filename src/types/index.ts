@@ -1,4 +1,4 @@
-// types/index.ts
+// src/types/index.ts
 export interface User {
   id: string;
   auth_id: string;
@@ -24,18 +24,60 @@ export interface DoctorProfile {
   updated_at: string;
 }
 
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-  is_new?: boolean;
-}
-
 export interface Specialty {
   id: string;
   name: string;
   description?: string;
   created_at: string;
+}
+
+export type SessionStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+
+export interface Session {
+  id: string;
+  doctor_id: string;
+  patient_id: string;
+  status: SessionStatus;
+  session_type: 'standard' | 'one_time' | 'follow_up';
+  scheduled_for: string;
+  started_at?: string;
+  ended_at?: string;
+  duration?: number;
+  summary?: string;
+  notes?: Record<string, any>;
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+  doctor_patient_id?: string;
+  patient?: Patient; // Change this from simple patient info to full Patient type
+}
+
+export interface Recording {
+  id: string;
+  session_id: string;
+  status: 'pending' | 'processing' | 'processed' | 'failed';
+  start_time: string;
+  end_time?: string;
+  duration?: number; // Make duration optional to match the type
+  file_path: string; // Required now
+  file_size?: number;
+  mime_type?: string;
+  is_processed: boolean;
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Patient {
+  id: string;
+  date_of_birth: string;
+  gender: string;
+  blood_type: string;
+  allergies: any;
+  emergency_contact: string | null;
+  insurance_info: any;
+  metadata: any;
+  user: User;
 }
 
 export interface ApiResponse<T> {

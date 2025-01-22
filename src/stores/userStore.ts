@@ -26,7 +26,7 @@ interface UserState {
   fetchSpecialty: (specialtyId: string) => Promise<void>
   updateUser: (userData: Partial<User>) => Promise<void>
   updateDoctorProfile: (profileData: Partial<DoctorProfile>) => Promise<void>
-  completeProfile: (profileData: any) => Promise<boolean>
+  completeProfile: (profileData: DoctorProfileCompletion) => Promise<boolean>
   reset: () => void
 }
 

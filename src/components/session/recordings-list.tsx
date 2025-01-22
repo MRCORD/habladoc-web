@@ -22,8 +22,9 @@ export const RecordingsList = ({ recordings, onError }: RecordingsListProps) => 
           [recording.id]: signedUrl
         }));
       }
-    } catch (err) {
-      onError('Error getting recording URL');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Error getting recording URL';
+      onError(errorMessage);
     }
   };
 

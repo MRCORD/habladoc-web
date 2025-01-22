@@ -15,8 +15,13 @@ import {
   Clipboard,
 } from 'lucide-react';
 
+interface AllergyCondition {
+  name?: string;
+  [key: string]: unknown;
+}
+
 interface AllergyData {
-  conditions: any[];
+  conditions: (AllergyCondition | string)[];
 }
 
 interface InsuranceInfo {
@@ -32,7 +37,7 @@ interface MedicalCondition {
 
 interface Metadata {
   medical_conditions?: MedicalCondition[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface User {

@@ -3,8 +3,7 @@ import { useEffect } from 'react';
 import { useUserStore } from '@/stores/userStore';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useUser } from '@auth0/nextjs-auth0/client';
-import type { Session, SessionWithDetails } from '@/types';
-import type { RecordingUploadResult } from '@/lib/recordings';
+import type { Session, SessionWithDetails, Recording } from '@/types';
 
 export function useInitialLoad(): { isLoading: boolean } {
   const { user: auth0User, isLoading: isAuth0Loading } = useUser();
@@ -27,17 +26,17 @@ export function useInitialLoad(): { isLoading: boolean } {
 
 interface SessionData {
   session: SessionWithDetails | null;
-  recordings: RecordingUploadResult[];
+  recordings: Recording[]; // Changed from RecordingUploadResult[]
   isLoading: boolean;
   error: string | null;
-  addRecording: (recording: RecordingUploadResult) => void;
+  addRecording: (recording: Recording) => void; // Changed parameter type
 }
 
 export function useSessionData(sessionId: string): SessionData {
   const fetchSession = useSessionStore((state) => state.fetchSession);
   const fetchRecordings = useSessionStore((state) => state.fetchRecordings);
   const addRecording = useSessionStore((state) => state.addRecording);
-  const session = useSessionStore((state) => state.currentSession as SessionWithDetails | null);
+  const session = useSessionStore((state) => state.currentSession);
   const recordings = useSessionStore((state) => state.recordings);
   const isLoading = useSessionStore((state) => state.isLoading);
   const error = useSessionStore((state) => state.error);
@@ -49,7 +48,13 @@ export function useSessionData(sessionId: string): SessionData {
     }
   }, [sessionId, fetchSession, fetchRecordings]);
 
-  return { session, recordings, isLoading, error, addRecording };
+  return { 
+    session, 
+    recordings, 
+    isLoading, 
+    error, 
+    addRecording 
+  };
 }
 
 interface TodaySessionsData {

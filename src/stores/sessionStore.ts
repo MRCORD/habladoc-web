@@ -117,16 +117,16 @@ export const useSessionStore = create<SessionState>()(
           set({ isLoading: true, error: null });
           const response = await api.patch<ApiResponse<SessionWithDetails>>(`/api/v1/sessions/${sessionId}`, data);
           if (response.data.success) {
-            set({ currentSession: response.data.data });
-            
-            // Convert SessionWithDetails to Session for todaySessions
             const updatedSession = response.data.data;
+            set({ currentSession: updatedSession });
+            
+            // Update todaySessions with properly typed patient data
             set((state) => ({
               todaySessions: state.todaySessions.map((session) =>
                 session.id === sessionId ? {
                   ...updatedSession,
-                  patient: updatedSession.patient?.user ? {
-                    id: updatedSession.patient.profile.id,
+                  patient: updatedSession.patient ? {
+                    id: updatedSession.patient.user.id,
                     first_name: updatedSession.patient.user.first_name,
                     last_name: updatedSession.patient.user.last_name,
                     document_number: updatedSession.patient.user.document_number || undefined

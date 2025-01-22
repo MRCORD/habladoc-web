@@ -13,16 +13,16 @@ import AudioRecorder from "@/components/session/audio-recorder";
 import { RecordingsList } from "@/components/session/recordings-list";
 import { PatientData } from "@/components/session/patient-info";
 
-import type { Recording } from "@/types";
+import type { Recording, RecordingStatus } from "@/types";
 
 interface ApiRecording {
   id: string;
   session_id: string;
-  duration: number;
-  file_path: string;
-  file_size: number;
-  mime_type: string;
-  status: string;
+  duration: number | null;
+  file_path: string | null;
+  file_size: number | null;
+  mime_type: string | null;
+  status: RecordingStatus;
   metadata?: {
     sample_rate?: number;
     channels?: number;
@@ -31,10 +31,23 @@ interface ApiRecording {
   };
   created_at: string;
   updated_at: string;
+  is_processed: boolean;
 }
 
 function convertApiRecording(apiRec: ApiRecording): Recording {
-  return apiRec as Recording;
+  return {
+    id: apiRec.id,
+    session_id: apiRec.session_id,
+    duration: apiRec.duration,
+    file_path: apiRec.file_path,
+    file_size: apiRec.file_size,
+    mime_type: apiRec.mime_type,
+    status: apiRec.status,
+    metadata: apiRec.metadata,
+    created_at: apiRec.created_at,
+    updated_at: apiRec.updated_at,
+    is_processed: apiRec.is_processed
+  };
 }
 
 export default function SessionPage() {
@@ -89,8 +102,9 @@ export default function SessionPage() {
     metadata: nullToUndefined(sessionData.patient.metadata)
   };
 
-  const safeRecordings = Array.isArray(apiRecordings) ? apiRecordings : [];
-  const recordings: Recording[] = safeRecordings.map(convertApiRecording);
+  // Ensure apiRecordings is an array and convert each recording
+  const safeRecordings = Array.isArray(apiRecordings) ? apiRecordings as ApiRecording[] : [];
+  const recordings = safeRecordings.map(convertApiRecording);
 
   return (
     <>

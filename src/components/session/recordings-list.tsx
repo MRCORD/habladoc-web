@@ -8,12 +8,12 @@ interface RecordingsListProps {
   onError: (error: string) => void;
 }
 
-export const RecordingsList = ({ recordings, onError }: RecordingsListProps) => {
+export const RecordingsList: React.FC<RecordingsListProps> = ({ recordings, onError }) => {
   const [recordingUrls, setRecordingUrls] = React.useState<Record<string, string>>({});
 
   const getSignedUrl = React.useCallback(async (recording: Recording) => {
     try {
-      const { signedUrl, error } = await recordingsStorage.getUrl(recording.file_path);
+      const { signedUrl, error } = await recordingsStorage.getUrl(recording.filePath);
       if (error) throw error;
       
       if (signedUrl) {
@@ -46,7 +46,7 @@ export const RecordingsList = ({ recordings, onError }: RecordingsListProps) => 
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium text-gray-900">
-                {new Date(recording.created_at).toLocaleTimeString()}
+                {new Date(recording.createdAt).toLocaleTimeString()}
               </span>
               <span className="text-sm text-gray-500">
                 {recording.duration ? 

@@ -17,8 +17,8 @@ export function StatsGrid({ todaySessions }: StatsGridProps) {
     },
     { 
       name: 'Próxima Sesión', 
-      value: todaySessions.find(s => s.status === 'scheduled')?.scheduled_for ? 
-        format(new Date(todaySessions.find(s => s.status === 'scheduled')!.scheduled_for), 'HH:mm') : 
+      value: todaySessions.find(s => s.status === 'scheduled')?.scheduledFor ? 
+        format(new Date(todaySessions.find(s => s.status === 'scheduled')!.scheduledFor), 'HH:mm') : 
         'No hay', 
       icon: Clock 
     },

@@ -1,3 +1,4 @@
+// src/app/session/[sessionId]/page.tsx
 "use client";
 
 import { useParams, useRouter } from 'next/navigation';
@@ -10,7 +11,8 @@ import { SessionStatusBadge } from '@/components/common/status-badges';
 import AudioRecorder from '@/components/session/audio-recorder';
 import { RecordingsList } from '@/components/session/recordings-list';
 import { PatientData } from '@/components/session/patient-info';
-import type { Patient } from '@/types';
+import type { Patient, Recording, ApiRecording } from '@/types';
+import { convertApiRecording } from '@/types';
 
 interface PatientValidation {
   user: {
@@ -39,7 +41,7 @@ export default function SessionPage() {
 
   const { 
     session: sessionData, 
-    recordings, 
+    recordings: apiRecordings, 
     isLoading, 
     error,
   } = useSessionData(sessionId);
@@ -67,6 +69,9 @@ export default function SessionPage() {
   if (!sessionData || !isValidPatient(sessionData.patient)) {
     return null;
   }
+
+  // Convert API recordings to frontend format
+  const recordings: Recording[] = (apiRecordings as ApiRecording[]).map(convertApiRecording);
 
   return (
     <>
@@ -110,7 +115,7 @@ export default function SessionPage() {
       {/* Fixed bottom audio recorder */}
       <AudioRecorder 
         sessionId={sessionId}
-        doctorId={sessionData.doctor_id}
+        doctorId={sessionData.doctorId}
         onRecordingComplete={handleRecordingComplete}
       />
     </>

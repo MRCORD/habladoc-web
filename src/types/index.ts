@@ -1,3 +1,4 @@
+//src/types/index.ts
 export interface User {
   id: string;
   auth_id?: string;  // Made optional
@@ -63,12 +64,28 @@ export interface Session {
 
 export interface Recording {
   id: string;
+  sessionId: string;
+  status: 'pending' | 'processing' | 'processed' | 'failed';
+  startTime: string;
+  endTime?: string;
+  duration?: number;
+  filePath: string;
+  fileSize?: number;
+  mimeType?: string;
+  isProcessed: boolean;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ApiRecording {
+  id: string;
   session_id: string;
   status: 'pending' | 'processing' | 'processed' | 'failed';
   start_time: string;
   end_time?: string;
-  duration?: number; // Make duration optional to match the type
-  file_path: string; // Required now
+  duration?: number;
+  file_path: string;
   file_size?: number;
   mime_type?: string;
   is_processed: boolean;
@@ -77,10 +94,40 @@ export interface Recording {
   updated_at: string;
 }
 
+export const convertApiRecording = (apiRecording: ApiRecording): Recording => ({
+  id: apiRecording.id,
+  sessionId: apiRecording.session_id,
+  status: apiRecording.status,
+  startTime: apiRecording.start_time,
+  endTime: apiRecording.end_time,
+  duration: apiRecording.duration,
+  filePath: apiRecording.file_path,
+  fileSize: apiRecording.file_size,
+  mimeType: apiRecording.mime_type,
+  isProcessed: apiRecording.is_processed,
+  metadata: apiRecording.metadata,
+  createdAt: apiRecording.created_at,
+  updatedAt: apiRecording.updated_at
+});
+
 export interface Allergy {
   name: string;
   severity?: string;
   notes?: string;
+}
+
+export interface AllergyCondition {
+  name: string;
+  severity?: string;
+  notes?: string;
+  [key: string]: unknown;
+}
+
+export interface InsuranceInfo {
+  provider?: string;
+  policy_number?: string;
+  expiry_date?: string;
+  [key: string]: unknown;
 }
 
 export interface Patient {
@@ -88,14 +135,11 @@ export interface Patient {
   date_of_birth: string;
   gender: string;
   blood_type: string;
-  allergies: { conditions: Allergy[] };
-  emergency_contact: string | null;
-  insurance_info: {
-    provider?: string;
-    policy_number?: string;
-    expiry_date?: string;
-    [key: string]: unknown;
+  allergies: {
+    conditions: (string | AllergyCondition)[];
   };
+  emergency_contact: string | null;
+  insurance_info: InsuranceInfo;
   metadata: Record<string, unknown>;
   user: User;
 }
@@ -107,7 +151,7 @@ export interface PatientSearchResult {
     date_of_birth: string | null;
     gender: string | null;
     blood_type: string | null;
-    allergies: { conditions: Allergy[] } | null;
+    allergies: { conditions: (string | AllergyCondition)[] } | null;
     emergency_contact: string | null;
     insurance_info: Record<string, unknown> | null;
     metadata: Record<string, unknown> | null;

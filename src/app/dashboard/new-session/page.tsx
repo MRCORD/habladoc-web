@@ -12,12 +12,12 @@ import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
 import { PatientDisplay } from '@/components/patient/patient-display';
 import { CreatePatientForm } from '@/components/patient/create-patient-form';
+import type { Patient } from '@/types';
 
 export default function NewSessionPage() {
   const router = useRouter();
   const [documentNumber, setDocumentNumber] = useState('');
   
-  // Get stores data
   const { doctorProfile, isLoading: isUserLoading } = useUserStore();
   const { 
     patient, 
@@ -29,7 +29,6 @@ export default function NewSessionPage() {
   } = usePatientStore();
   const { startSession, isLoading: isSessionLoading, error: sessionError } = useSessionStore();
   
-  // Load initial user data
   useInitialLoad();
 
   const handleSearch = () => {
@@ -46,11 +45,11 @@ export default function NewSessionPage() {
     }
 
     const success = await startSession({
-      doctor_id: doctorProfile.id,
-      patient_id: patient.profile.id,
+      doctorId: doctorProfile.id,
+      patientId: patient.profile.id,
       status: 'in_progress',
-      session_type: 'standard',
-      scheduled_for: new Date().toISOString(),
+      sessionType: 'standard',
+      scheduledFor: new Date().toISOString(),
       metadata: { started_immediately: true }
     });
 
@@ -66,6 +65,21 @@ export default function NewSessionPage() {
   if (!doctorProfile) {
     return <ErrorMessage message="Failed to load doctor profile" />;
   }
+
+  // Transform the PatientSearchResult to Patient type
+  const patientData: Patient | null = patient ? {
+    id: patient.profile.id,
+    date_of_birth: patient.profile.date_of_birth || '',
+    gender: patient.profile.gender || '',
+    blood_type: patient.profile.blood_type || '',
+    allergies: {
+      conditions: patient.profile.allergies?.conditions || []
+    },
+    emergency_contact: patient.profile.emergency_contact,
+    insurance_info: patient.profile.insurance_info || {},
+    metadata: patient.profile.metadata || {},
+    user: patient.user
+  } : null;
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -108,9 +122,9 @@ export default function NewSessionPage() {
       </div>
 
       {/* Patient Data Display */}
-      {patient && (
+      {patientData && (
         <PatientDisplay 
-          patient={patient} 
+          patient={patientData} 
           onStartSession={handleStartSession}
           isLoading={isSessionLoading}
         />

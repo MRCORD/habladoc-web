@@ -1,32 +1,24 @@
+// src/stores/sessionStore.ts
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import api from '@/lib/api'
-import type { Session, Recording } from '@/types'
-
-interface SessionData {
-  doctorId: string
-  patientId: string
-  startTime?: string
-  endTime?: string
-  status?: string
-}
+import type { Session, SessionData, SessionType, SessionStatus } from '@/types'
 
 interface SessionState {
-  // State
-  currentSession: Session | null
-  recordings: Recording[]
-  todaySessions: Session[]
-  isLoading: boolean
-  error: string | null
+  currentSession: Session | null;
+  recordings: any[]; // Keep your existing Recording type
+  todaySessions: Session[];
+  isLoading: boolean;
+  error: string | null;
 
   // Actions
-  fetchSession: (sessionId: string) => Promise<void>
-  fetchRecordings: (sessionId: string) => Promise<void>
-  fetchTodaySessions: (doctorId: string) => Promise<void>
-  addRecording: (recording: Recording) => void
-  updateSession: (sessionId: string, data: Partial<Session>) => Promise<void>
-  reset: () => void
-  startSession: (sessionData: SessionData) => Promise<string | false>
+  fetchSession: (sessionId: string) => Promise<void>;
+  fetchRecordings: (sessionId: string) => Promise<void>;
+  fetchTodaySessions: (doctorId: string) => Promise<void>;
+  addRecording: (recording: any) => void;
+  updateSession: (sessionId: string, data: Partial<Session>) => Promise<void>;
+  reset: () => void;
+  startSession: (sessionData: SessionData) => Promise<string | false>;
 }
 
 export const useSessionStore = create<SessionState>()(
@@ -47,9 +39,8 @@ export const useSessionStore = create<SessionState>()(
           if (response.data.success) {
             set({ currentSession: response.data.data })
           }
-        } catch (error: unknown) {
-          const errorMessage = error instanceof Error ? error.message : 'Failed to fetch session'
-          set({ error: errorMessage })
+        } catch (error: any) {
+          set({ error: error.message || 'Failed to fetch session' })
         } finally {
           set({ isLoading: false })
         }
@@ -61,9 +52,8 @@ export const useSessionStore = create<SessionState>()(
           if (response.data.success) {
             set({ recordings: response.data.data })
           }
-        } catch (error: unknown) {
-          const errorMessage = error instanceof Error ? error.message : 'Failed to fetch recordings'
-          set({ error: errorMessage })
+        } catch (error: any) {
+          set({ error: error.message || 'Failed to fetch recordings' })
         }
       },
 
@@ -86,15 +76,14 @@ export const useSessionStore = create<SessionState>()(
           if (response.data) {
             set({ todaySessions: response.data })
           }
-        } catch (error: unknown) {
-          const errorMessage = error instanceof Error ? error.message : 'Failed to fetch today\'s sessions'
-          set({ error: errorMessage })
+        } catch (error: any) {
+          set({ error: error.message || 'Failed to fetch today\'s sessions' })
         } finally {
           set({ isLoading: false })
         }
       },
 
-      addRecording: (recording: Recording) => 
+      addRecording: (recording) => 
         set((state) => ({
           recordings: [...state.recordings, recording]
         })),
@@ -106,16 +95,14 @@ export const useSessionStore = create<SessionState>()(
           if (response.data.success) {
             set({ currentSession: response.data.data })
             
-            // Update session in todaySessions if it exists
             set((state) => ({
               todaySessions: state.todaySessions.map((session) =>
                 session.id === sessionId ? response.data.data : session
               )
             }))
           }
-        } catch (error: unknown) {
-          const errorMessage = error instanceof Error ? error.message : 'Failed to update session'
-          set({ error: errorMessage })
+        } catch (error: any) {
+          set({ error: error.message || 'Failed to update session' })
         } finally {
           set({ isLoading: false })
         }
@@ -134,14 +121,22 @@ export const useSessionStore = create<SessionState>()(
       startSession: async (sessionData: SessionData) => {
         try {
           set({ isLoading: true, error: null })
-          const response = await api.post('/api/v1/sessions', sessionData)
+          // Convert the sessionData to match the API expectations
+          const apiData = {
+            doctor_id: sessionData.doctorId,
+            patient_id: sessionData.patientId,
+            status: sessionData.status,
+            session_type: sessionData.sessionType,
+            scheduled_for: sessionData.scheduledFor,
+            metadata: sessionData.metadata
+          }
+          const response = await api.post('/api/v1/sessions', apiData)
           if (response.data.success) {
             return response.data.data.id
           }
           return false
-        } catch (error: unknown) {
-          const errorMessage = error instanceof Error ? error.message : 'Failed to start session'
-          set({ error: errorMessage })
+        } catch (error: any) {
+          set({ error: error.message || 'Failed to start session' })
           return false
         } finally {
           set({ isLoading: false })

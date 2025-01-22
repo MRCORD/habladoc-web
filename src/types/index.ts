@@ -1,7 +1,6 @@
-// src/types/index.ts
 export interface User {
   id: string;
-  auth_id: string;
+  auth_id?: string;  // Made optional
   email: string;
   phone: string | null;
   document_number: string | null;
@@ -31,25 +30,35 @@ export interface Specialty {
   created_at: string;
 }
 
+export type SessionType = 'standard' | 'one_time' | 'follow_up';
 export type SessionStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+
+export interface SessionData {
+  doctorId: string;
+  patientId: string;
+  status: SessionStatus;
+  sessionType: SessionType;
+  scheduledFor?: string;
+  metadata?: Record<string, any>;
+}
 
 export interface Session {
   id: string;
-  doctor_id: string;
-  patient_id: string;
+  doctorId: string;
+  patientId: string;
   status: SessionStatus;
-  session_type: 'standard' | 'one_time' | 'follow_up';
-  scheduled_for: string;
-  started_at?: string;
-  ended_at?: string;
+  sessionType: SessionType;
+  scheduledFor: string;
+  startedAt?: string;
+  endedAt?: string;
   duration?: number;
   summary?: string;
   notes?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
-  created_at: string;
-  updated_at: string;
-  doctor_patient_id?: string;
-  patient?: Patient; // Change this from simple patient info to full Patient type
+  createdAt: string;
+  updatedAt: string;
+  doctorPatientId?: string;
+  patient?: Patient;
 }
 
 export interface Recording {
@@ -68,12 +77,18 @@ export interface Recording {
   updated_at: string;
 }
 
+export interface Allergy {
+  name: string;
+  severity?: string;
+  notes?: string;
+}
+
 export interface Patient {
   id: string;
   date_of_birth: string;
   gender: string;
   blood_type: string;
-  allergies: string[];
+  allergies: { conditions: Allergy[] };
   emergency_contact: string | null;
   insurance_info: {
     provider?: string;
@@ -82,6 +97,21 @@ export interface Patient {
     [key: string]: unknown;
   };
   metadata: Record<string, unknown>;
+  user: User;
+}
+
+export interface PatientSearchResult {
+  profile: {
+    id: string;
+    user_id: string;
+    date_of_birth: string | null;
+    gender: string | null;
+    blood_type: string | null;
+    allergies: { conditions: Allergy[] } | null;
+    emergency_contact: string | null;
+    insurance_info: Record<string, unknown> | null;
+    metadata: Record<string, unknown> | null;
+  };
   user: User;
 }
 

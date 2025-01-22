@@ -1,6 +1,6 @@
-// components/patient/patient-display.tsx
+// src/components/patient/patient-display.tsx
+import { Patient } from '@/types';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
-import type { Patient } from '@/types';
 
 interface PatientDisplayProps {
   patient: Patient;
@@ -36,6 +36,26 @@ export function PatientDisplay({ patient, onStartSession, isLoading }: PatientDi
           </div>
         )}
       </dl>
+      
+      {/* Allergies */}
+      {patient.allergies?.conditions?.length > 0 && (
+        <div className="mt-4">
+          <dt className="text-sm font-medium text-gray-500">Alergias</dt>
+          <dd className="mt-1">
+            <ul className="flex flex-wrap gap-2">
+              {patient.allergies.conditions.map((allergy, index) => (
+                <li
+                  key={index}
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"
+                >
+                  {typeof allergy === 'string' ? allergy : allergy.name}
+                </li>
+              ))}
+            </ul>
+          </dd>
+        </div>
+      )}
+      
       <div className="mt-6">
         <button
           onClick={onStartSession}

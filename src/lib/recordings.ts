@@ -1,7 +1,6 @@
 // src/lib/recordings.ts
 import { storage } from './storage';
 import { getCurrentToken } from './api';
-import type { RecordingStatus } from '@/types';
 
 // Constants
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB

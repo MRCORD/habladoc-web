@@ -4,6 +4,7 @@ import { useUserStore } from '@/stores/userStore';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import type { Session, SessionWithDetails } from '@/types';
+import type { RecordingUploadResult } from '@/lib/recordings';
 
 export function useInitialLoad(): { isLoading: boolean } {
   const { user: auth0User, isLoading: isAuth0Loading } = useUser();
@@ -26,10 +27,10 @@ export function useInitialLoad(): { isLoading: boolean } {
 
 interface SessionData {
   session: SessionWithDetails | null;
-  recordings: any[]; // We'll type this properly when we update the recording types
+  recordings: RecordingUploadResult[];
   isLoading: boolean;
   error: string | null;
-  addRecording: (recording: any) => void; // Update this type when we update recording types
+  addRecording: (recording: RecordingUploadResult) => void;
 }
 
 export function useSessionData(sessionId: string): SessionData {

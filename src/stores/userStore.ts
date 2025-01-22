@@ -3,6 +3,15 @@ import { devtools, persist } from 'zustand/middleware'
 import api from '@/lib/api'
 import type { User, DoctorProfile, Specialty } from '@/types'
 
+interface DoctorProfileCompletion {
+  specialty_id: string;
+  license_number: string;
+  education: string;
+  experience_years: number;
+  languages: string[];
+  [key: string]: unknown;
+}
+
 interface UserState {
   // State
   user: User | null
@@ -40,8 +49,9 @@ export const useUserStore = create<UserState>()(
             if (response.data.success) {
               set({ user: response.data.data })
             }
-          } catch (error) {
-            set({ error: 'Failed to fetch user' })
+          } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to fetch user'
+            set({ error: errorMessage })
           } finally {
             set({ isLoading: false })
           }
@@ -58,8 +68,9 @@ export const useUserStore = create<UserState>()(
                 get().fetchSpecialty(response.data.data.specialty_id)
               }
             }
-          } catch (error) {
-            set({ error: 'Failed to fetch doctor profile' })
+          } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to fetch doctor profile'
+            set({ error: errorMessage })
           } finally {
             set({ isLoading: false })
           }
@@ -71,8 +82,9 @@ export const useUserStore = create<UserState>()(
             if (response.data.success) {
               set({ specialty: response.data.data })
             }
-          } catch (error) {
-            console.error('Failed to fetch specialty')
+          } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to fetch specialty'
+            set({ error: errorMessage })
           }
         },
 
@@ -83,8 +95,9 @@ export const useUserStore = create<UserState>()(
             if (response.data) {
               set({ user: { ...get().user!, ...response.data } })
             }
-          } catch (error) {
-            set({ error: 'Failed to update user' })
+          } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to update user'
+            set({ error: errorMessage })
           } finally {
             set({ isLoading: false })
           }
@@ -100,14 +113,15 @@ export const useUserStore = create<UserState>()(
             if (response.data.success) {
               set({ doctorProfile: { ...get().doctorProfile!, ...response.data.data } })
             }
-          } catch (error) {
-            set({ error: 'Failed to update doctor profile' })
+          } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to update doctor profile'
+            set({ error: errorMessage })
           } finally {
             set({ isLoading: false })
           }
         },
 
-        completeProfile: async (profileData: any) => {
+        completeProfile: async (profileData: DoctorProfileCompletion) => {
           try {
             set({ isLoading: true, error: null });
             const response = await api.post('/api/v1/doctors/complete-profile', profileData);
@@ -120,8 +134,15 @@ export const useUserStore = create<UserState>()(
               return true;
             }
             return false;
-          } catch (err: any) {
-            set({ error: err.response?.data?.message || 'Failed to complete profile' });
+          } catch (error: unknown) {
+            if (error instanceof Error) {
+              set({ error: error.message });
+            } else if (typeof error === 'object' && error !== null && 'response' in error) {
+              const apiError = error as { response?: { data?: { message?: string } } };
+              set({ error: apiError.response?.data?.message || 'Failed to complete profile' });
+            } else {
+              set({ error: 'Failed to complete profile' });
+            }
             return false;
           } finally {
             set({ isLoading: false });

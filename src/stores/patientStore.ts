@@ -10,6 +10,16 @@ interface PatientWithUser {
   profile: Patient;
 }
 
+// Interface for API errors
+interface ApiError {
+  response?: {
+    status?: number;
+    data?: {
+      message?: string;
+    };
+  };
+}
+
 interface PatientState {
   patient: PatientWithUser | null;
   isLoading: boolean;
@@ -45,14 +55,15 @@ export const usePatientStore = create<PatientState>()(
               showCreateForm: false
             });
           }
-        } catch (err: any) {
-          if (err.response?.status === 404) {
+        } catch (err: unknown) {
+          const error = err as ApiError;
+          if (error.response?.status === 404) {
             set({ 
               patient: null,
               showCreateForm: true
             });
           } else {
-            set({ error: err.response?.data?.message || 'Error buscando paciente' });
+            set({ error: error.response?.data?.message || 'Error buscando paciente' });
           }
         } finally {
           set({ isLoading: false });
@@ -77,8 +88,9 @@ export const usePatientStore = create<PatientState>()(
             return true;
           }
           return false;
-        } catch (err: any) {
-          set({ error: err.response?.data?.message || 'Error creando paciente' });
+        } catch (err: unknown) {
+          const error = err as ApiError;
+          set({ error: error.response?.data?.message || 'Error creando paciente' });
           return false;
         } finally {
           set({ isLoading: false });

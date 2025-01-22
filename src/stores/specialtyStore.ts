@@ -19,7 +19,7 @@ interface SpecialtyState {
 
 export const useSpecialtyStore = create<SpecialtyState>()(
   devtools(
-    (set, get) => ({
+    (set) => ({
       specialties: [],
       searchTerm: '',
       isDropdownOpen: false,
@@ -33,8 +33,9 @@ export const useSpecialtyStore = create<SpecialtyState>()(
           if (response.data.success) {
             set({ specialties: response.data.data });
           }
-        } catch (err) {
-          set({ error: 'Failed to load specialties' });
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to load specialties';
+          set({ error: errorMessage });
         } finally {
           set({ isLoading: false });
         }

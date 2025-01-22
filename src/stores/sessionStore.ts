@@ -2,11 +2,34 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import api from '@/lib/api'
-import type { Session, SessionData, SessionType, SessionStatus } from '@/types'
+import type { Session, SessionData } from '@/types'
+
+// Define Recording type to avoid using 'any'
+interface Recording {
+  id: string;
+  session_id: string;
+  status: 'pending' | 'processing' | 'processed' | 'failed';
+  duration?: number;
+  file_path?: string;
+  file_size?: number;
+  mime_type?: string;
+  is_processed: boolean;
+  metadata?: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ApiError extends Error {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
 
 interface SessionState {
   currentSession: Session | null;
-  recordings: any[]; // Keep your existing Recording type
+  recordings: Recording[];
   todaySessions: Session[];
   isLoading: boolean;
   error: string | null;
@@ -15,7 +38,7 @@ interface SessionState {
   fetchSession: (sessionId: string) => Promise<void>;
   fetchRecordings: (sessionId: string) => Promise<void>;
   fetchTodaySessions: (doctorId: string) => Promise<void>;
-  addRecording: (recording: any) => void;
+  addRecording: (recording: Recording) => void;
   updateSession: (sessionId: string, data: Partial<Session>) => Promise<void>;
   reset: () => void;
   startSession: (sessionData: SessionData) => Promise<string | false>;
@@ -39,8 +62,9 @@ export const useSessionStore = create<SessionState>()(
           if (response.data.success) {
             set({ currentSession: response.data.data })
           }
-        } catch (error: any) {
-          set({ error: error.message || 'Failed to fetch session' })
+        } catch (error) {
+          const err = error as ApiError
+          set({ error: err.response?.data?.message || err.message || 'Failed to fetch session' })
         } finally {
           set({ isLoading: false })
         }
@@ -52,8 +76,9 @@ export const useSessionStore = create<SessionState>()(
           if (response.data.success) {
             set({ recordings: response.data.data })
           }
-        } catch (error: any) {
-          set({ error: error.message || 'Failed to fetch recordings' })
+        } catch (error) {
+          const err = error as ApiError
+          set({ error: err.response?.data?.message || err.message || 'Failed to fetch recordings' })
         }
       },
 
@@ -76,14 +101,15 @@ export const useSessionStore = create<SessionState>()(
           if (response.data) {
             set({ todaySessions: response.data })
           }
-        } catch (error: any) {
-          set({ error: error.message || 'Failed to fetch today\'s sessions' })
+        } catch (error) {
+          const err = error as ApiError
+          set({ error: err.response?.data?.message || err.message || 'Failed to fetch today\'s sessions' })
         } finally {
           set({ isLoading: false })
         }
       },
 
-      addRecording: (recording) => 
+      addRecording: (recording: Recording) => 
         set((state) => ({
           recordings: [...state.recordings, recording]
         })),
@@ -101,8 +127,9 @@ export const useSessionStore = create<SessionState>()(
               )
             }))
           }
-        } catch (error: any) {
-          set({ error: error.message || 'Failed to update session' })
+        } catch (error) {
+          const err = error as ApiError
+          set({ error: err.response?.data?.message || err.message || 'Failed to update session' })
         } finally {
           set({ isLoading: false })
         }
@@ -135,8 +162,9 @@ export const useSessionStore = create<SessionState>()(
             return response.data.data.id
           }
           return false
-        } catch (error: any) {
-          set({ error: error.message || 'Failed to start session' })
+        } catch (error) {
+          const err = error as ApiError
+          set({ error: err.response?.data?.message || err.message || 'Failed to start session' })
           return false
         } finally {
           set({ isLoading: false })

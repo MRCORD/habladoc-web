@@ -39,7 +39,7 @@ export interface SessionData {
   status: SessionStatus;
   sessionType: SessionType;
   scheduledFor?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface Session {

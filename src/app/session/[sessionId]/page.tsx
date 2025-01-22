@@ -13,42 +13,7 @@ import AudioRecorder from "@/components/session/audio-recorder";
 import { RecordingsList } from "@/components/session/recordings-list";
 import { PatientData } from "@/components/session/patient-info";
 
-import type { Recording, RecordingStatus } from "@/types";
-
-interface ApiRecording {
-  id: string;
-  session_id: string;
-  duration: number | null;
-  file_path: string | null;
-  file_size: number | null;
-  mime_type: string | null;
-  status: RecordingStatus;
-  metadata?: {
-    sample_rate?: number;
-    channels?: number;
-    duration_seconds?: number;
-    original_name?: string;
-  };
-  created_at: string;
-  updated_at: string;
-  is_processed: boolean;
-}
-
-function convertApiRecording(apiRec: ApiRecording): Recording {
-  return {
-    id: apiRec.id,
-    session_id: apiRec.session_id,
-    duration: apiRec.duration,
-    file_path: apiRec.file_path,
-    file_size: apiRec.file_size,
-    mime_type: apiRec.mime_type,
-    status: apiRec.status,
-    metadata: apiRec.metadata,
-    created_at: apiRec.created_at,
-    updated_at: apiRec.updated_at,
-    is_processed: apiRec.is_processed
-  };
-}
+import type { Recording, InsuranceInfo } from "@/types";
 
 export default function SessionPage() {
   const router = useRouter();
@@ -57,7 +22,7 @@ export default function SessionPage() {
 
   const {
     session: sessionData,
-    recordings: apiRecordings,
+    recordings,
     isLoading,
     error,
   } = useSessionData(sessionId);
@@ -87,24 +52,26 @@ export default function SessionPage() {
   }
 
   // Helper function to convert null to undefined
-  const nullToUndefined = <T,>(value: T | null): T | undefined => 
+  const nullToUndefined = <T,>(value: T | null): T | undefined =>
     value === null ? undefined : value;
 
-  // Pass the patient data directly, just converting nulls to undefined
+  // Parse the insurance information
+  const insuranceInfo = sessionData.patient.insurance_info
+    ? (sessionData.patient.insurance_info as InsuranceInfo)
+    : undefined;
+
+  // Pass the patient data directly, with proper typing
   const patientData = {
-    ...sessionData.patient,
+    id: sessionData.patient.id,
+    user: sessionData.patient.user,
     allergies: nullToUndefined(sessionData.patient.allergies),
     blood_type: nullToUndefined(sessionData.patient.blood_type),
     date_of_birth: nullToUndefined(sessionData.patient.date_of_birth),
     gender: nullToUndefined(sessionData.patient.gender),
     emergency_contact: nullToUndefined(sessionData.patient.emergency_contact),
-    insurance_info: nullToUndefined(sessionData.patient.insurance_info),
+    insurance_info: insuranceInfo,
     metadata: nullToUndefined(sessionData.patient.metadata)
   };
-
-  // Ensure apiRecordings is an array and convert each recording
-  const safeRecordings = Array.isArray(apiRecordings) ? apiRecordings as ApiRecording[] : [];
-  const recordings = safeRecordings.map(convertApiRecording);
 
   return (
     <>

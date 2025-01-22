@@ -164,9 +164,11 @@ export interface AllergyCondition {
 
 export interface InsuranceInfo {
   provider?: string;
+  status?: string;
+  plan_name?: string;
   policy_number?: string;
-  expiry_date?: string;
-  [key: string]: unknown;
+  expiration_date?: string;
+  [key: string]: string | undefined; // Updated to match InsuranceInformation
 }
 
 // Complete profile type that matches the backend

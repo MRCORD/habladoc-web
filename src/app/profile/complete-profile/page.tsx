@@ -1,12 +1,10 @@
-//src/app/profile/complete-profile/page.tsx
+// src/app/profile/complete-profile/page.tsx
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search } from 'lucide-react';
 import { useUserStore } from '@/stores/userStore';
 import { useSpecialtyStore } from '@/stores/specialtyStore';
-import { useInitialLoad } from '@/hooks/apiHooks';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
 import type { Specialty } from '@/types';
@@ -27,14 +25,13 @@ export default function CompleteProfile() {
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
   
-  // Get store data
   const { 
     user, 
     completeProfile, 
     isLoading: isUserLoading, 
     error: userError 
   } = useUserStore();
-  
+
   const { 
     specialties, 
     searchTerm, 
@@ -44,7 +41,6 @@ export default function CompleteProfile() {
     fetchSpecialties 
   } = useSpecialtyStore();
 
-  // Form state with type
   const [formData, setFormData] = useState<FormData>({
     first_name: '',
     last_name: '',
@@ -56,20 +52,18 @@ export default function CompleteProfile() {
     languages: ['es'],
     consultation_fee: '',
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load initial data
-  useInitialLoad();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load specialties on mount
   useEffect(() => {
     fetchSpecialties();
   }, [fetchSpecialties]);
 
-  // Update form when user data is loaded
+  // Populate user data if available
   useEffect(() => {
     if (user) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         first_name: user.first_name || '',
         last_name: user.last_name || '',
@@ -80,7 +74,7 @@ export default function CompleteProfile() {
     }
   }, [user]);
 
-  // Handle clicking outside dropdown
+  // Hide dropdown if clicked outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -91,12 +85,16 @@ export default function CompleteProfile() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [setDropdownOpen]);
 
+  // Prevent showing 404 errors
+  const filteredUserError =
+    userError && userError !== 'Doctor profile not found' ? userError : null;
+
   const filteredSpecialties = specialties.filter((specialty) =>
     specialty.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleSpecialtySelect = (specialty: Specialty) => {
-    setFormData(prev => ({ ...prev, specialty_id: specialty.id }));
+    setFormData((prev) => ({ ...prev, specialty_id: specialty.id }));
     setSearchTerm(specialty.name);
     setDropdownOpen(false);
   };
@@ -105,9 +103,9 @@ export default function CompleteProfile() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Validate required fields
+    // Ensure specialty is selected
     if (!formData.specialty_id) {
-      useUserStore.setState({ error: 'Please select a specialty' });
+      useUserStore.setState({ error: 'Por favor selecciona una especialidad médica' });
       setIsSubmitting(false);
       return;
     }
@@ -117,18 +115,25 @@ export default function CompleteProfile() {
       email: formData.email || undefined,
       phone: formData.phone || undefined,
       document_number: formData.document_number || undefined,
-      consultation_fee: formData.consultation_fee ? parseFloat(formData.consultation_fee) : null
+      consultation_fee: formData.consultation_fee
+        ? parseFloat(formData.consultation_fee)
+        : null,
     });
 
     if (success) {
       router.push('/profile');
     }
-    
+
     setIsSubmitting(false);
   };
 
-  if (isUserLoading) return <LoadingSpinner />;
-  if (!user) return null;
+  if (isUserLoading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
@@ -140,10 +145,10 @@ export default function CompleteProfile() {
           </p>
         </div>
 
-        {userError && <ErrorMessage message={userError} />}
+        {/* Show error only if it's not a 404 */}
+        {filteredUserError && <ErrorMessage message={filteredUserError} />}
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Personal Information Section */}
           <div className="space-y-6">
             <h3 className="text-lg font-medium text-gray-900">Información Personal</h3>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -156,11 +161,10 @@ export default function CompleteProfile() {
                   id="first_name"
                   value={formData.first_name}
                   onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   required
                 />
               </div>
-
               <div>
                 <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
                   Apellido
@@ -170,11 +174,10 @@ export default function CompleteProfile() {
                   id="last_name"
                   value={formData.last_name}
                   onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   required
                 />
               </div>
-
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   Correo Electrónico
@@ -184,11 +187,10 @@ export default function CompleteProfile() {
                   id="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   required
                 />
               </div>
-
               <div>
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
                   Teléfono
@@ -198,10 +200,9 @@ export default function CompleteProfile() {
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                 />
               </div>
-
               <div>
                 <label htmlFor="document_number" className="block text-sm font-medium text-gray-700">
                   Número de Documento
@@ -211,73 +212,64 @@ export default function CompleteProfile() {
                   id="document_number"
                   value={formData.document_number}
                   onChange={(e) => setFormData({ ...formData, document_number: e.target.value })}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   required
                 />
               </div>
             </div>
           </div>
 
-          {/* Professional Information Section */}
           <div className="space-y-6">
             <h3 className="text-lg font-medium text-gray-900">Información Profesional</h3>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              {/* Specialty Dropdown */}
-              <div className="relative" ref={dropdownRef}>
+              <div ref={dropdownRef}>
                 <label htmlFor="specialty" className="block text-sm font-medium text-gray-700">
                   Especialidad Médica
                 </label>
-                <div className="mt-1 relative">
-                  <input
-                    type="text"
-                    id="specialty"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    onFocus={() => setDropdownOpen(true)}
-                    placeholder="Buscar especialidad..."
-                    className="block w-full rounded-md border py-2 pl-10 pr-4 text-black shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
-                    required
-                  />
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  {isDropdownOpen && filteredSpecialties.length > 0 && (
-                    <div className="absolute z-10 mt-1 w-full max-h-60 overflow-auto bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5">
-                      {filteredSpecialties.map((specialty) => (
-                        <div
-                          key={specialty.id}
-                          onClick={() => handleSpecialtySelect(specialty)}
-                          className="cursor-pointer px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          {specialty.name}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                <input
+                  type="text"
+                  id="specialty"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onFocus={() => setDropdownOpen(true)}
+                  placeholder="Buscar especialidad..."
+                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  required
+                />
+                {isDropdownOpen && (
+                  <div className="mt-2 absolute z-10 w-full bg-white shadow-lg rounded-md">
+                    {filteredSpecialties.map((specialty) => (
+                      <div
+                        key={specialty.id}
+                        onClick={() => handleSpecialtySelect(specialty)}
+                        className="cursor-pointer p-2 hover:bg-gray-100"
+                      >
+                        {specialty.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-
-              {/* License Number */}
               <div>
                 <label htmlFor="license" className="block text-sm font-medium text-gray-700">
-                  Número de Licencia Médica
+                  Número de Licencia
                 </label>
                 <input
                   type="text"
                   id="license"
                   value={formData.license_number}
                   onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
-                  className="mt-1 block w-full rounded-md border py-2 text-black shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                   required
                 />
               </div>
-
-              {/* Languages */}
               <div>
                 <label htmlFor="languages" className="block text-sm font-medium text-gray-700">
-                  Idiomas Hablados
+                  Idiomas
                 </label>
-                <div className="mt-2 flex gap-x-4">
+                <div className="flex gap-4">
                   {['es', 'en'].map((lang) => (
-                    <label key={lang} className="flex items-center text-sm">
+                    <label key={lang} className="flex items-center gap-2">
                       <input
                         type="checkbox"
                         checked={formData.languages.includes(lang)}
@@ -289,44 +281,40 @@ export default function CompleteProfile() {
                               : prev.languages.filter((l) => l !== lang),
                           }))
                         }
-                        className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                        className="h-4 w-4"
                       />
-                      <span className="ml-2">{lang === 'es' ? 'Español' : 'Inglés'}</span>
+                      {lang === 'es' ? 'Español' : 'Inglés'}
                     </label>
                   ))}
                 </div>
               </div>
-
-              {/* Fee */}
               <div>
                 <label htmlFor="fee" className="block text-sm font-medium text-gray-700">
-                  Tarifa de Consulta (USD)
+                  Tarifa de Consulta
                 </label>
                 <input
                   type="number"
                   id="fee"
                   value={formData.consultation_fee}
                   onChange={(e) => setFormData({ ...formData, consultation_fee: e.target.value })}
-                  className="mt-1 block w-full rounded-md border py-2 text-black shadow-sm focus:ring-primary focus:border-primary sm:text-sm"
-                  required
+                  className="mt-1 block w-full rounded-md border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
                 />
               </div>
             </div>
           </div>
 
-          {/* Submit Buttons */}
-          <div className="flex justify-end space-x-4">
+          <div className="flex justify-end gap-4">
             <button
               type="button"
               onClick={() => router.back()}
-              className="text-sm font-medium text-gray-600 hover:text-gray-900"
+              className="text-gray-600"
             >
               Cancelar
             </button>
             <button
               type="submit"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md"
               disabled={isSubmitting}
-              className="bg-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             >
               {isSubmitting ? 'Guardando...' : 'Completar Perfil'}
             </button>

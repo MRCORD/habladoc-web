@@ -15,7 +15,25 @@ import { PatientData } from "@/components/session/patient-info";
 
 import type { Recording } from "@/types";
 
-function convertApiRecording(apiRec: any): Recording {
+interface ApiRecording {
+  id: string;
+  session_id: string;
+  duration: number;
+  file_path: string;
+  file_size: number;
+  mime_type: string;
+  status: string;
+  metadata?: {
+    sample_rate?: number;
+    channels?: number;
+    duration_seconds?: number;
+    original_name?: string;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
+function convertApiRecording(apiRec: ApiRecording): Recording {
   return apiRec as Recording;
 }
 

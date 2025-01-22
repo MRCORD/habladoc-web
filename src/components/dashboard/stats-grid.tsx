@@ -1,7 +1,7 @@
 import React from 'react';
 import { Calendar, Clock, CircleDot, BarChart2 } from 'lucide-react';
 import { format } from 'date-fns';
-import type { Session, SessionStatus } from '@/types';
+import type { Session } from '@/types';
 
 interface StatsGridProps {
   todaySessions: Session[];

@@ -4,14 +4,13 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Mic } from 'lucide-react';
-import { format } from 'date-fns';
 import { useUserStore } from '@/stores/userStore';
 import { useInitialLoad, useTodaySessions } from '@/hooks/apiHooks';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
 import SessionListItem from '@/components/dashboard/session-list-item';
 import StatsGrid from '@/components/dashboard/stats-grid';
-import type { Session, SessionStatus } from '@/types';
+import type { SessionStatus } from '@/types';
 
 // Mock data as fallback with proper typing
 const mockSessions = [

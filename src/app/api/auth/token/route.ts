@@ -1,5 +1,5 @@
 // app/api/auth/token/route.ts
-import { cookies } from 'next/headers';
+// import { cookies } from 'next/headers';
 import { getSession } from '@auth0/nextjs-auth0';
 import { NextResponse } from 'next/server';
 

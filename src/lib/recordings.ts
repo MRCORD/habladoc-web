@@ -1,6 +1,6 @@
 // src/lib/recordings.ts
 import { storage } from './storage';
-import api, { getCurrentToken } from './api';
+import { getCurrentToken } from './api';
 
 // Types
 export interface RecordingUploadResult {
@@ -91,7 +91,7 @@ export const recordingsStorage = {
   /**
    * Get a URL for a recording
    */
-  getUrl: async (path: string, expiresIn: number = 3600) => {
+  getUrl: async (path: string) => {
     try {
       console.log('Getting recording URL:', { path });
       return storage.getUrl(path);

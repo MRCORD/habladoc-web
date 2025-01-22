@@ -1,8 +1,8 @@
-// src/components/layout/header.tsx
 'use client';
 
 import { useUser } from '@auth0/nextjs-auth0/client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { UserIcon } from '@heroicons/react/24/outline';
@@ -31,10 +31,12 @@ export function Header() {
                     <div>
                       <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                         {user.picture ? (
-                          <img
+                          <Image
                             className="h-8 w-8 rounded-full"
                             src={user.picture}
                             alt={user.name || ''}
+                            width={32}
+                            height={32}
                           />
                         ) : (
                           <UserIcon className="h-8 w-8 rounded-full p-1 border border-gray-300" />
@@ -79,7 +81,7 @@ export function Header() {
                         </Menu.Item>
                         <Menu.Item>
                           {({ active }) => (
-                            <a
+                            <Link
                               href="/api/auth/logout"
                               className={classNames(
                                 active ? 'bg-gray-100' : '',
@@ -87,7 +89,7 @@ export function Header() {
                               )}
                             >
                               Cerrar sesión
-                            </a>
+                            </Link>
                           )}
                         </Menu.Item>
                       </Menu.Items>
@@ -95,18 +97,18 @@ export function Header() {
                   </Menu>
                 ) : (
                   <div className="flex items-center space-x-4">
-                    <a
-                      href="/api/auth/login" // Default login route
+                    <Link
+                      href="/api/auth/login"
                       className="text-sm font-medium text-gray-700 hover:text-gray-900"
                     >
                       Iniciar sesión
-                    </a>
-                    <a
-                      href="/api/auth/signup" // Correctly points to the custom signup API route
+                    </Link>
+                    <Link
+                      href="/api/auth/signup"
                       className="text-sm font-medium bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90"
                     >
                       Registrarse
-                    </a>
+                    </Link>
                   </div>
                 )}
               </>

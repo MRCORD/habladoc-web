@@ -62,7 +62,7 @@ export class StorageService {
       });
 
       // Upload file
-      const { data, error } = await this.client.storage
+      const { error } = await this.client.storage
         .from(this.bucket)
         .upload(fullPath, file, {
           cacheControl: '3600',

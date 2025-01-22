@@ -1,8 +1,6 @@
-// src/app/session/[sessionId]/page.tsx
 "use client";
 
-import { useParams } from 'next/navigation';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { useSessionData } from '@/hooks/apiHooks';
 import { useSessionStore } from '@/stores/sessionStore';
@@ -14,31 +12,43 @@ import { RecordingsList } from '@/components/session/recordings-list';
 import { PatientData } from '@/components/session/patient-info';
 import type { Patient } from '@/types';
 
-function isValidPatient(patient: any): patient is Patient {
-  return patient && 
-    typeof patient.user === 'object' &&
-    typeof patient.user.first_name === 'string' &&
-    typeof patient.user.last_name === 'string';
+interface PatientValidation {
+  user: {
+    first_name: string;
+    last_name: string;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+function isValidPatient(patient: unknown): patient is Patient {
+  const validation = patient as PatientValidation;
+  return Boolean(
+    validation &&
+    typeof validation.user === 'object' &&
+    validation.user &&
+    typeof validation.user.first_name === 'string' &&
+    typeof validation.user.last_name === 'string'
+  );
 }
 
 export default function SessionPage() {
-  const params = useParams();
-  if (!params) {
-    return <ErrorMessage message="Invalid session parameters" />;
-  }
-  const sessionId = params.sessionId as string;
   const router = useRouter();
-  
+  const params = useParams();
+  const sessionId = params?.sessionId as string;
+
   const { 
     session: sessionData, 
     recordings, 
     isLoading, 
     error,
-    addRecording 
   } = useSessionData(sessionId);
 
+  if (!sessionId) {
+    return <ErrorMessage message="Invalid session parameters" />;
+  }
+
   const handleRecordingComplete = () => {
-    // Instead of reloading all data, we'll just fetch the new recordings
     useSessionStore.getState().fetchRecordings(sessionId);
   };
 

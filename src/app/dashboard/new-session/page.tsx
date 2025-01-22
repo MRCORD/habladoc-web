@@ -18,7 +18,7 @@ export default function NewSessionPage() {
   const [documentNumber, setDocumentNumber] = useState('');
   
   // Get stores data
-  const { user, doctorProfile, isLoading: isUserLoading } = useUserStore();
+  const { doctorProfile, isLoading: isUserLoading } = useUserStore();
   const { 
     patient, 
     isLoading: isPatientLoading, 

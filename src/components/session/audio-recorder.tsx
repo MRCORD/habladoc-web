@@ -1,7 +1,7 @@
 // src/components/session/audio-recorder.tsx
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Mic, Square, Pause, Play, Upload, Trash2 } from "lucide-react";
 import RecordRTC from "recordrtc";
 import { recordingsStorage } from "@/lib/recordings";
@@ -12,6 +12,15 @@ interface AudioRecorderProps {
   doctorId: string;
   onRecordingComplete: () => void;
 }
+
+// Add type for RecordRTC instance
+type RecordRTCType = RecordRTC & {
+  startRecording: () => void;
+  stopRecording: (callback: () => void) => void;
+  pauseRecording: () => void;
+  resumeRecording: () => void;
+  getBlob: () => Blob;
+};
 
 /**
  * A floating audio recorder (like WhatsApp) in Spanish:
@@ -30,17 +39,14 @@ const AudioRecorder = ({
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const recordRtcRef = useRef<any>(null);
+  const recordRtcRef = useRef<RecordRTCType | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
 
-  useEffect(() => {
-    return () => cleanup();
-  }, []);
-
-  const cleanup = () => {
+  // Move cleanup to useCallback to avoid dependency issues
+  const cleanup = useCallback(() => {
     if (durationIntervalRef.current) {
       clearInterval(durationIntervalRef.current);
       durationIntervalRef.current = null;
@@ -51,7 +57,11 @@ const AudioRecorder = ({
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
     }
-  };
+  }, [audioUrl]);
+
+  useEffect(() => {
+    return () => cleanup();
+  }, [cleanup]);
 
   const startRecording = async () => {
     try {

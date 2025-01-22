@@ -1,7 +1,5 @@
 // src/middleware.ts
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { withMiddlewareAuthRequired, getSession } from '@auth0/nextjs-auth0/edge';
+import { withMiddlewareAuthRequired } from '@auth0/nextjs-auth0/edge';
 
 // Protected middleware for routes that require authentication
 export default withMiddlewareAuthRequired();

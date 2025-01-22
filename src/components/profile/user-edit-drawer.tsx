@@ -2,9 +2,14 @@
 import React, { useState } from 'react';
 import { User } from '@/types';
 import api from '@/lib/api';
+import { AxiosError } from 'axios';
 import { ErrorMessage } from '@/components/common/error-message';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { XIcon } from 'lucide-react';
+
+interface ErrorResponse {
+  message: string;
+}
 
 interface UserEditDrawerProps {
   user: User;
@@ -48,8 +53,9 @@ const UserEditDrawer = ({ user, isOpen, onClose, onUserUpdate }: UserEditDrawerP
       const response = await api.patch(`/api/v1/users/${user.id}`, dataToSubmit);
       onUserUpdate(response.data);
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update user data');
+    } catch (err) {
+      const error = err as AxiosError<ErrorResponse>;
+      setError(error.response?.data?.message || 'Failed to update user data');
     } finally {
       setIsSubmitting(false);
     }

@@ -79,7 +79,7 @@ function CallToAction() {
 
 function AuthButton() {
   return (
-    <a
+    <Link
       href="/api/auth/login"
       className={`
         rounded-md bg-primary px-6 py-3 text-sm font-semibold 
@@ -91,7 +91,7 @@ function AuthButton() {
       `}
     >
       Únete como doctor
-    </a>
+    </Link>
   );
 }
 

@@ -8,7 +8,7 @@ export interface User {
   first_name: string;
   last_name: string;
   roles: string[];
-  metadata: Record<string, any> | null;
+  metadata: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 }
@@ -19,7 +19,7 @@ export interface DoctorProfile {
   specialty_id: string;
   license_number: string;
   is_active: boolean;
-  metadata: Record<string, any> | null;
+  metadata: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 }
@@ -44,8 +44,8 @@ export interface Session {
   ended_at?: string;
   duration?: number;
   summary?: string;
-  notes?: Record<string, any>;
-  metadata?: Record<string, any>;
+  notes?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
   created_at: string;
   updated_at: string;
   doctor_patient_id?: string;
@@ -63,7 +63,7 @@ export interface Recording {
   file_size?: number;
   mime_type?: string;
   is_processed: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -73,10 +73,15 @@ export interface Patient {
   date_of_birth: string;
   gender: string;
   blood_type: string;
-  allergies: any;
+  allergies: string[];
   emergency_contact: string | null;
-  insurance_info: any;
-  metadata: any;
+  insurance_info: {
+    provider?: string;
+    policy_number?: string;
+    expiry_date?: string;
+    [key: string]: unknown;
+  };
+  metadata: Record<string, unknown>;
   user: User;
 }
 

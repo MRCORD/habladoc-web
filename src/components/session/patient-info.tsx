@@ -13,7 +13,6 @@ import {
   AlertCircle,
   LifeBuoy,
   Globe2,
-  Clipboard,
 } from 'lucide-react';
 import type { Patient, AllergyCondition } from '@/types';
 

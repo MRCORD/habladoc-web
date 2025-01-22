@@ -6,12 +6,13 @@ import type {
   Session, 
   SessionWithDetails,
   SessionCreateData, 
-  ApiResponse
+  ApiResponse,
+  Recording
 } from '@/types';
 
 interface SessionState {
   currentSession: SessionWithDetails | null;
-  recordings: any[]; // We'll update this when we do the recordings types
+  recordings: Recording[]; 
   todaySessions: Session[];
   isLoading: boolean;
   error: string | null;
@@ -20,10 +21,19 @@ interface SessionState {
   fetchSession: (sessionId: string) => Promise<void>;
   fetchRecordings: (sessionId: string) => Promise<void>;
   fetchTodaySessions: (doctorId: string) => Promise<void>;
-  addRecording: (recording: any) => void; // Update type when we do recordings
+  addRecording: (recording: Recording) => void;
   updateSession: (sessionId: string, data: Partial<Session>) => Promise<void>;
   reset: () => void;
   startSession: (sessionData: SessionCreateData) => Promise<string | false>;
+}
+
+interface ApiErrorResponse {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+  message?: string;
 }
 
 export const useSessionStore = create<SessionState>()(
@@ -44,8 +54,11 @@ export const useSessionStore = create<SessionState>()(
           if (response.data.success) {
             set({ currentSession: response.data.data });
           }
-        } catch (error: any) {
-          set({ error: error.response?.data?.message || error.message || 'Failed to fetch session' });
+        } catch (error) {
+          const apiError = error as ApiErrorResponse;
+          set({ 
+            error: apiError.response?.data?.message || apiError.message || 'Failed to fetch session' 
+          });
         } finally {
           set({ isLoading: false });
         }
@@ -53,12 +66,15 @@ export const useSessionStore = create<SessionState>()(
 
       fetchRecordings: async (sessionId: string) => {
         try {
-          const response = await api.get(`/api/v1/recordings/session/${sessionId}`);
+          const response = await api.get<ApiResponse<Recording[]>>(`/api/v1/recordings/session/${sessionId}`);
           if (response.data.success) {
             set({ recordings: response.data.data });
           }
-        } catch (error: any) {
-          set({ error: error.response?.data?.message || error.message || 'Failed to fetch recordings' });
+        } catch (error) {
+          const apiError = error as ApiErrorResponse;
+          set({ 
+            error: apiError.response?.data?.message || apiError.message || 'Failed to fetch recordings' 
+          });
         }
       },
 
@@ -81,14 +97,17 @@ export const useSessionStore = create<SessionState>()(
           if (response.data) {
             set({ todaySessions: response.data });
           }
-        } catch (error: any) {
-          set({ error: error.response?.data?.message || error.message || 'Failed to fetch today\'s sessions' });
+        } catch (error) {
+          const apiError = error as ApiErrorResponse;
+          set({ 
+            error: apiError.response?.data?.message || apiError.message || 'Failed to fetch today\'s sessions' 
+          });
         } finally {
           set({ isLoading: false });
         }
       },
 
-      addRecording: (recording: any) => 
+      addRecording: (recording: Recording) => 
         set((state) => ({
           recordings: [...state.recordings, recording]
         })),
@@ -116,8 +135,11 @@ export const useSessionStore = create<SessionState>()(
               )
             }));
           }
-        } catch (error: any) {
-          set({ error: error.response?.data?.message || error.message || 'Failed to update session' });
+        } catch (error) {
+          const apiError = error as ApiErrorResponse;
+          set({ 
+            error: apiError.response?.data?.message || apiError.message || 'Failed to update session' 
+          });
         } finally {
           set({ isLoading: false });
         }
@@ -141,8 +163,11 @@ export const useSessionStore = create<SessionState>()(
             return response.data.data.id;
           }
           return false;
-        } catch (error: any) {
-          set({ error: error.response?.data?.message || error.message || 'Failed to start session' });
+        } catch (error) {
+          const apiError = error as ApiErrorResponse;
+          set({ 
+            error: apiError.response?.data?.message || apiError.message || 'Failed to start session' 
+          });
           return false;
         } finally {
           set({ isLoading: false });

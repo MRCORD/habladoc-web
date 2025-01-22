@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { FileObject } from '@supabase/storage-js';
 
 // Environment variables validation
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -128,16 +129,13 @@ export class StorageService {
 
       if (error) throw error;
 
-      const file = data.find(
-        (item: { name: string; metadata: Record<string, any> }) =>
-          item.name === path.split('/').pop()
-      );
+      const file = data.find((item: FileObject) => item.name === path.split('/').pop());
 
       if (!file || !file.metadata) return null;
 
       return {
-        size: file.metadata.size || 0,
-        type: file.metadata.mimetype || 'unknown',
+        size: file.metadata.size || 0, // Default to 0 if size is undefined
+        type: file.metadata.mimetype || 'unknown', // Default to 'unknown' if mimetype is undefined
       };
     } catch (error) {
       console.error('Get metadata error:', error);

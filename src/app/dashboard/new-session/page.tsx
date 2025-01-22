@@ -33,7 +33,7 @@ export default function NewSessionPage() {
 
   const handleSearch = () => {
     if (!documentNumber.trim()) {
-      usePatientStore.setState({ error: 'Por favor ingrese un número de documento' });
+      usePatientStore.setState({ error: 'Por favor ingrese un número de DNI' });
       return;
     }
     searchPatient(documentNumber);
@@ -89,7 +89,7 @@ export default function NewSessionPage() {
               type="text"
               value={documentNumber}
               onChange={(e) => setDocumentNumber(e.target.value)}
-              placeholder="Ingrese número de documento"
+              placeholder="Ingrese número de DNI"
               className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
             />
             <button

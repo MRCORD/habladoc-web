@@ -205,7 +205,7 @@ export default function CompleteProfile() {
               </div>
               <div>
                 <label htmlFor="document_number" className="block text-sm font-medium text-gray-700">
-                  Número de Documento
+                  DNI
                 </label>
                 <input
                   type="text"
@@ -252,7 +252,7 @@ export default function CompleteProfile() {
               </div>
               <div>
                 <label htmlFor="license" className="block text-sm font-medium text-gray-700">
-                  Número de Licencia
+                  Número de Licencia (CMP)
                 </label>
                 <input
                   type="text"

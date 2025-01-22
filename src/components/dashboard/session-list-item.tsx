@@ -31,7 +31,7 @@ export function SessionListItem({ session, onSelect }: SessionListItemProps) {
   };
 
   const getFormattedDate = () => {
-    const dateStr = isMockSession(session) ? session.date : session.scheduled_for;
+    const dateStr = isMockSession(session) ? session.date : session.scheduledFor;
     return format(new Date(dateStr), 'dd/MM/yyyy HH:mm');
   };
 

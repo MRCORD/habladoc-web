@@ -10,6 +10,18 @@ import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
 import type { Specialty } from '@/types';
 
+interface FormData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  document_number: string;
+  specialty_id: string;
+  license_number: string;
+  languages: string[];
+  consultation_fee: string;
+}
+
 export default function CompleteProfile() {
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -31,8 +43,8 @@ export default function CompleteProfile() {
     fetchSpecialties 
   } = useSpecialtyStore();
 
-  // Form state
-  const [formData, setFormData] = useState({
+  // Form state with type
+  const [formData, setFormData] = useState<FormData>({
     first_name: '',
     last_name: '',
     email: '',
@@ -101,6 +113,9 @@ export default function CompleteProfile() {
 
     const success = await completeProfile({
       ...formData,
+      email: formData.email || undefined,
+      phone: formData.phone || undefined,
+      document_number: formData.document_number || undefined,
       consultation_fee: formData.consultation_fee ? parseFloat(formData.consultation_fee) : null
     });
 

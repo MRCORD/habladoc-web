@@ -3,13 +3,16 @@ import { devtools, persist } from 'zustand/middleware'
 import api from '@/lib/api'
 import type { User, DoctorProfile, Specialty } from '@/types'
 
-interface DoctorProfileCompletion {
+export interface DoctorProfileCompletion {
   specialty_id: string;
   license_number: string;
-  education: string;
-  experience_years: number;
   languages: string[];
-  [key: string]: unknown;
+  consultation_fee: number | null;
+  first_name: string;
+  last_name: string;
+  email?: string;
+  phone?: string;
+  document_number?: string;
 }
 
 interface UserState {

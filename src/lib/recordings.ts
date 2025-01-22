@@ -55,7 +55,8 @@ export const recordingsStorage = {
       });
 
       // Set the auth token once before upload
-      storage.setAuth(token);
+      const refreshToken = ''; // Replace with actual refresh token retrieval logic
+      storage.setAuth(token, refreshToken);
 
       // Construct path: recordings/[doctorId]/[sessionId]/[timestamp].mp4
       const path = `recordings/${doctorId}/${sessionId}`;

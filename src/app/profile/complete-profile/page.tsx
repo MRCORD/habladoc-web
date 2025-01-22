@@ -3,10 +3,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search } from 'lucide-react';
 import { useUserStore } from '@/stores/userStore';
 import { useSpecialtyStore } from '@/stores/specialtyStore';
-import { useInitialLoad } from '@/hooks/apiHooks';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
 import type { Specialty } from '@/types';

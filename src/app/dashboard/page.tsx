@@ -69,6 +69,21 @@ const mockSessions: Session[] = [
   }
 ];
 
+interface ErrorResponse {
+  data: {
+    detail: string;
+  };
+}
+
+function isErrorResponse(error: unknown): error is ErrorResponse {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'data' in error &&
+    typeof (error as ErrorResponse).data?.detail === 'string'
+  );
+}
+
 export default function Dashboard() {
   const router = useRouter();
 
@@ -98,10 +113,7 @@ export default function Dashboard() {
       // sessionsError === '404' is your store's custom way of indicating “Doctor profile not found”
       const is404Error =
         sessionsError === '404' ||
-        (typeof sessionsError === 'object' &&
-          sessionsError !== null &&
-          'data' in sessionsError &&
-          (sessionsError as any).data.detail === 'Doctor profile not found');
+        (isErrorResponse(sessionsError) && sessionsError.data.detail === 'Doctor profile not found');
 
       if (is404Error || (!doctorProfile && !userError)) {
         router.replace('/profile/complete-profile');

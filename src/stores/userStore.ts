@@ -3,6 +3,16 @@ import { devtools, persist } from 'zustand/middleware'
 import api from '@/lib/api'
 import type { User, DoctorProfile, Specialty } from '@/types'
 
+// Add custom API error type
+interface ApiError {
+  response?: {
+    status?: number;
+    data?: {
+      message?: string;
+    };
+  };
+}
+
 export interface DoctorProfileCompletion {
   specialty_id: string;
   license_number: string;
@@ -74,8 +84,8 @@ export const useUserStore = create<UserState>()(
               }
             }
           } catch (error: unknown) {
-            // If we get a 404, that just means no doctor profile yet—don't treat as error.
-            const status = (error as any)?.response?.status;
+            const apiError = error as ApiError;
+            const status = apiError.response?.status;
             if (status === 404) {
               console.warn('No doctor profile yet. Ignoring 404...');
               set({ doctorProfile: null });

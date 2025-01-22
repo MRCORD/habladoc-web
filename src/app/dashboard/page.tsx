@@ -1,18 +1,20 @@
 // app/dashboard/page.tsx
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mic } from 'lucide-react';
+
 import { useUserStore } from '@/stores/userStore';
 import { useInitialLoad, useTodaySessions } from '@/hooks/apiHooks';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
 import SessionListItem from '@/components/dashboard/session-list-item';
 import StatsGrid from '@/components/dashboard/stats-grid';
+
 import type { Session, SessionStatus, SessionType } from '@/types';
 
-// Mock data as fallback with proper typing
+// Mock data (optional fallback)
 const mockSessions: Session[] = [
   {
     id: '1',
@@ -69,25 +71,69 @@ const mockSessions: Session[] = [
 
 export default function Dashboard() {
   const router = useRouter();
-  
-  const { user, doctorProfile, error: userError } = useUserStore();
-  const { isLoading: isInitialLoading } = useInitialLoad();
-  const { todaySessions, isLoading: isSessionsLoading, error: sessionsError } = 
-    useTodaySessions(doctorProfile?.id);
 
+  // State from our stores
+  const { user, doctorProfile, error: userError } = useUserStore();
+  const { isLoading: isInitialLoading } = useInitialLoad(); // custom hook that fetches user data
+  const {
+    todaySessions,
+    isLoading: isSessionsLoading,
+    error: sessionsError,
+  } = useTodaySessions(doctorProfile?.id);
+
+  /**
+   * 1) If no user is logged in (and we've finished loading), redirect to login.
+   */
+  useEffect(() => {
+    if (!isInitialLoading && !user) {
+      router.replace('/login');
+    }
+  }, [isInitialLoading, user, router]);
+
+  /**
+   * 2) If there's a 404 or no doctor profile, redirect to "complete-profile" (after loads finish).
+   */
+  useEffect(() => {
+    if (!isInitialLoading && !isSessionsLoading) {
+      // sessionsError === '404' is your store's custom way of indicating “Doctor profile not found”
+      const is404Error =
+        sessionsError === '404' ||
+        (typeof sessionsError === 'object' &&
+          sessionsError !== null &&
+          'data' in sessionsError &&
+          (sessionsError as any).data.detail === 'Doctor profile not found');
+
+      if (is404Error || (!doctorProfile && !userError)) {
+        router.replace('/profile/complete-profile');
+      }
+    }
+  }, [isInitialLoading, isSessionsLoading, sessionsError, doctorProfile, userError, router]);
+
+  /**
+   * 3) Show a spinner if we’re still fetching user or session data.
+   */
   if (isInitialLoading || isSessionsLoading) {
     return <LoadingSpinner />;
   }
 
-  if (userError || sessionsError) {
-    return <ErrorMessage message={userError || sessionsError || 'An error occurred'} />;
+  /**
+   * 4) Show any error returned from user store.
+   */
+  if (userError) {
+    return <ErrorMessage message={userError} />;
   }
 
+  /**
+   * 5) If there's still no user or no doctorProfile, we return null. 
+   *    Our useEffects above will handle the redirects.
+   */
   if (!user || !doctorProfile) {
     return null;
   }
 
-  // Sessions display logic
+  // If we get this far, we have a user and a doctorProfile.
+  // We'll either show sessions or the fallback mockSessions.
+
   const displaySessions = todaySessions.length > 0 ? todaySessions : mockSessions;
 
   return (
@@ -97,7 +143,9 @@ export default function Dashboard() {
         <h1 className="text-2xl font-bold text-gray-900">
           Bienvenido, Dr. {user.last_name}
         </h1>
-        <p className="text-gray-500">Esto es lo que está pasando con tus sesiones hoy</p>
+        <p className="text-gray-500">
+          Esto es lo que está pasando con tus sesiones hoy
+        </p>
       </div>
 
       {/* Stats Grid */}

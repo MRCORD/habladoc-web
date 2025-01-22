@@ -62,20 +62,31 @@ export const useUserStore = create<UserState>()(
 
         fetchDoctorProfile: async () => {
           try {
-            set({ isLoading: true, error: null })
-            const response = await api.get('/api/v1/doctors/profile/me')
+            set({ isLoading: true, error: null });
+            const response = await api.get('/api/v1/doctors/profile/me');
+            
+            // If success, store the profile
             if (response.data.success) {
-              set({ doctorProfile: response.data.data })
-              // Fetch specialty if available
+              set({ doctorProfile: response.data.data });
+              // Optionally fetch specialty if you want:
               if (response.data.data.specialty_id) {
-                get().fetchSpecialty(response.data.data.specialty_id)
+                get().fetchSpecialty(response.data.data.specialty_id);
               }
             }
           } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : 'Failed to fetch doctor profile'
-            set({ error: errorMessage })
+            // If we get a 404, that just means no doctor profile yet—don't treat as error.
+            const status = (error as any)?.response?.status;
+            if (status === 404) {
+              console.warn('No doctor profile yet. Ignoring 404...');
+              set({ doctorProfile: null });
+            } else {
+              // For any other error, do show an error message
+              const errorMessage =
+                error instanceof Error ? error.message : 'Failed to fetch doctor profile';
+              set({ error: errorMessage });
+            }
           } finally {
-            set({ isLoading: false })
+            set({ isLoading: false });
           }
         },
 

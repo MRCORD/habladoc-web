@@ -12,7 +12,7 @@ import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
 import { PatientDisplay } from '@/components/patient/patient-display';
 import { CreatePatientForm } from '@/components/patient/create-patient-form';
-import type { Patient } from '@/types';
+import { SessionStatus, SessionType } from '@/types';
 
 export default function NewSessionPage() {
   const router = useRouter();
@@ -45,11 +45,11 @@ export default function NewSessionPage() {
     }
 
     const success = await startSession({
-      doctorId: doctorProfile.id,
-      patientId: patient.profile.id,
-      status: 'in_progress',
-      sessionType: 'standard',
-      scheduledFor: new Date().toISOString(),
+      doctor_id: doctorProfile.id,
+      patient_id: patient.profile.id,
+      status: SessionStatus.IN_PROGRESS,
+      session_type: SessionType.STANDARD,
+      scheduled_for: new Date().toISOString(),
       metadata: { started_immediately: true }
     });
 
@@ -65,21 +65,6 @@ export default function NewSessionPage() {
   if (!doctorProfile) {
     return <ErrorMessage message="Failed to load doctor profile" />;
   }
-
-  // Transform the PatientSearchResult to Patient type
-  const patientData: Patient | null = patient ? {
-    id: patient.profile.id,
-    date_of_birth: patient.profile.date_of_birth || '',
-    gender: patient.profile.gender || '',
-    blood_type: patient.profile.blood_type || '',
-    allergies: {
-      conditions: patient.profile.allergies?.conditions || []
-    },
-    emergency_contact: patient.profile.emergency_contact,
-    insurance_info: patient.profile.insurance_info || {},
-    metadata: patient.profile.metadata || {},
-    user: patient.user
-  } : null;
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -122,9 +107,9 @@ export default function NewSessionPage() {
       </div>
 
       {/* Patient Data Display */}
-      {patientData && (
+      {patient && (
         <PatientDisplay 
-          patient={patientData} 
+          patient={patient} 
           onStartSession={handleStartSession}
           isLoading={isSessionLoading}
         />

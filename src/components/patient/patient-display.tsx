@@ -1,9 +1,12 @@
 // src/components/patient/patient-display.tsx
-import { Patient } from '@/types';
+import { User, PatientProfile, AllergyCondition } from '@/types';
 import { LoadingSpinner } from '@/components/common/loading-spinner';
 
 interface PatientDisplayProps {
-  patient: Patient;
+  patient: {
+    user: User;
+    profile: PatientProfile;
+  };
   onStartSession: () => void;
   isLoading: boolean;
 }
@@ -38,12 +41,12 @@ export function PatientDisplay({ patient, onStartSession, isLoading }: PatientDi
       </dl>
       
       {/* Allergies */}
-      {patient.allergies?.conditions?.length > 0 && (
+      {patient.profile.allergies && patient.profile.allergies.conditions?.length > 0 && (
         <div className="mt-4">
           <dt className="text-sm font-medium text-gray-500">Alergias</dt>
           <dd className="mt-1">
             <ul className="flex flex-wrap gap-2">
-              {patient.allergies.conditions.map((allergy, index) => (
+              {patient.profile.allergies.conditions.map((allergy: string | AllergyCondition, index: number) => (
                 <li
                   key={index}
                   className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800"

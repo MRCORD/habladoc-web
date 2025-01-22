@@ -1,6 +1,6 @@
 // lib/auth.ts
 import { getSession } from '@auth0/nextjs-auth0';
-import { User } from '@/types';
+import { User, UserRole } from '@/types';
 
 export async function getUser(): Promise<User | null> {
   const session = await getSession();
@@ -15,9 +15,9 @@ export async function requireAuth() {
 }
 
 export function isDoctor(user: User) {
-  return user.roles.includes('doctor');
+  return user.roles.includes(UserRole.DOCTOR);
 }
 
 export function isAdmin(user: User) {
-  return user.roles.includes('admin');
+  return user.roles.includes(UserRole.ADMIN);
 }

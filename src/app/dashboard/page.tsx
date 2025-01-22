@@ -10,13 +10,61 @@ import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
 import SessionListItem from '@/components/dashboard/session-list-item';
 import StatsGrid from '@/components/dashboard/stats-grid';
-import type { SessionStatus } from '@/types';
+import type { Session, SessionStatus, SessionType } from '@/types';
 
 // Mock data as fallback with proper typing
-const mockSessions = [
-  { id: 1, patientName: 'Maria Garcia', date: '2024-01-18', status: 'completed' as SessionStatus, duration: '30 min' },
-  { id: 2, patientName: 'Juan Rodriguez', date: '2024-01-18', status: 'scheduled' as SessionStatus, duration: '45 min' },
-  { id: 3, patientName: 'Ana Martinez', date: '2024-01-17', status: 'cancelled' as SessionStatus, duration: '30 min' },
+const mockSessions: Session[] = [
+  {
+    id: '1',
+    doctor_id: 'mock-doctor-id',
+    patient_id: 'mock-patient-1',
+    status: 'completed' as SessionStatus,
+    session_type: 'standard' as SessionType,
+    scheduled_for: '2024-01-18T10:00:00Z',
+    started_at: '2024-01-18T10:00:00Z',
+    ended_at: '2024-01-18T10:30:00Z',
+    duration: 1800,
+    created_at: '2024-01-18T09:00:00Z',
+    updated_at: '2024-01-18T10:30:00Z',
+    patient: {
+      id: 'mock-patient-1',
+      first_name: 'Maria',
+      last_name: 'Garcia',
+      document_number: 'DOC123'
+    }
+  },
+  {
+    id: '2',
+    doctor_id: 'mock-doctor-id',
+    patient_id: 'mock-patient-2',
+    status: 'scheduled' as SessionStatus,
+    session_type: 'standard' as SessionType,
+    scheduled_for: '2024-01-18T14:00:00Z',
+    created_at: '2024-01-18T09:00:00Z',
+    updated_at: '2024-01-18T09:00:00Z',
+    patient: {
+      id: 'mock-patient-2',
+      first_name: 'Juan',
+      last_name: 'Rodriguez',
+      document_number: 'DOC456'
+    }
+  },
+  {
+    id: '3',
+    doctor_id: 'mock-doctor-id',
+    patient_id: 'mock-patient-3',
+    status: 'cancelled' as SessionStatus,
+    session_type: 'standard' as SessionType,
+    scheduled_for: '2024-01-17T15:00:00Z',
+    created_at: '2024-01-17T09:00:00Z',
+    updated_at: '2024-01-17T14:00:00Z',
+    patient: {
+      id: 'mock-patient-3',
+      first_name: 'Ana',
+      last_name: 'Martinez',
+      document_number: 'DOC789'
+    }
+  }
 ];
 
 export default function Dashboard() {

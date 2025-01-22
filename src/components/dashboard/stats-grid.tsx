@@ -7,6 +7,12 @@ interface StatsGridProps {
   todaySessions: Session[];
 }
 
+const getNextScheduledSession = (sessions: Session[]): string => {
+  const scheduledSession = sessions.find(s => s.status === 'scheduled');
+  if (!scheduledSession?.scheduled_for) return 'No hay';
+  return format(new Date(scheduledSession.scheduled_for), 'HH:mm');
+};
+
 export function StatsGrid({ todaySessions }: StatsGridProps) {
   // Stats calculation
   const stats = [
@@ -17,9 +23,7 @@ export function StatsGrid({ todaySessions }: StatsGridProps) {
     },
     { 
       name: 'Próxima Sesión', 
-      value: todaySessions.find(s => s.status === 'scheduled')?.scheduledFor ? 
-        format(new Date(todaySessions.find(s => s.status === 'scheduled')!.scheduledFor), 'HH:mm') : 
-        'No hay', 
+      value: getNextScheduledSession(todaySessions), 
       icon: Clock 
     },
     { 

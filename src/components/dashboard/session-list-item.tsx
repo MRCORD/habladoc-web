@@ -1,79 +1,54 @@
-// components/dashboard/session-list-item.tsx
+// src/components/dashboard/session-list-item.tsx
 import { format, isValid } from 'date-fns';
 import { SessionStatusBadge } from '@/components/common/status-badges';
-import type { Session, SessionStatus } from '@/types';
+import type { Session } from '@/types';
 
-interface MockSession {
-  id: number;
-  patientName: string;
-  date: string;
-  status: SessionStatus;
-  duration: string;
-}
+// Helper function to get patient name
+const getPatientName = (session: Session): string => {
+  if (!session.patient) return 'Paciente';
+  
+  const { first_name, last_name } = session.patient;
+  return first_name && last_name ? `${first_name} ${last_name}` : 'Paciente';
+};
 
 interface SessionListItemProps {
-  session: Session | MockSession;
+  session: Session;
   onSelect: () => void;
 }
 
-// Type guard to check if it's a mock session
-function isMockSession(session: Session | MockSession): session is MockSession {
-  return 'patientName' in session;
-}
-
-function formatDate(dateStr: string): string {
-  try {
-    const date = new Date(dateStr);
-    if (!isValid(date)) {
-      console.warn('Invalid date:', dateStr);
-      return 'Invalid date';
-    }
-    return format(date, 'dd/MM/yyyy HH:mm');
-  } catch (error) {
-    console.error('Error formatting date:', error);
-    return 'Invalid date';
-  }
-}
-
 export function SessionListItem({ session, onSelect }: SessionListItemProps) {
-  const getDisplayName = () => {
-    if (isMockSession(session)) {
-      return session.patientName;
-    }
-    // Handle nested user structure from real session data
-    return `${session.patient?.user?.first_name || 'Paciente'} ${session.patient?.user?.last_name || ''}`;
+  // Helper function to safely format dates
+  const getFormattedDate = (dateStr?: string | null) => {
+    if (!dateStr) return '---';
+    const date = new Date(dateStr);
+    return isValid(date) ? format(date, 'dd/MM/yyyy HH:mm') : '---';
   };
 
-  const getFormattedDate = () => {
-    const dateStr = isMockSession(session) ? session.date : session.scheduledFor;
-    return formatDate(dateStr);
-  };
-
-  const getDuration = () => {
-    if (isMockSession(session)) {
-      return session.duration;
-    }
-    return session.duration ? `${session.duration} min` : '---';
+  // Helper function to format duration
+  const formatDuration = (duration?: number | null) => {
+    if (!duration) return '---';
+    const minutes = Math.floor(duration / 60);
+    return `${minutes} min`;
   };
 
   return (
     <li 
-      className="px-4 py-4 sm:px-6 hover:bg-gray-50 cursor-pointer"
+      className="px-4 py-4 sm:px-6 hover:bg-gray-50 cursor-pointer transition-colors"
       onClick={onSelect}
     >
       <div className="flex items-center justify-between">
         <div className="flex flex-col">
           <p className="text-sm font-medium text-gray-900">
-            {getDisplayName()}
+            {getPatientName(session)}
           </p>
           <p className="text-sm text-gray-500">
-            {getFormattedDate()}
+            {getFormattedDate(session.scheduled_for)}
           </p>
         </div>
-        <div className="flex items-center">
+        <div className="flex items-center gap-4">
           <SessionStatusBadge status={session.status} />
-          <span className="ml-4 text-sm text-gray-500">
-            {getDuration()}
+          <span className="text-sm text-gray-500 min-w-[60px] text-right">
+            {formatDuration(session.duration)}
           </span>
         </div>
       </div>

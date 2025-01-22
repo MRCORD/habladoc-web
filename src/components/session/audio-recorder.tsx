@@ -6,6 +6,7 @@ import { Mic, Square, Pause, Play, Upload, Trash2 } from "lucide-react";
 import RecordRTC from "recordrtc";
 import { recordingsStorage } from "@/lib/recordings";
 import api from "@/lib/api";
+import type { RecordingCreateData, RecordingStatus } from "@/types";
 
 interface AudioRecorderProps {
   sessionId: string;
@@ -13,7 +14,7 @@ interface AudioRecorderProps {
   onRecordingComplete: () => void;
 }
 
-// Add type for RecordRTC instance
+// RecordRTC instance type
 type RecordRTCType = RecordRTC & {
   startRecording: () => void;
   stopRecording: (callback: () => void) => void;
@@ -22,56 +23,64 @@ type RecordRTCType = RecordRTC & {
   getBlob: () => Blob;
 };
 
-/**
- * A floating audio recorder (like WhatsApp) in Spanish:
- *   - Not pinned full-width, but centered with some margin.
- *   - Start/Stop/Resume/Pause, plus Discard or Send (upload).
- */
-const AudioRecorder = ({
+// Recording state type
+interface RecordingState {
+  isRecording: boolean;
+  isPaused: boolean;
+  duration: number;
+  audioUrl: string | null;
+  isUploading: boolean;
+  error: string | null;
+}
+
+const DEFAULT_STATE: RecordingState = {
+  isRecording: false,
+  isPaused: false,
+  duration: 0,
+  audioUrl: null,
+  isUploading: false,
+  error: null,
+};
+
+export default function AudioRecorder({
   sessionId,
   doctorId,
   onRecordingComplete,
-}: AudioRecorderProps) => {
-  const [isRecording, setIsRecording] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [duration, setDuration] = useState(0);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+}: AudioRecorderProps) {
+  // State
+  const [state, setState] = useState<RecordingState>(DEFAULT_STATE);
 
+  // Refs
   const recordRtcRef = useRef<RecordRTCType | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
 
-  // Move cleanup to useCallback to avoid dependency issues
+  // Cleanup function
   const cleanup = useCallback(() => {
     if (durationIntervalRef.current) {
       clearInterval(durationIntervalRef.current);
       durationIntervalRef.current = null;
     }
-    if (typeof window !== "undefined" && audioUrl) {
-      window.URL.revokeObjectURL(audioUrl);
+    if (typeof window !== "undefined" && state.audioUrl) {
+      window.URL.revokeObjectURL(state.audioUrl);
     }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
     }
-  }, [audioUrl]);
+  }, [state.audioUrl]);
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => cleanup();
   }, [cleanup]);
 
+  // Start recording
   const startRecording = async () => {
     try {
       cleanup();
-      setAudioUrl(null);
-      setDuration(0);
-      setIsPaused(false);
-      setError(null);
+      setState({ ...DEFAULT_STATE });
 
-      // Acceder al micrófono
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -81,10 +90,9 @@ const AudioRecorder = ({
       });
       streamRef.current = stream;
 
-      // Configurar RecordRTC con MediaStreamRecorder (audio/webm, audio/mp4, etc.)
       recordRtcRef.current = new RecordRTC(stream, {
         type: "audio",
-        mimeType: "audio/webm", // Changed from "audio/mp4" to "audio/webm"
+        mimeType: "audio/webm",
         recorderType: RecordRTC.MediaStreamRecorder,
         timeSlice: 1000,
         desiredSampRate: 16000,
@@ -92,53 +100,39 @@ const AudioRecorder = ({
       });
 
       recordRtcRef.current.startRecording();
-      setIsRecording(true);
-
-      // Iniciar temporizador
       startTimeRef.current = Date.now();
+      
       durationIntervalRef.current = setInterval(() => {
-        setDuration(Math.floor((Date.now() - startTimeRef.current) / 1000));
+        setState(prev => ({
+          ...prev,
+          duration: Math.floor((Date.now() - startTimeRef.current) / 1000),
+          isRecording: true
+        }));
       }, 1000);
+
     } catch (err) {
       console.error("startRecording error:", err);
-      setError("No se pudo acceder al micrófono");
+      setState(prev => ({
+        ...prev,
+        error: "No se pudo acceder al micrófono"
+      }));
     }
   };
 
-  const pauseRecording = () => {
-    if (!isRecording || !recordRtcRef.current) return;
-    recordRtcRef.current.pauseRecording();
-    setIsPaused(true);
-
-    if (durationIntervalRef.current) {
-      clearInterval(durationIntervalRef.current);
-      durationIntervalRef.current = null;
-    }
-  };
-
-  const resumeRecording = () => {
-    if (!isRecording || !isPaused || !recordRtcRef.current) return;
-    recordRtcRef.current.resumeRecording();
-    setIsPaused(false);
-
-    const pausedTime = Date.now() - (startTimeRef.current + duration * 1000);
-    startTimeRef.current = Date.now() - duration * 1000 + pausedTime;
-
-    durationIntervalRef.current = setInterval(() => {
-      setDuration(Math.floor((Date.now() - startTimeRef.current) / 1000));
-    }, 1000);
-  };
-
+  // Stop recording
   const stopRecording = () => {
-    if (!isRecording || !recordRtcRef.current) return;
-    setIsRecording(false);
-    setIsPaused(false);
+    if (!recordRtcRef.current) return;
 
     recordRtcRef.current.stopRecording(() => {
       const blob = recordRtcRef.current?.getBlob();
       if (blob && typeof window !== "undefined") {
         const url = window.URL.createObjectURL(blob);
-        setAudioUrl(url);
+        setState(prev => ({
+          ...prev,
+          isRecording: false,
+          isPaused: false,
+          audioUrl: url
+        }));
       }
       recordRtcRef.current = null;
     });
@@ -146,55 +140,69 @@ const AudioRecorder = ({
     cleanup();
   };
 
+  // Pause/Resume recording
+  const togglePause = () => {
+    if (!recordRtcRef.current || !state.isRecording) return;
+
+    if (state.isPaused) {
+      recordRtcRef.current.resumeRecording();
+      const pausedTime = Date.now() - (startTimeRef.current + state.duration * 1000);
+      startTimeRef.current = Date.now() - state.duration * 1000 + pausedTime;
+
+      durationIntervalRef.current = setInterval(() => {
+        setState(prev => ({
+          ...prev,
+          duration: Math.floor((Date.now() - startTimeRef.current) / 1000)
+        }));
+      }, 1000);
+    } else {
+      recordRtcRef.current.pauseRecording();
+      if (durationIntervalRef.current) {
+        clearInterval(durationIntervalRef.current);
+        durationIntervalRef.current = null;
+      }
+    }
+
+    setState(prev => ({ ...prev, isPaused: !prev.isPaused }));
+  };
+
+  // Discard recording
   const discardRecording = () => {
     cleanup();
-    setIsRecording(false);
-    setIsPaused(false);
-    setDuration(0);
-    setAudioUrl(null);
-    setError(null);
+    setState(DEFAULT_STATE);
     recordRtcRef.current = null;
   };
 
+  // Upload recording
   const uploadRecording = async () => {
-    if (!audioUrl || isUploading) return;
-    setIsUploading(true);
-    setError(null);
+    if (!state.audioUrl || state.isUploading) return;
+    setState(prev => ({ ...prev, isUploading: true, error: null }));
 
     let uploadedFilePath = '';
 
     try {
-      const response = await fetch(audioUrl);
+      const response = await fetch(state.audioUrl);
       const blob = await response.blob();
 
-      // Step 1: Upload the file to storage
+      // Upload to storage
       const uploadResult = await recordingsStorage.upload(blob, doctorId, sessionId);
-      if (uploadResult.error) {
-        throw uploadResult.error;
-      }
+      if (uploadResult.error) throw uploadResult.error;
 
       uploadedFilePath = uploadResult.path;
 
-      console.log('File uploaded successfully, creating recording record:', {
-        path: uploadedFilePath,
-        size: uploadResult.size,
-        mimeType: uploadResult.mimeType,
-        duration
-      });
-
-      // Step 2: Create the recording record in database
-      const recordingData = {
+      // Create recording record
+      const recordingData: RecordingCreateData = {
         session_id: sessionId,
-        duration,
+        duration: state.duration,
         file_path: uploadedFilePath,
         file_size: uploadResult.size,
-        mime_type: uploadResult.mimeType || 'audio/mp4',
-        status: "pending",
+        mime_type: uploadResult.mimeType || 'audio/webm',
+        status: 'pending' as RecordingStatus,
         metadata: {
           sample_rate: 16000,
           channels: 1,
-          duration_seconds: duration,
-          original_name: `recording-${new Date().toISOString()}.webm` // Changed from .mp4 to .webm
+          duration_seconds: state.duration,
+          original_name: `recording-${new Date().toISOString()}.webm`
         }
       };
 
@@ -204,19 +212,15 @@ const AudioRecorder = ({
         throw new Error(recordingResponse.data.message || "Failed to save recording");
       }
 
-      console.log('Recording created successfully:', recordingResponse.data);
-
-      // Clear the UI and notify parent
-      setAudioUrl(null);
-      setDuration(0);
+      // Reset state and notify parent
+      setState(DEFAULT_STATE);
       onRecordingComplete();
 
     } catch (err) {
       console.error('Upload process error:', err);
       
-      // If we uploaded the file but failed to create the record, clean up the file
+      // Cleanup uploaded file if record creation failed
       if (uploadedFilePath) {
-        console.log('Cleaning up uploaded file after error:', uploadedFilePath);
         try {
           await recordingsStorage.delete(uploadedFilePath);
         } catch (deleteErr) {
@@ -224,39 +228,41 @@ const AudioRecorder = ({
         }
       }
 
-      setError(err instanceof Error ? err.message : 'Error al subir la grabación');
-    } finally {
-      setIsUploading(false);
+      setState(prev => ({
+        ...prev,
+        error: err instanceof Error ? err.message : 'Error al subir la grabación',
+        isUploading: false
+      }));
     }
   };
 
-  const renderTimer = () => {
-    const mm = Math.floor(duration / 60);
-    const ss = (duration % 60).toString().padStart(2, "0");
+  // Format timer display
+  const formattedDuration = () => {
+    const mm = Math.floor(state.duration / 60);
+    const ss = (state.duration % 60).toString().padStart(2, "0");
     return `${mm}:${ss}`;
   };
 
   return (
-    // Centered, floating container near bottom (not pinned full width).
     <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 w-11/12 sm:w-[26rem] bg-white border p-4 shadow-lg rounded-xl z-50">
-      {error && (
+      {state.error && (
         <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm mb-3">
-          {error}
+          {state.error}
         </div>
       )}
 
-      {/* Timer + Buttons */}
+      {/* Timer + Controls */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          {isRecording && (
+          {state.isRecording && (
             <span className="text-red-500 text-sm animate-pulse">● REC</span>
           )}
-          <span className="text-lg font-mono text-gray-700">{renderTimer()}</span>
+          <span className="text-lg font-mono text-gray-700">{formattedDuration()}</span>
         </div>
 
         <div className="flex gap-2">
-          {/* Iniciar */}
-          {!isRecording && !audioUrl && (
+          {/* Record Button */}
+          {!state.isRecording && !state.audioUrl && (
             <button
               onClick={startRecording}
               className="p-3 bg-green-500 text-white rounded-full hover:bg-green-600 transition"
@@ -266,8 +272,8 @@ const AudioRecorder = ({
             </button>
           )}
 
-          {/* Detener */}
-          {isRecording && (
+          {/* Stop Button */}
+          {state.isRecording && (
             <button
               onClick={stopRecording}
               className="p-3 bg-red-500 text-white rounded-full hover:bg-red-600 transition"
@@ -277,38 +283,35 @@ const AudioRecorder = ({
             </button>
           )}
 
-          {/* Pausar/Reanudar */}
-          {isRecording && !isPaused && (
+          {/* Pause/Resume Button */}
+          {state.isRecording && (
             <button
-              onClick={pauseRecording}
-              className="p-3 bg-yellow-500 text-white rounded-full hover:bg-yellow-600 transition"
-              title="Pausar grabación"
+              onClick={togglePause}
+              className={`p-3 ${
+                state.isPaused 
+                  ? "bg-blue-500 hover:bg-blue-600" 
+                  : "bg-yellow-500 hover:bg-yellow-600"
+              } text-white rounded-full transition`}
+              title={state.isPaused ? "Reanudar grabación" : "Pausar grabación"}
             >
-              <Pause className="w-5 h-5" />
-            </button>
-          )}
-          {isRecording && isPaused && (
-            <button
-              onClick={resumeRecording}
-              className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition"
-              title="Reanudar grabación"
-            >
-              <Play className="w-5 h-5" />
+              {state.isPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
             </button>
           )}
         </div>
       </div>
 
-      {/* If we have a final audio, show playback + discard + send */}
-      {audioUrl && !isRecording && (
+      {/* Audio Preview + Actions */}
+      {state.audioUrl && !state.isRecording && (
         <div className="border-t pt-3 flex flex-col space-y-3">
           <audio
-            src={audioUrl}
+            src={state.audioUrl}
             controls
             className="w-full"
-            onError={(e) => {
-              console.error("Audio playback error:", e);
-              setError("Error al reproducir la grabación");
+            onError={() => {
+              setState(prev => ({
+                ...prev,
+                error: "Error al reproducir la grabación"
+              }));
             }}
           />
           <div className="flex gap-2">
@@ -322,18 +325,16 @@ const AudioRecorder = ({
             </button>
             <button
               onClick={uploadRecording}
-              disabled={isUploading}
+              disabled={state.isUploading}
               className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition"
               title="Enviar grabación"
             >
               <Upload className="w-4 h-4 mr-1" />
-              {isUploading ? "Subiendo..." : "Enviar"}
+              {state.isUploading ? "Subiendo..." : "Enviar"}
             </button>
           </div>
         </div>
       )}
     </div>
   );
-};
-
-export default AudioRecorder;
+}

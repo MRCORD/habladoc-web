@@ -1,5 +1,5 @@
 // components/dashboard/session-list-item.tsx
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { SessionStatusBadge } from '@/components/common/status-badges';
 import type { Session, SessionStatus } from '@/types';
 
@@ -21,6 +21,20 @@ function isMockSession(session: Session | MockSession): session is MockSession {
   return 'patientName' in session;
 }
 
+function formatDate(dateStr: string): string {
+  try {
+    const date = new Date(dateStr);
+    if (!isValid(date)) {
+      console.warn('Invalid date:', dateStr);
+      return 'Invalid date';
+    }
+    return format(date, 'dd/MM/yyyy HH:mm');
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return 'Invalid date';
+  }
+}
+
 export function SessionListItem({ session, onSelect }: SessionListItemProps) {
   const getDisplayName = () => {
     if (isMockSession(session)) {
@@ -32,7 +46,7 @@ export function SessionListItem({ session, onSelect }: SessionListItemProps) {
 
   const getFormattedDate = () => {
     const dateStr = isMockSession(session) ? session.date : session.scheduledFor;
-    return format(new Date(dateStr), 'dd/MM/yyyy HH:mm');
+    return formatDate(dateStr);
   };
 
   const getDuration = () => {

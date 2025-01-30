@@ -172,7 +172,7 @@ export default function AudioRecorder({
     await ffmpeg.deleteFile('recording.webm');
     await ffmpeg.deleteFile('recording.mp3');
 
-    return { mp3Blob, mp3Url };
+    return { mp3Url };
   };
 
   // Stop recording
@@ -184,7 +184,7 @@ export default function AudioRecorder({
       if (webmBlob && typeof window !== 'undefined') {
         setState(prev => ({ ...prev, isRecording: false, isPaused: false }));
         try {
-          const { mp3Blob, mp3Url } = await convertToMp3(webmBlob);
+          const { mp3Url } = await convertToMp3(webmBlob);
           setState(prev => ({
             ...prev,
             audioUrl: mp3Url,

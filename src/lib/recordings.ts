@@ -64,13 +64,24 @@ export const recordingsStorage = {
       }
 
       // Determine and validate MIME type
-      const mimeType = file instanceof File ? file.type : 'audio/webm';
+      const mimeType = file instanceof File ? file.type : 'audio/mpeg';
       if (!ALLOWED_MIME_TYPES.includes(mimeType as AllowedMimeType)) {
         throw new RecordingError(
           `Tipo de archivo no soportado: ${mimeType}`,
           'INVALID_MIME_TYPE'
         );
       }
+
+      // Get file extension based on MIME type
+      const getExtension = (mime: string) => {
+        switch (mime) {
+          case 'audio/mpeg': return 'mp3';
+          case 'audio/webm': return 'webm';
+          case 'audio/wav': return 'wav';
+          case 'audio/mp4': return 'm4a';
+          default: return 'mp3';
+        }
+      };
 
       console.log('Iniciando subida de grabación:', {
         doctorId,
@@ -83,10 +94,11 @@ export const recordingsStorage = {
       const refreshToken = ''; // TODO: Implement refresh token handling
       storage.setAuth(token, refreshToken);
 
-      // Construct path: recordings/[doctorId]/[sessionId]/[timestamp].webm
+      // Construct path with correct extension
       const path = `recordings/${doctorId}/${sessionId}`;
       const timestamp = new Date().toISOString();
-      const filename = `${timestamp.replace(/[:.]/g, '-')}.webm`;
+      const extension = getExtension(mimeType);
+      const filename = `${timestamp.replace(/[:.]/g, '-')}.${extension}`;
 
       const { path: filePath, error } = await storage.upload(file, path, filename);
 
@@ -109,7 +121,7 @@ export const recordingsStorage = {
       return {
         path: '',
         size: 0,
-        mimeType: 'audio/webm',
+        mimeType: 'audio/mpeg',
         error: error instanceof Error ? error : new Error('Error en subida')
       };
     }

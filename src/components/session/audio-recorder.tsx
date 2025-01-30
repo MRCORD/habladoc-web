@@ -7,6 +7,8 @@ import RecordRTC from "recordrtc";
 import { recordingsStorage } from "@/lib/recordings";
 import api from "@/lib/api";
 import type { RecordingCreateData, RecordingStatus } from "@/types";
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
 
 interface AudioRecorderProps {
   sessionId: string;
@@ -42,6 +44,13 @@ const DEFAULT_STATE: RecordingState = {
   error: null,
 };
 
+// Update MIME type and file extension constants
+const RECORD_MIME_TYPE = 'audio/webm'; // Format for recording
+const STORAGE_MIME_TYPE = 'audio/mpeg'; // Format for storage
+const FILE_EXTENSION = 'mp3'; // Storage file extension
+
+const ffmpeg = new FFmpeg();
+
 export default function AudioRecorder({
   sessionId,
   doctorId,
@@ -49,6 +58,24 @@ export default function AudioRecorder({
 }: AudioRecorderProps) {
   // State
   const [state, setState] = useState<RecordingState>(DEFAULT_STATE);
+  const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
+
+  useEffect(() => {
+    const loadFFmpeg = async () => {
+      try {
+        // Load FFmpeg with WASM
+        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.2/dist/umd';
+        await ffmpeg.load({
+          coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+          wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+        });
+        setFfmpegLoaded(true);
+      } catch (error) {
+        console.error('Failed to load FFmpeg:', error);
+      }
+    };
+    loadFFmpeg();
+  }, []);
 
   // Refs
   const recordRtcRef = useRef<RecordRTCType | null>(null);
@@ -92,7 +119,7 @@ export default function AudioRecorder({
 
       recordRtcRef.current = new RecordRTC(stream, {
         type: "audio",
-        mimeType: "audio/webm",
+        mimeType: RECORD_MIME_TYPE,
         recorderType: RecordRTC.MediaStreamRecorder,
         timeSlice: 1000,
         desiredSampRate: 16000,
@@ -119,20 +146,56 @@ export default function AudioRecorder({
     }
   };
 
+  // Convert WebM to MP3
+  const convertToMp3 = async (webmBlob: Blob) => {
+    if (!ffmpegLoaded) {
+      throw new Error('FFmpeg not loaded');
+    }
+
+    const webmFile = new File([webmBlob], 'recording.webm', { type: 'audio/webm' });
+    await ffmpeg.writeFile('recording.webm', await fetchFile(webmFile));
+
+    // Add better audio conversion parameters
+    await ffmpeg.exec([
+      '-i', 'recording.webm',
+      '-c:a', 'libmp3lame',
+      '-b:a', '128k',
+      '-ar', '44100',
+      'recording.mp3'
+    ]);
+
+    const mp3Data = await ffmpeg.readFile('recording.mp3');
+    const mp3Blob = new Blob([mp3Data], { type: STORAGE_MIME_TYPE });
+    const mp3Url = URL.createObjectURL(mp3Blob);
+
+    // Clean up ffmpeg virtual filesystem
+    await ffmpeg.deleteFile('recording.webm');
+    await ffmpeg.deleteFile('recording.mp3');
+
+    return { mp3Blob, mp3Url };
+  };
+
   // Stop recording
   const stopRecording = () => {
     if (!recordRtcRef.current) return;
 
-    recordRtcRef.current.stopRecording(() => {
-      const blob = recordRtcRef.current?.getBlob();
-      if (blob && typeof window !== "undefined") {
-        const url = window.URL.createObjectURL(blob);
-        setState(prev => ({
-          ...prev,
-          isRecording: false,
-          isPaused: false,
-          audioUrl: url
-        }));
+    recordRtcRef.current.stopRecording(async () => {
+      const webmBlob = recordRtcRef.current?.getBlob();
+      if (webmBlob && typeof window !== 'undefined') {
+        setState(prev => ({ ...prev, isRecording: false, isPaused: false }));
+        try {
+          const { mp3Blob, mp3Url } = await convertToMp3(webmBlob);
+          setState(prev => ({
+            ...prev,
+            audioUrl: mp3Url,
+          }));
+        } catch (error) {
+          console.error('Conversion error:', error);
+          setState(prev => ({
+            ...prev,
+            error: "Error al convertir la grabación"
+          }));
+        }
       }
       recordRtcRef.current = null;
     });
@@ -196,13 +259,13 @@ export default function AudioRecorder({
         duration: state.duration,
         file_path: uploadedFilePath,
         file_size: uploadResult.size,
-        mime_type: uploadResult.mimeType || 'audio/webm',
+        mime_type: STORAGE_MIME_TYPE,
         status: 'pending' as RecordingStatus,
         metadata: {
-          sample_rate: 16000,
+          sample_rate: 44100,
           channels: 1,
           duration_seconds: state.duration,
-          original_name: `recording-${new Date().toISOString()}.webm`
+          original_name: `recording-${new Date().toISOString()}.${FILE_EXTENSION}`
         }
       };
 

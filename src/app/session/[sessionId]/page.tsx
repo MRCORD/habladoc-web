@@ -1,8 +1,10 @@
 // src/app/session/[sessionId]/page.tsx
 "use client";
 
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Mic, Sparkles } from "lucide-react";
+import { Tab } from '@headlessui/react';
 
 import { useSessionData } from "@/hooks/apiHooks";
 import { useSessionStore } from "@/stores/sessionStore";
@@ -12,6 +14,7 @@ import { SessionStatusBadge } from "@/components/common/status-badges";
 import AudioRecorder from "@/components/session/audio-recorder";
 import { RecordingsList } from "@/components/session/recordings-list";
 import { PatientData } from "@/components/session/patient-info";
+import AnalysisDisplay from "@/components/session/analysis-display";
 
 import type { InsuranceInfo } from "@/types";
 
@@ -19,7 +22,8 @@ export default function SessionPage() {
   const router = useRouter();
   const params = useParams();
   const sessionId = params?.sessionId as string;
-
+  const [activeTab, setActiveTab] = useState('consultation');
+  
   const {
     session: sessionData,
     recordings,
@@ -33,6 +37,8 @@ export default function SessionPage() {
 
   const handleRecordingComplete = () => {
     useSessionStore.getState().fetchRecordings(sessionId);
+    // Switch to analysis tab after recording
+    setActiveTab('analysis');
   };
 
   if (isLoading) {
@@ -51,16 +57,13 @@ export default function SessionPage() {
     return null;
   }
 
-  // Helper function to convert null to undefined
   const nullToUndefined = <T,>(value: T | null): T | undefined =>
     value === null ? undefined : value;
 
-  // Parse the insurance information
   const insuranceInfo = sessionData.patient.insurance_info
     ? (sessionData.patient.insurance_info as InsuranceInfo)
     : undefined;
 
-  // Pass the patient data directly, with proper typing
   const patientData = {
     id: sessionData.patient.id,
     user: sessionData.patient.user,
@@ -94,23 +97,56 @@ export default function SessionPage() {
           </div>
         </div>
 
-        {/* Common container for Patient Data and Recordings List */}
+        {/* Common container for Patient Data */}
         <div className="max-w-screen-lg mx-auto space-y-6">
           {/* Patient Data Component */}
           <PatientData patientData={patientData} />
 
-          {/* Recordings List */}
-          {recordings.length > 0 && (
-            <div className="bg-white shadow rounded-lg p-6 mb-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-4">
-                Grabaciones
-              </h2>
-              <RecordingsList
-                recordings={recordings}
-                onError={(msg) => useSessionStore.setState({ error: msg })}
-              />
-            </div>
-          )}
+          {/* Tabs */}
+          <Tab.Group selectedIndex={activeTab === 'consultation' ? 0 : 1} onChange={index => setActiveTab(index === 0 ? 'consultation' : 'analysis')}>
+            <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/20 p-1">
+              <Tab className={({ selected }) =>
+                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 flex items-center justify-center gap-2
+                 ${selected
+                  ? 'bg-white shadow text-blue-700'
+                  : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
+                }`
+              }>
+                <Mic className="h-4 w-4" />
+                Consulta
+              </Tab>
+              <Tab className={({ selected }) =>
+                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 flex items-center justify-center gap-2
+                 ${selected
+                  ? 'bg-white shadow text-blue-700'
+                  : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
+                }`
+              }>
+                <Sparkles className="h-4 w-4" />
+                Análisis en Vivo
+              </Tab>
+            </Tab.List>
+
+            <Tab.Panels className="mt-6">
+              <Tab.Panel className="space-y-4">
+                {recordings.length > 0 && (
+                  <div className="bg-white shadow rounded-lg p-6">
+                    <h2 className="text-lg font-medium text-gray-900 mb-4">
+                      Grabaciones
+                    </h2>
+                    <RecordingsList
+                      recordings={recordings}
+                      onError={(msg) => useSessionStore.setState({ error: msg })}
+                    />
+                  </div>
+                )}
+              </Tab.Panel>
+
+              <Tab.Panel className="space-y-4">
+                <AnalysisDisplay sessionId={sessionId} />
+              </Tab.Panel>
+            </Tab.Panels>
+          </Tab.Group>
         </div>
       </div>
 

@@ -5,6 +5,7 @@ import { useState, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Mic, Sparkles } from "lucide-react";
 import { Tab } from '@headlessui/react';
+import dynamic from 'next/dynamic';
 
 import { useSessionData } from "@/hooks/apiHooks";
 import { useSessionStore } from "@/stores/sessionStore";
@@ -68,6 +69,11 @@ export default function SessionPage() {
     insurance_info: insuranceInfo,
     metadata: nullToUndefined(sessionData.patient.metadata)
   };
+
+  const AudioRecorder = dynamic(
+    () => import('@/components/session/audio-recorder'),
+    { ssr: false }
+  );
 
   return (
     <>

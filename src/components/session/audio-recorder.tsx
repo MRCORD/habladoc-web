@@ -49,7 +49,7 @@ const RECORD_MIME_TYPE = 'audio/webm'; // Format for recording
 const STORAGE_MIME_TYPE = 'audio/mpeg'; // Format for storage
 const FILE_EXTENSION = 'mp3'; // Storage file extension
 
-const ffmpeg = new FFmpeg();
+const ffmpeg = typeof window !== 'undefined' ? new FFmpeg() : null;
 
 export default function AudioRecorder({
   sessionId,
@@ -63,7 +63,8 @@ export default function AudioRecorder({
   useEffect(() => {
     const loadFFmpeg = async () => {
       try {
-        // Load FFmpeg with WASM
+        if (!ffmpeg) return; // Ensure we're in browser environment
+        
         const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.2/dist/umd';
         await ffmpeg.load({
           coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
@@ -74,7 +75,10 @@ export default function AudioRecorder({
         console.error('Failed to load FFmpeg:', error);
       }
     };
-    loadFFmpeg();
+    
+    if (typeof window !== 'undefined') {
+      loadFFmpeg();
+    }
   }, []);
 
   // Refs

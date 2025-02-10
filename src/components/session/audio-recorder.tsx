@@ -152,7 +152,7 @@ export default function AudioRecorder({
 
   // Convert WebM to MP3
   const convertToMp3 = async (webmBlob: Blob) => {
-    if (!ffmpegLoaded) {
+    if (!ffmpeg || !ffmpegLoaded) {
       throw new Error('FFmpeg not loaded');
     }
 

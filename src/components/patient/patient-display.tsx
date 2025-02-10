@@ -1,6 +1,7 @@
 // src/components/patient/patient-display.tsx
-import { User, PatientProfile, AllergyCondition } from '@/types';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { useState } from 'react';
+import type { User, PatientProfile, AllergyCondition } from '@/types';
+import { PatientActionsSkeleton } from '@/components/common/loading-skeletons';
 
 interface PatientDisplayProps {
   patient: {
@@ -63,9 +64,9 @@ export function PatientDisplay({ patient, onStartSession, isLoading }: PatientDi
         <button
           onClick={onStartSession}
           disabled={isLoading}
-          className="inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90"
         >
-          {isLoading ? <LoadingSpinner /> : 'Iniciar Sesión'}
+          {isLoading ? <PatientActionsSkeleton /> : 'Iniciar Sesión'}
         </button>
       </div>
     </div>

@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@/stores/userStore';
 import { useSpecialtyStore } from '@/stores/specialtyStore';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { CompleteProfileSkeleton } from '@/components/common/loading-skeletons';
 import { ErrorMessage } from '@/components/common/error-message';
 import type { Specialty } from '@/types';
 
@@ -128,7 +128,7 @@ export default function CompleteProfile() {
   };
 
   if (isUserLoading) {
-    return <LoadingSpinner />;
+    return <CompleteProfileSkeleton />;
   }
 
   if (!user) {

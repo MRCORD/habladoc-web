@@ -1,7 +1,7 @@
 // src/components/session/analysis-display.tsx
 import { useEffect, useState } from 'react';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
+import { AnalysisDisplaySkeleton } from '@/components/common/loading-skeletons';
 import { RefreshCcw as RefreshIcon } from 'lucide-react';
 import api from '@/lib/api';
 import type { ApiResponse } from '@/types';
@@ -233,7 +233,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
     {}
   );
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading) return <AnalysisDisplaySkeleton />;
   if (error) return <ErrorMessage message={error} />;
 
   return (

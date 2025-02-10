@@ -1,16 +1,15 @@
-// app/dashboard/page.tsx
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { Mic } from 'lucide-react';
 
 import { useUserStore } from '@/stores/userStore';
 import { useInitialLoad, useTodaySessions } from '@/hooks/apiHooks';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
 import SessionListItem from '@/components/dashboard/session-list-item';
 import StatsGrid from '@/components/dashboard/stats-grid';
+import { StatsGridSkeleton, SessionListSkeleton } from '@/components/common/loading-skeletons';
 
 import type { Session, SessionStatus, SessionType } from '@/types';
 
@@ -122,13 +121,6 @@ export default function Dashboard() {
   }, [isInitialLoading, isSessionsLoading, sessionsError, doctorProfile, userError, router]);
 
   /**
-   * 3) Show a spinner if we’re still fetching user or session data.
-   */
-  if (isInitialLoading || isSessionsLoading) {
-    return <LoadingSpinner />;
-  }
-
-  /**
    * 4) Show any error returned from user store.
    */
   if (userError) {
@@ -161,7 +153,9 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <StatsGrid todaySessions={todaySessions} />
+      <Suspense fallback={<StatsGridSkeleton />}>
+        <StatsGrid todaySessions={todaySessions} />
+      </Suspense>
 
       {/* Recent Sessions */}
       <div className="bg-white shadow rounded-lg">
@@ -176,15 +170,17 @@ export default function Dashboard() {
           </button>
         </div>
         <div className="border-t border-gray-200">
-          <ul role="list" className="divide-y divide-gray-200">
-            {displaySessions.map((session) => (
-              <SessionListItem
-                key={session.id}
-                session={session}
-                onSelect={() => router.push(`/session/${session.id}`)}
-              />
-            ))}
-          </ul>
+          <Suspense fallback={<SessionListSkeleton />}>
+            <ul role="list" className="divide-y divide-gray-200">
+              {displaySessions.map((session) => (
+                <SessionListItem
+                  key={session.id}
+                  session={session}
+                  onSelect={() => router.push(`/session/${session.id}`)}
+                />
+              ))}
+            </ul>
+          </Suspense>
         </div>
       </div>
     </div>

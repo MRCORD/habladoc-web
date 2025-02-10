@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { usePatientStore } from '@/stores/patientStore';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
+import { CreatePatientFormSkeleton } from '@/components/common/loading-skeletons';
 import type { User, PatientProfile } from '@/types';
 import { UserRole } from '@/types';
 
@@ -161,7 +161,7 @@ export function CreatePatientForm({ documentNumber, onCancel }: CreatePatientFor
             disabled={isLoading}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90"
           >
-            {isLoading ? <LoadingSpinner /> : 'Crear Paciente'}
+            {isLoading ? <CreatePatientFormSkeleton /> : 'Crear Paciente'}
           </button>
         </div>
       </form>

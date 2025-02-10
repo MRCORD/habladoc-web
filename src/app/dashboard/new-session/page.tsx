@@ -8,10 +8,10 @@ import { useUserStore } from '@/stores/userStore';
 import { usePatientStore } from '@/stores/patientStore';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useInitialLoad } from '@/hooks/apiHooks';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
 import { PatientDisplay } from '@/components/patient/patient-display';
 import { CreatePatientForm } from '@/components/patient/create-patient-form';
+import { NewSessionSkeleton } from '@/components/common/loading-skeletons';
 import { SessionStatus, SessionType } from '@/types';
 
 export default function NewSessionPage() {
@@ -59,7 +59,7 @@ export default function NewSessionPage() {
   };
 
   if (isUserLoading || (isPatientLoading && !patient)) {
-    return <LoadingSpinner />;
+    return <NewSessionSkeleton />;
   }
 
   if (!doctorProfile) {
@@ -97,7 +97,11 @@ export default function NewSessionPage() {
               disabled={isPatientLoading}
               className="inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             >
-              {isPatientLoading ? <LoadingSpinner /> : 'Buscar'}
+              {isPatientLoading ? (
+                <div className="h-5 w-5 bg-white/20 rounded animate-pulse"></div>
+              ) : (
+                'Buscar'
+              )}
             </button>
           </div>
 

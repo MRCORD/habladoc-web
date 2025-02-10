@@ -1,20 +1,21 @@
 // src/app/session/[sessionId]/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Mic, Sparkles } from "lucide-react";
 import { Tab } from '@headlessui/react';
 
 import { useSessionData } from "@/hooks/apiHooks";
 import { useSessionStore } from "@/stores/sessionStore";
-import { LoadingSpinner } from "@/components/common/loading-spinner";
 import { ErrorMessage } from "@/components/common/error-message";
 import { SessionStatusBadge } from "@/components/common/status-badges";
 import AudioRecorder from "@/components/session/audio-recorder";
 import { RecordingsList } from "@/components/session/recordings-list";
 import { PatientData } from "@/components/session/patient-info";
 import AnalysisDisplay from "@/components/session/analysis-display";
+import { PatientDisplaySkeleton } from "@/components/common/loading-skeletons";
+import { AnalysisDisplaySkeleton } from "@/components/common/loading-skeletons";
 
 import type { InsuranceInfo } from "@/types";
 
@@ -40,14 +41,6 @@ export default function SessionPage() {
     // Switch to analysis tab after recording
     setActiveTab('analysis');
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <LoadingSpinner />
-      </div>
-    );
-  }
 
   if (error) {
     return <ErrorMessage message={error} />;
@@ -100,7 +93,9 @@ export default function SessionPage() {
         {/* Common container for Patient Data */}
         <div className="max-w-screen-lg mx-auto space-y-6">
           {/* Patient Data Component */}
-          <PatientData patientData={patientData} />
+          <Suspense fallback={<PatientDisplaySkeleton />}>
+            <PatientData patientData={patientData} />
+          </Suspense>
 
           {/* Tabs */}
           <Tab.Group selectedIndex={activeTab === 'consultation' ? 0 : 1} onChange={index => setActiveTab(index === 0 ? 'consultation' : 'analysis')}>
@@ -143,7 +138,9 @@ export default function SessionPage() {
               </Tab.Panel>
 
               <Tab.Panel className="space-y-4">
-                <AnalysisDisplay sessionId={sessionId} />
+                <Suspense fallback={<AnalysisDisplaySkeleton />}>
+                  <AnalysisDisplay sessionId={sessionId} />
+                </Suspense>
               </Tab.Panel>
             </Tab.Panels>
           </Tab.Group>

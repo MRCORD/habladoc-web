@@ -6,9 +6,9 @@ import { useRouter } from 'next/navigation';
 import { UserCircle, Mail, Phone, Clipboard, Globe2, DollarSign } from 'lucide-react';
 import { useUserStore } from '@/stores/userStore';
 import { useInitialLoad } from '@/hooks/apiHooks';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
 import { ErrorMessage } from '@/components/common/error-message';
 import UserEditDrawer from '@/components/profile/user-edit-drawer';
+import { ProfileSkeleton } from '@/components/common/loading-skeletons';
 
 interface DoctorMetadata {
   languages?: string[];
@@ -37,16 +37,12 @@ export default function ProfilePage() {
     }
   }, [user, doctorProfile, isLoading, router]);
 
-  if (isInitialLoading || isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
   if (error) {
     return <ErrorMessage message={error} />;
+  }
+
+  if (isLoading) {
+    return <ProfileSkeleton />;
   }
 
   if (!user || !doctorProfile) {

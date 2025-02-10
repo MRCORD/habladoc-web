@@ -6,7 +6,6 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { useUserStore } from '@/stores/userStore';
 import { useInitialLoad } from '@/hooks/apiHooks';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
 
 export default function Home() {
   const router = useRouter();
@@ -20,13 +19,6 @@ export default function Home() {
     }
   }, [user, isLoading, router]);
 
-  if (isInitialLoading || isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <LoadingSpinner />
-      </div>
-    );
-  }
 
   // Only show landing page if not logged in
   if (user) return null;

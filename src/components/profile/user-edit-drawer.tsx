@@ -4,7 +4,7 @@ import { User } from '@/types';
 import api from '@/lib/api';
 import { AxiosError } from 'axios';
 import { ErrorMessage } from '@/components/common/error-message';
-import { LoadingSpinner } from '@/components/common/loading-spinner';
+import { UserEditFormSkeleton } from '@/components/common/loading-skeletons';
 import { XIcon } from 'lucide-react';
 
 interface ErrorResponse {
@@ -158,7 +158,7 @@ const UserEditDrawer = ({ user, isOpen, onClose, onUserUpdate }: UserEditDrawerP
                           disabled={isSubmitting}
                           className="inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                         >
-                          {isSubmitting ? <LoadingSpinner /> : 'Guardar'}
+                          {isSubmitting ? <UserEditFormSkeleton /> : 'Guardar'}
                         </button>
                       </div>
                     </form>

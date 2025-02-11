@@ -104,44 +104,50 @@ function renderSOAPSection(
         if (!comp) return null;
 
         // If comp has a "name" property, assume it's a single SOAP component.
-        if (comp.name && comp.name.content) {
+        if (comp.name && typeof comp.name === 'object' && comp.name.content) {
           return (
             <div key={key} className="border p-3 rounded shadow-sm">
               <h5 className="font-semibold text-base">{comp.name.content}</h5>
               {comp.attributes && (
                 <div className="mt-1 flex flex-wrap gap-2">
-                  {Object.entries(comp.attributes).map(([attrKey, attrValue]) => (
-                    <span
-                      key={attrKey}
-                      className="text-sm px-2 py-1 bg-green-100 text-green-700 rounded"
-                    >
-                      {attrKey}: {(attrValue as { content: string }).content}
-                    </span>
-                  ))}
+                  {Object.entries(comp.attributes).map(([attrKey, attrValue]) => {
+                    if (!attrValue || typeof attrValue !== 'object') return null;
+                    return (
+                      <span
+                        key={attrKey}
+                        className="text-sm px-2 py-1 bg-green-100 text-green-700 rounded"
+                      >
+                        {attrKey}: {(attrValue as { content: string }).content}
+                      </span>
+                    );
+                  })}
                 </div>
               )}
             </div>
           );
-        } else {
+        } else if (typeof comp === 'object') {
           // Otherwise, assume comp is an object mapping IDs to SOAP components.
           return (
             <div key={key} className="space-y-3">
               {Object.entries(comp).map(([id, compDataRaw]) => {
                 const compData = compDataRaw as SOAPComponentData;
-                if (!compData.name || !compData.name.content) return null;
+                if (!compData || !compData.name || !compData.name.content) return null;
                 return (
                   <div key={id} className="border p-3 rounded shadow-sm">
                     <h5 className="font-semibold text-base">{compData.name.content}</h5>
                     {compData.attributes && (
                       <div className="mt-1 flex flex-wrap gap-2">
-                        {Object.entries(compData.attributes).map(([attrKey, attrValue]) => (
-                          <span
-                            key={attrKey}
-                            className="text-sm px-2 py-1 bg-green-100 text-green-700 rounded"
-                          >
-                            {attrKey}: {(attrValue as { content: string }).content}
-                          </span>
-                        ))}
+                        {Object.entries(compData.attributes).map(([attrKey, attrValue]) => {
+                          if (!attrValue || typeof attrValue !== 'object') return null;
+                          return (
+                            <span
+                              key={attrKey}
+                              className="text-sm px-2 py-1 bg-green-100 text-green-700 rounded"
+                            >
+                              {attrKey}: {(attrValue as { content: string }).content}
+                            </span>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -150,6 +156,7 @@ function renderSOAPSection(
             </div>
           );
         }
+        return null;
       })}
     </div>
   );

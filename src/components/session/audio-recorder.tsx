@@ -6,7 +6,8 @@ import { Mic, Square, Pause, Play, Upload, Trash2 } from "lucide-react";
 import RecordRTC from "recordrtc";
 import { recordingsStorage } from "@/lib/recordings";
 import api from "@/lib/api";
-import type { RecordingCreateData, RecordingStatus } from "@/types";
+import type { RecordingCreateData } from "@/types";
+import { RecordingStatus, SOAPComponent } from "@/types";  // Added missing import
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 
@@ -264,7 +265,8 @@ export default function AudioRecorder({
         file_path: uploadedFilePath,
         file_size: uploadResult.size,
         mime_type: STORAGE_MIME_TYPE,
-        status: 'pending' as RecordingStatus,
+        status: RecordingStatus.PENDING,
+        detected_components: null,
         metadata: {
           sample_rate: 44100,
           channels: 1,

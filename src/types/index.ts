@@ -144,15 +144,21 @@ export type SessionCreateData = {
 
 export type SessionUpdateData = Partial<Omit<Session, 'id' | 'created_at' | 'updated_at'>>;
 
-export type RecordingCreateData = {
+export interface RecordingCreateData {
   session_id: string;
+  duration: number;
+  file_path: string;
+  file_size: number;
+  mime_type: string;
   status: RecordingStatus;
-  duration?: number;
-  file_path?: string;
-  file_size?: number;
-  mime_type?: string;
-  metadata?: Record<string, unknown>;
-};
+  metadata: {
+    sample_rate: number;
+    channels: number;
+    duration_seconds: number;
+    original_name: string;
+  };
+  detected_components: string[] | null;
+}
 
 // Additional types
 export interface AllergyCondition {
@@ -182,4 +188,22 @@ export interface CompleteProfileData {
   license_number: string;
   languages: string[];
   consultation_fee: number;
+}
+
+export enum SOAPComponent {
+  CLINICAL_ENTITY = "clinical_entity",
+  CHIEF_COMPLAINT = "chief_complaint",
+  HISTORY_PRESENT_ILLNESS = "history_present_illness",
+  PAST_MEDICAL_HISTORY = "past_medical_history",
+  FAMILY_HISTORY = "family_history",
+  SOCIAL_HISTORY = "social_history",
+  REVIEW_OF_SYSTEMS = "review_of_systems",
+  VITAL_SIGNS = "vital_signs",
+  PHYSICAL_EXAM = "physical_exam",
+  LAB_RESULTS = "lab_results",
+  DIFFERENTIAL_DIAGNOSIS = "differential_diagnosis",
+  CLINICAL_IMPRESSION = "clinical_impression",
+  DIAGNOSTIC_PLAN = "diagnostic_plan",
+  THERAPEUTIC_PLAN = "therapeutic_plan",
+  EDUCATION_PLAN = "education_plan"
 }

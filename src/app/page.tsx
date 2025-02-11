@@ -10,7 +10,7 @@ import { useInitialLoad } from '@/hooks/apiHooks';
 export default function Home() {
   const router = useRouter();
   const { user, isLoading } = useUserStore();
-  const { isLoading: isInitialLoading } = useInitialLoad();
+  useInitialLoad(); // We still need to call useInitialLoad but don't need its return value
 
   // Redirect to dashboard if user is logged in
   useEffect(() => {

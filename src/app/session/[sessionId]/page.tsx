@@ -11,7 +11,6 @@ import { useSessionData } from "@/hooks/apiHooks";
 import { useSessionStore } from "@/stores/sessionStore";
 import { ErrorMessage } from "@/components/common/error-message";
 import { SessionStatusBadge } from "@/components/common/status-badges";
-import AudioRecorder from "@/components/session/audio-recorder";
 import { RecordingsList } from "@/components/session/recordings-list";
 import { PatientData } from "@/components/session/patient-info";
 import AnalysisDisplay from "@/components/session/analysis-display";
@@ -47,8 +46,8 @@ export default function SessionPage() {
     return <ErrorMessage message={error} />;
   }
 
-  if (!sessionData?.patient) {
-    return null;
+  if (isLoading || !sessionData?.patient) {
+    return <PatientDisplaySkeleton />;
   }
 
   const nullToUndefined = <T,>(value: T | null): T | undefined =>

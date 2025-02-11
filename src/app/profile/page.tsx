@@ -28,7 +28,7 @@ export default function ProfilePage() {
     error 
   } = useUserStore();
   
-  const { isLoading: isInitialLoading } = useInitialLoad();
+  useInitialLoad(); // We still need to call useInitialLoad but don't need its return value
 
   // Redirect to complete profile if doctor profile is missing
   useEffect(() => {

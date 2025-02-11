@@ -7,7 +7,7 @@ import RecordRTC from "recordrtc";
 import { recordingsStorage } from "@/lib/recordings";
 import api from "@/lib/api";
 import type { RecordingCreateData } from "@/types";
-import { RecordingStatus, SOAPComponent } from "@/types";  // Added missing import
+import { RecordingStatus } from "@/types";  // Removed unused SOAPComponent import
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 

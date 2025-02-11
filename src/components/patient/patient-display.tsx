@@ -1,5 +1,4 @@
 // src/components/patient/patient-display.tsx
-import { useState } from 'react';
 import type { User, PatientProfile, AllergyCondition } from '@/types';
 import { PatientActionsSkeleton } from '@/components/common/loading-skeletons';
 

@@ -26,17 +26,25 @@ interface SOAPAttribute {
   content?: string;
 }
 
-interface SOAPComponentData {
-  name?: { content?: string };
+interface SOAPComponent {
+  name: { content?: string };
   type?: { content?: string };
   attributes?: Record<string, SOAPAttribute>;
 }
 
+interface SOAPComponentRecord {
+  [key: string]: SOAPComponent;
+}
+
+interface SOAPContent {
+  [key: string]: SOAPComponent | SOAPComponentRecord;
+}
+
 interface EnhancedConsultation {
-  soap_subjective?: Record<string, any>; // We use 'any' here since structure might be nested.
-  soap_objective?: Record<string, any>;
-  soap_assessment?: Record<string, any>;
-  soap_plan?: Record<string, any>;
+  soap_subjective?: SOAPContent;
+  soap_objective?: SOAPContent;
+  soap_assessment?: SOAPContent;
+  soap_plan?: SOAPContent;
 }
 
 interface Transcription {
@@ -55,7 +63,7 @@ interface RecordingComponent {
     name?: { content?: string };
     attributes?: Record<string, { content?: string }>;
   };
-  metadata?: any;
+  metadata?: Record<string, unknown>;
   confidence?: number;
   created_at?: string;
   detected_at?: string;
@@ -93,7 +101,7 @@ const SECTION_COMPONENTS: Record<string, string[]> = {
  * or a mapping of multiple components.
  */
 function renderSOAPSection(
-  sectionData: Record<string, any> | undefined,
+  sectionData: SOAPContent | undefined,
   keys: string[]
 ) {
   if (!sectionData || !keys?.length) {
@@ -107,21 +115,21 @@ function renderSOAPSection(
         const comp = sectionData[key];
         if (!comp) return null;
 
-        // If comp has a "name" property, assume it's a single SOAP component.
-        if (comp?.name?.content) {
+        // If comp has a "name" property and is a SOAPComponent, render it directly
+        if ('name' in comp && 'content' in comp.name) {
           return (
             <div key={key} className="border p-3 rounded shadow-sm">
               <h5 className="font-semibold text-base">{comp.name.content}</h5>
               {comp.attributes && typeof comp.attributes === 'object' && (
                 <div className="mt-1 flex flex-wrap gap-2">
                   {Object.entries(comp.attributes).map(([attrKey, attrValue]) => {
-                    if (!attrValue || typeof attrValue !== 'object' || !('content' in attrValue)) return null;
+                    if (!attrValue || !('content' in attrValue)) return null;
                     return (
                       <span
                         key={attrKey}
                         className="text-sm px-2 py-1 bg-green-100 text-green-700 rounded"
                       >
-                        {attrKey}: {(attrValue as SOAPAttribute).content}
+                        {attrKey}: {attrValue.content}
                       </span>
                     );
                   })}
@@ -130,11 +138,10 @@ function renderSOAPSection(
             </div>
           );
         } else if (typeof comp === 'object') {
-          // Otherwise, assume comp is an object mapping IDs to SOAP components.
+          // Otherwise, assume comp is a SOAPComponentRecord
           return (
             <div key={key} className="space-y-3">
-              {Object.entries(comp).map(([id, compDataRaw]) => {
-                const compData = compDataRaw as SOAPComponentData;
+              {Object.entries(comp as SOAPComponentRecord).map(([id, compData]) => {
                 if (!compData?.name?.content) return null;
                 return (
                   <div key={id} className="border p-3 rounded shadow-sm">
@@ -142,13 +149,13 @@ function renderSOAPSection(
                     {compData.attributes && typeof compData.attributes === 'object' && (
                       <div className="mt-1 flex flex-wrap gap-2">
                         {Object.entries(compData.attributes).map(([attrKey, attrValue]) => {
-                          if (!attrValue || typeof attrValue !== 'object' || !('content' in attrValue)) return null;
+                          if (!attrValue || !('content' in attrValue)) return null;
                           return (
                             <span
                               key={attrKey}
                               className="text-sm px-2 py-1 bg-green-100 text-green-700 rounded"
                             >
-                              {attrKey}: {(attrValue as SOAPAttribute).content}
+                              {attrKey}: {attrValue.content}
                             </span>
                           );
                         })}
@@ -200,26 +207,36 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
 
   const fetchAnalysisData = async () => {
     try {
-      const response = await api.get<ApiResponse<any>>(
+      interface AnalysisResponse {
+        analysis_results: Array<{ content: ClinicalAnalysis }>;
+        enhanced_consultations: EnhancedConsultation[];
+        transcriptions: Transcription[];
+        recording_components: RecordingComponent[];
+      }
+
+      const response = await api.get<ApiResponse<AnalysisResponse>>(
         `/api/v1/analysis/sessions/${sessionId}/complete-state`
       );
+      
       if (!response?.data?.success) {
         throw new Error(response?.data?.message || 'Failed to fetch data');
       }
+      
       const {
         analysis_results,
         enhanced_consultations,
         transcriptions,
         recording_components
-      } = response.data.data || {};
+      } = response.data.data;
 
       setClinicalData(analysis_results?.[0]?.content || null);
       setEnhancedData(enhanced_consultations?.[0] || null);
       setTranscriptions(Array.isArray(transcriptions) ? transcriptions : []);
       setRecordingComponents(Array.isArray(recording_components) ? recording_components : []);
       setError(null);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Error fetching data');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Error fetching data';
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

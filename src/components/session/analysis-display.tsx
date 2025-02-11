@@ -11,24 +11,24 @@ interface AnalysisDisplayProps {
 }
 
 interface Entity {
-  name: string;
-  entity_type: string;
-  confidence: number;
-  attributes: Record<string, string>;
+  name?: string;
+  entity_type?: string;
+  confidence?: number;
+  attributes?: Record<string, string>;
 }
 
 interface ClinicalAnalysis {
-  entities: Entity[];
-  confidence: number;
+  entities?: Entity[];
+  confidence?: number;
 }
 
 interface SOAPAttribute {
-  content: string;
+  content?: string;
 }
 
 interface SOAPComponentData {
-  name: { content: string };
-  type: { content: string };
+  name?: { content?: string };
+  type?: { content?: string };
   attributes?: Record<string, SOAPAttribute>;
 }
 
@@ -49,13 +49,16 @@ interface Transcription {
 }
 
 interface RecordingComponent {
-  id: string;
-  type: string;
-  content: any;
-  metadata: any;
-  confidence: number;
-  created_at: string;
-  detected_at: string;
+  id?: string;
+  type?: string;
+  content?: {
+    name?: { content?: string };
+    attributes?: Record<string, { content?: string }>;
+  };
+  metadata?: any;
+  confidence?: number;
+  created_at?: string;
+  detected_at?: string;
 }
 
 // Define your SOAP section keys mapping
@@ -93,31 +96,32 @@ function renderSOAPSection(
   sectionData: Record<string, any> | undefined,
   keys: string[]
 ) {
-  if (!sectionData) {
+  if (!sectionData || !keys?.length) {
     return <p className="text-gray-500">No data available.</p>;
   }
 
   return (
     <div className="space-y-3">
       {keys.map((key) => {
+        if (!key) return null;
         const comp = sectionData[key];
         if (!comp) return null;
 
         // If comp has a "name" property, assume it's a single SOAP component.
-        if (comp.name && typeof comp.name === 'object' && comp.name.content) {
+        if (comp?.name?.content) {
           return (
             <div key={key} className="border p-3 rounded shadow-sm">
               <h5 className="font-semibold text-base">{comp.name.content}</h5>
-              {comp.attributes && (
+              {comp.attributes && typeof comp.attributes === 'object' && (
                 <div className="mt-1 flex flex-wrap gap-2">
                   {Object.entries(comp.attributes).map(([attrKey, attrValue]) => {
-                    if (!attrValue || typeof attrValue !== 'object') return null;
+                    if (!attrValue || typeof attrValue !== 'object' || !('content' in attrValue)) return null;
                     return (
                       <span
                         key={attrKey}
                         className="text-sm px-2 py-1 bg-green-100 text-green-700 rounded"
                       >
-                        {attrKey}: {(attrValue as { content: string }).content}
+                        {attrKey}: {(attrValue as SOAPAttribute).content}
                       </span>
                     );
                   })}
@@ -131,20 +135,20 @@ function renderSOAPSection(
             <div key={key} className="space-y-3">
               {Object.entries(comp).map(([id, compDataRaw]) => {
                 const compData = compDataRaw as SOAPComponentData;
-                if (!compData || !compData.name || !compData.name.content) return null;
+                if (!compData?.name?.content) return null;
                 return (
                   <div key={id} className="border p-3 rounded shadow-sm">
                     <h5 className="font-semibold text-base">{compData.name.content}</h5>
-                    {compData.attributes && (
+                    {compData.attributes && typeof compData.attributes === 'object' && (
                       <div className="mt-1 flex flex-wrap gap-2">
                         {Object.entries(compData.attributes).map(([attrKey, attrValue]) => {
-                          if (!attrValue || typeof attrValue !== 'object') return null;
+                          if (!attrValue || typeof attrValue !== 'object' || !('content' in attrValue)) return null;
                           return (
                             <span
                               key={attrKey}
                               className="text-sm px-2 py-1 bg-green-100 text-green-700 rounded"
                             >
-                              {attrKey}: {(attrValue as { content: string }).content}
+                              {attrKey}: {(attrValue as SOAPAttribute).content}
                             </span>
                           );
                         })}
@@ -199,23 +203,23 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
       const response = await api.get<ApiResponse<any>>(
         `/api/v1/analysis/sessions/${sessionId}/complete-state`
       );
-      if (!response.data.success) {
-        throw new Error(response.data.message || 'Failed to fetch data');
+      if (!response?.data?.success) {
+        throw new Error(response?.data?.message || 'Failed to fetch data');
       }
       const {
         analysis_results,
         enhanced_consultations,
         transcriptions,
         recording_components
-      } = response.data.data;
+      } = response.data.data || {};
 
       setClinicalData(analysis_results?.[0]?.content || null);
       setEnhancedData(enhanced_consultations?.[0] || null);
-      setTranscriptions(transcriptions || []);
-      setRecordingComponents(recording_components || []);
+      setTranscriptions(Array.isArray(transcriptions) ? transcriptions : []);
+      setRecordingComponents(Array.isArray(recording_components) ? recording_components : []);
       setError(null);
     } catch (err: any) {
-      setError(err?.response?.data?.message || err.message || 'Error fetching data');
+      setError(err?.response?.data?.message || err?.message || 'Error fetching data');
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -232,9 +236,14 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
   };
 
   // Group recording components by type for easier display.
-  const groupedRecordingComponents = recordingComponents.reduce<Record<string, RecordingComponent[]>>(
+  const groupedRecordingComponents = (Array.isArray(recordingComponents) ? recordingComponents : []).reduce<Record<string, RecordingComponent[]>>(
     (acc, comp) => {
-      (acc[comp.type] = acc[comp.type] || []).push(comp);
+      if (comp?.type) {
+        if (!acc[comp.type]) {
+          acc[comp.type] = [];
+        }
+        acc[comp.type].push(comp);
+      }
       return acc;
     },
     {}
@@ -275,30 +284,33 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
 
       {/* Clinical Findings */}
       <CollapsiblePanel title="Hallazgos Clínicos">
-        {clinicalData?.entities && clinicalData.entities.length ? (
+        {clinicalData?.entities && Array.isArray(clinicalData.entities) && clinicalData.entities.length > 0 ? (
           <ul className="space-y-3">
-            {clinicalData.entities.map((entity, index) => (
-              <li key={index} className="border-b pb-2">
-                <div className="flex items-center">
-                  <span className="font-semibold">{entity.name}</span>
-                  <span className="text-sm text-gray-600 ml-2">
-                    ({Math.round(entity.confidence * 100)}% de confianza)
-                  </span>
-                </div>
-                {entity.attributes && (
-                  <div className="mt-1 flex flex-wrap gap-2">
-                    {Object.entries(entity.attributes).map(([key, value]) => (
-                      <span
-                        key={key}
-                        className="inline-block px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm"
-                      >
-                        {key}: {value}
-                      </span>
-                    ))}
+            {clinicalData.entities.map((entity, index) => {
+              if (!entity) return null;
+              return (
+                <li key={index} className="border-b pb-2">
+                  <div className="flex items-center">
+                    <span className="font-semibold">{entity?.name || 'Sin nombre'}</span>
+                    <span className="text-sm text-gray-600 ml-2">
+                      ({Math.round((entity?.confidence || 0) * 100)}% de confianza)
+                    </span>
                   </div>
-                )}
-              </li>
-            ))}
+                  {entity?.attributes && typeof entity.attributes === 'object' && Object.keys(entity.attributes).length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {Object.entries(entity.attributes).map(([key, value]) => (
+                        <span
+                          key={key}
+                          className="inline-block px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm"
+                        >
+                          {key}: {String(value || '')}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         ) : (
           <p className="text-gray-500">No se detectaron entidades clínicas.</p>
@@ -307,20 +319,20 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
 
       {/* Transcriptions */}
       <CollapsiblePanel title="Transcripciones">
-        {transcriptions.length ? (
+        {Array.isArray(transcriptions) && transcriptions.length ? (
           <div className="space-y-4">
             {transcriptions.map((tr) => (
-              <div key={tr.id} className="border p-4 rounded shadow-sm">
+              <div key={tr?.id || Math.random()} className="border p-4 rounded shadow-sm">
                 <div className="flex justify-between items-center">
                   <h4 className="font-medium text-lg">Transcripción</h4>
                   <span className="text-sm text-gray-600">
-                    {new Date(tr.created_at).toLocaleString()}
+                    {tr?.created_at ? new Date(tr.created_at).toLocaleString() : 'Fecha desconocida'}
                   </span>
                 </div>
-                <p className="mt-2 text-gray-700 whitespace-pre-line">{tr.content}</p>
+                <p className="mt-2 text-gray-700 whitespace-pre-line">{tr?.content || ''}</p>
                 <div className="mt-2 text-sm text-gray-500">
-                  <span className="mr-2">Modelo: {tr.model}</span>
-                  <span>Estado: {tr.status}</span>
+                  <span className="mr-2">Modelo: {tr?.model || 'Desconocido'}</span>
+                  <span>Estado: {tr?.status || 'Desconocido'}</span>
                 </div>
               </div>
             ))}
@@ -332,40 +344,54 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
 
       {/* Recording Components */}
       <CollapsiblePanel title="Componentes de Grabación">
-        {recordingComponents.length ? (
+        {Object.keys(groupedRecordingComponents).length > 0 ? (
           <div className="space-y-4">
-            {Object.entries(groupedRecordingComponents).map(([type, comps]) => (
-              <div key={type}>
-                <h5 className="font-bold text-md mb-2 capitalize">{type.replace('_', ' ')}</h5>
-                <ul className="space-y-2">
-                  {comps.map((comp) => (
-                    <li key={comp.id} className="border p-3 rounded">
-                      <div className="flex justify-between items-center">
-                        <span className="font-semibold">{comp.content?.name?.content || '-'}</span>
-                        <span className="text-sm text-gray-600">
-                          {Math.round(comp.confidence * 100)}% de confianza
-                        </span>
-                      </div>
-                      {comp.content?.attributes && (
-                        <div className="mt-1 flex flex-wrap gap-2">
-                          {Object.entries(comp.content.attributes).map(([key, val]) => (
-                            <span
-                              key={key}
-                              className="text-sm px-2 py-1 bg-purple-100 text-purple-700 rounded"
-                            >
-                              {key}: {(val as { content: string }).content}
+            {Object.entries(groupedRecordingComponents).map(([type, comps]) => {
+              if (!Array.isArray(comps) || comps.length === 0) return null;
+              return (
+                <div key={type}>
+                  <h5 className="font-bold text-md mb-2 capitalize">{(type || '').replace(/_/g, ' ')}</h5>
+                  <ul className="space-y-2">
+                    {comps.map((comp) => {
+                      if (!comp) return null;
+                      const contentName = comp?.content?.name?.content;
+                      const confidence = comp?.confidence;
+                      
+                      return (
+                        <li key={comp?.id || Math.random()} className="border p-3 rounded">
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold">
+                              {contentName || '-'}
                             </span>
-                          ))}
-                        </div>
-                      )}
-                      <div className="mt-1 text-xs text-gray-500">
-                        Detectado en: {new Date(comp.detected_at).toLocaleString()}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+                            <span className="text-sm text-gray-600">
+                              {Math.round((confidence || 0) * 100)}% de confianza
+                            </span>
+                          </div>
+                          {comp?.content?.attributes && typeof comp.content.attributes === 'object' && (
+                            <div className="mt-1 flex flex-wrap gap-2">
+                              {Object.entries(comp.content.attributes).map(([key, val]) => {
+                                if (!val || typeof val !== 'object' || !('content' in val)) return null;
+                                return (
+                                  <span
+                                    key={key}
+                                    className="text-sm px-2 py-1 bg-purple-100 text-purple-700 rounded"
+                                  >
+                                    {key}: {val.content || ''}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          )}
+                          <div className="mt-1 text-xs text-gray-500">
+                            Detectado en: {comp?.detected_at ? new Date(comp.detected_at).toLocaleString() : 'Fecha desconocida'}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <p className="text-gray-500">No hay componentes de grabación disponibles.</p>

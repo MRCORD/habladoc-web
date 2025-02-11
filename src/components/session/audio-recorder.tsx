@@ -246,7 +246,6 @@ export default function AudioRecorder({
     setState(prev => ({ ...prev, isUploading: true, error: null }));
 
     let uploadedFilePath = '';
-    let recordingId = '';
 
     try {
       const response = await fetch(state.audioUrl);
@@ -255,6 +254,7 @@ export default function AudioRecorder({
       // Upload to storage
       const uploadResult = await recordingsStorage.upload(blob, doctorId, sessionId);
       if (uploadResult.error) throw uploadResult.error;
+
       uploadedFilePath = uploadResult.path;
 
       // Create recording record
@@ -274,21 +274,10 @@ export default function AudioRecorder({
       };
 
       const recordingResponse = await api.post("/api/v1/recordings", recordingData);
+
       if (!recordingResponse.data.success) {
         throw new Error(recordingResponse.data.message || "Failed to save recording");
       }
-      recordingId = recordingResponse.data.data.id;
-
-      // Initiate analysis in non-blocking way
-      api.post(`/api/v1/recordings/${recordingId}/analyze`)
-        .then(response => {
-          if (!response.data.success) {
-            console.warn('Analysis initiation warning:', response.data.message);
-          }
-        })
-        .catch(error => {
-          console.error('Analysis initiation error:', error);
-        });
 
       // Reset state and notify parent
       setState(DEFAULT_STATE);
@@ -297,21 +286,13 @@ export default function AudioRecorder({
     } catch (err) {
       console.error('Upload process error:', err);
       
-      // Cleanup in reverse order
-      try {
-        // Delete recording entry if created
-        if (recordingId) {
-          await api.delete(`/api/v1/recordings/${recordingId}`);
-          console.log('Rolled back recording entry');
-        }
-        
-        // Delete uploaded file if exists
-        if (uploadedFilePath) {
+      // Cleanup uploaded file if record creation failed
+      if (uploadedFilePath) {
+        try {
           await recordingsStorage.delete(uploadedFilePath);
-          console.log('Cleaned up storage file');
+        } catch (deleteErr) {
+          console.error('Failed to clean up file:', deleteErr);
         }
-      } catch (cleanupError) {
-        console.error('Cleanup failed:', cleanupError);
       }
 
       setState(prev => ({

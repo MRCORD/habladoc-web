@@ -281,8 +281,12 @@ export default function AudioRecorder({
         throw new Error(recordingResponse.data.message || "Failed to save recording");
       }
 
-      // Wait a moment to ensure the recording is processed
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Start processing pipeline and wait for initial processing
+      const recordingId = recordingResponse.data.data.id;
+      await api.post(`/api/v1/processing/recordings/${recordingId}/process`);
+
+      // Wait a moment to ensure the processing has started
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Reset state and notify parent to refresh recordings
       setState(DEFAULT_STATE);

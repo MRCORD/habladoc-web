@@ -2,7 +2,7 @@
 import React from 'react';
 import { format, isValid } from 'date-fns';
 import { recordingsStorage } from '@/lib/recordings';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, RefreshCw } from 'lucide-react';
 import { AttributeTag, translations, type AttributeLabel, type EntityType } from '@/components/common/attribute-tag';
 import { toSentenceCase, highlightEntitiesInText } from '@/utils/highlightEntities';
 import type { Recording, RecordingStatus } from '@/types';
@@ -67,6 +67,8 @@ interface RecordingsListProps {
   transcriptions?: Transcription[];
   clinicalAnalysis?: Record<string, ClinicalAnalysis[]>;
   onError: (message: string) => void;
+  onRefresh: () => void;
+  isLoading?: boolean;
 }
 
 const statusToTranslationKey = (status: RecordingStatus | string): 'processing' | 'completed' | 'failed' | 'processed' => {
@@ -88,10 +90,24 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
   recordings, 
   transcriptions = [], 
   clinicalAnalysis = {},
-  onError 
+  onError,
+  onRefresh,
+  isLoading = false
 }) => {
   const [recordingUrls, setRecordingUrls] = React.useState<Record<string, string>>({});
   const [expandedRecordings, setExpandedRecordings] = React.useState<Record<string, boolean>>({});
+
+  // Sort recordings by creation timestamp, newest first
+  const sortedRecordings = React.useMemo(() => {
+    return [...recordings].sort((a, b) => {
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  }, [recordings]);
+
+  // Reset recording URLs when recordings change to force re-fetching URLs
+  React.useEffect(() => {
+    setRecordingUrls({});
+  }, [recordings]);
 
   const getSignedUrl = React.useCallback(async (recording: Recording) => {
     try {
@@ -114,13 +130,14 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
     }
   }, [onError]);
 
+  // Fetch URLs whenever recordings change or recordingUrls is reset
   React.useEffect(() => {
-    recordings.forEach(recording => {
+    sortedRecordings.forEach(recording => {
       if (!recordingUrls[recording.id] && recording.file_path) {
         getSignedUrl(recording);
       }
     });
-  }, [recordings, recordingUrls, getSignedUrl]);
+  }, [sortedRecordings, recordingUrls, getSignedUrl]);
 
   const formatTime = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -229,9 +246,48 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
     );
   };
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-end mb-4">
+          <div className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-md border border-gray-200 shadow-sm">
+            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+            Actualizando...
+          </div>
+        </div>
+        {[1, 2].map((index) => (
+          <div key={index} className="bg-white shadow-sm rounded-lg border border-gray-200 p-4 animate-pulse">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                <div className="space-y-2">
+                  <div className="h-4 w-32 bg-gray-200 rounded"></div>
+                  <div className="h-3 w-20 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+              <div className="h-6 w-24 bg-gray-200 rounded-full"></div>
+            </div>
+            <div className="mt-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+              <div className="h-12 bg-gray-200 rounded w-full"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {recordings.map((recording) => {
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={onRefresh}
+          className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 rounded-md border border-gray-300 shadow-sm transition-colors"
+        >
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Actualizar
+        </button>
+      </div>
+      {sortedRecordings.map((recording) => {
         const isExpanded = expandedRecordings[recording.id];
         const transcription = getTranscriptionForRecording(recording.id);
         const analyses = clinicalAnalysis[recording.id] || [];

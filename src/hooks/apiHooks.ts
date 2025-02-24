@@ -32,6 +32,7 @@ interface SessionData {
   isLoading: boolean;
   error: string | null;
   addRecording: (recording: Recording) => void;
+  fetchSessionState: (sessionId: string) => Promise<void>;
 }
 
 export function useSessionData(sessionId: string): SessionData {
@@ -66,7 +67,8 @@ export function useSessionData(sessionId: string): SessionData {
     clinicalAnalysis,
     isLoading, 
     error, 
-    addRecording 
+    addRecording,
+    fetchSessionState 
   };
 }
 

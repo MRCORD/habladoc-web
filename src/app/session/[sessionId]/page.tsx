@@ -32,16 +32,35 @@ export default function SessionPage() {
     clinicalAnalysis,
     isLoading,
     error,
+    fetchSessionState
   } = useSessionData(sessionId);
+
+  // Add loading state for refresh
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   if (!sessionId) {
     return <ErrorMessage message="Invalid session parameters" />;
   }
 
-  const handleRecordingComplete = () => {
-    useSessionStore.getState().fetchSessionState(sessionId);
-    // Switch to analysis tab after recording
-    setActiveTab('analysis');
+  const handleRecordingComplete = async () => {
+    setIsRefreshing(true);
+    try {
+      // First fetch recordings to get the new recording
+      await useSessionStore.getState().fetchRecordings(sessionId);
+      // Then fetch session state to get transcriptions and analysis
+      await useSessionStore.getState().fetchSessionState(sessionId);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await fetchSessionState(sessionId);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   if (error) {
@@ -141,6 +160,8 @@ export default function SessionPage() {
                       transcriptions={transcriptions}
                       clinicalAnalysis={clinicalAnalysis}
                       onError={(msg) => useSessionStore.setState({ error: msg })}
+                      onRefresh={handleRefresh}
+                      isLoading={isRefreshing}
                     />
                   </div>
                 )}

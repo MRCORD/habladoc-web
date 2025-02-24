@@ -20,47 +20,61 @@ import { toSentenceCase } from '@/utils/highlightEntities';
 
 export type AttributeLabel = 'Quality' | 'Location' | 'Intensity' | 'Context' | 'Duration' | 
                      'Frequency' | 'Measurement' | 'Progression' | 'Status' | 'Onset' | 
-                     'Value' | 'Impact' | 'Severity' | 'Certainty';
+                     'Value' | 'Impact' | 'Severity' | 'Certainty' | 'Relationship';
 
 export type EntityType = 'Symptoms' | 'Vital Signs' | 'Diagnoses' | 'Medication Effects' | 
                  'Clinical Findings' | 'Clinical Relationships';
 
 export type StatusType = 'processing' | 'completed' | 'failed' | 'processed';
 
+export type RelationType = 'indicates' | 'causes' | 'treats' | 'associated' | 
+                   'contraindicates' | 'exacerbates' | 'improves';
+
 export const translations = {
   // Attribute labels
   attributes: {
-    'Quality': 'Característica',
+    'Quality': 'Cualidad',
     'Location': 'Localización',
     'Intensity': 'Intensidad',
     'Context': 'Contexto',
     'Duration': 'Duración',
     'Frequency': 'Frecuencia',
     'Measurement': 'Medición',
-    'Progression': 'Evolución',
+    'Progression': 'Progresión',
     'Status': 'Estado',
-    'Onset': 'Comienzo',
+    'Onset': 'Inicio',
     'Value': 'Valor',
     'Impact': 'Impacto',
-    'Severity': 'Gravedad',
-    'Certainty': 'Certeza'
+    'Severity': 'Severidad',
+    'Certainty': 'Certeza',
+    'Relationship': 'Relación'
   } as Record<AttributeLabel, string>,
   // Entity types
   entityTypes: {
-    'Symptoms': 'Síntomas',
-    'Vital Signs': 'Signos Vitales',
+    'Symptoms': 'Síntomas y signos',
+    'Vital Signs': 'Signos vitales',
     'Diagnoses': 'Diagnósticos',
-    'Medication Effects': 'Efectos de Medicamentos',
-    'Clinical Findings': 'Hallazgos Clínicos',
-    'Clinical Relationships': 'Relaciones Clínicas'
+    'Medication Effects': 'Efectos farmacológicos',
+    'Clinical Findings': 'Hallazgos clínicos',
+    'Clinical Relationships': 'Relaciones clínicas'
   } as Record<EntityType, string>,
   // Status labels
   status: {
-    'processing': 'Procesando',
+    'processing': 'En proceso',
     'completed': 'Completado',
-    'failed': 'Fallido',
+    'failed': 'Error',
     'processed': 'Procesado'
-  } as Record<StatusType, string>
+  } as Record<StatusType, string>,
+  // Relationship types with simplified clinical translations
+  relationships: {
+    'indicates': 'Indica',
+    'causes': 'Causa',
+    'treats': 'Trata',
+    'associated': 'Asociado a',
+    'contraindicates': 'Contraindica',
+    'exacerbates': 'Agrava',
+    'improves': 'Mejora'
+  } as Record<RelationType, string>
 };
 
 export { toSentenceCase };
@@ -121,6 +135,25 @@ export function AttributeTag({ icon: CustomIcon, label, value }: AttributeTagPro
     if (['Impact', 'Severity', 'Certainty'].includes(label)) {
       return 'bg-amber-50 text-amber-700 border-amber-200';
     }
+
+    // Relationship-related attributes
+    if (label === 'Relationship') {
+      switch (value.toLowerCase()) {
+        case 'indicates':
+        case 'associated':
+          return 'bg-blue-50 text-blue-700 border-blue-200';
+        case 'causes':
+        case 'exacerbates':
+          return 'bg-red-50 text-red-700 border-red-200';
+        case 'treats':
+        case 'improves':
+          return 'bg-green-50 text-green-700 border-green-200';
+        case 'contraindicates':
+          return 'bg-orange-50 text-orange-700 border-orange-200';
+        default:
+          return 'bg-gray-50 text-gray-700 border-gray-200';
+      }
+    }
     
     // Context and additional information
     if (['Context'].includes(label)) {
@@ -132,10 +165,26 @@ export function AttributeTag({ icon: CustomIcon, label, value }: AttributeTagPro
 
   // Format both label and value in sentence case
   const formattedLabel = toSentenceCase(translations.attributes[label as AttributeLabel] || label);
-  const formattedValue = toSentenceCase(value);
+  const formattedValue = label === 'Relationship' 
+    ? toSentenceCase(translations.relationships[value.toLowerCase() as RelationType] || value)
+    : toSentenceCase(value);
 
   const tagColor = getTagColor(label);
 
+  // For relationship tags, only show the value without label and icon
+  if (label === 'Relationship') {
+    return (
+      <span 
+        className={`inline-flex items-center ${tagColor} px-2 py-1 rounded-md text-xs mr-2 mb-1 border shadow-sm hover:shadow-md transition-all duration-200`} 
+      >
+        <span className="font-medium">
+          {formattedValue}
+        </span>
+      </span>
+    );
+  }
+
+  // For all other tags, show with icon and label
   return (
     <span 
       className={`inline-flex items-center gap-1.5 ${tagColor} px-2 py-1 rounded-md text-xs mr-2 mb-1 border shadow-sm hover:shadow-md transition-all duration-200`} 

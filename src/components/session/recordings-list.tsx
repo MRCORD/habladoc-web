@@ -215,26 +215,38 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                   key={idx} 
                   className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200"
                 >
-                  <div className="flex items-center gap-3 mb-3">
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
                     <span className="font-medium text-gray-900">{toSentenceCase(rel.source)}</span>
-                    <span className="text-sm font-medium px-3 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100">
-                      {toSentenceCase(rel.type)}
-                    </span>
+                    <AttributeTag
+                      label="Relationship"
+                      value={rel.type}
+                    />
                     <span className="font-medium text-gray-900">{toSentenceCase(rel.target)}</span>
                   </div>
-                  <p className="text-sm text-gray-700 mb-3 bg-gray-50 p-3 rounded-md">
-                    {rel.evidence}
-                  </p>
+                  {rel.evidence && (
+                    <p className="text-sm text-gray-600 mb-3 bg-gray-50 p-3 rounded-md">
+                      {rel.evidence}
+                    </p>
+                  )}
                   <div className="flex flex-wrap gap-2">
-                    {rel.metadata.impact && (
-                      <AttributeTag label="Impact" value={rel.metadata.impact} />
-                    )}
-                    {rel.metadata.severity && (
-                      <AttributeTag label="Severity" value={rel.metadata.severity} />
-                    )}
-                    {rel.metadata.certainty && (
-                      <AttributeTag label="Certainty" value={rel.metadata.certainty} />
-                    )}
+                    {Object.entries(rel.metadata)
+                      .filter(([key, value]) => 
+                        value && 
+                        typeof value === 'string' && 
+                        !['direction', 'confidence'].includes(key)
+                      )
+                      .map(([key, value]) => {
+                        const label = key === 'clinical_significance' ? 'Context' :
+                                    key === 'temporality' ? 'Duration' :
+                                    toSentenceCase(key) as AttributeLabel;
+                        return (
+                          <AttributeTag
+                            key={key}
+                            label={label}
+                            value={value as string}
+                          />
+                        );
+                    })}
                   </div>
                 </div>
               ))}

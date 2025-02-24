@@ -4,8 +4,8 @@
 import { useState, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Mic, Sparkles, RefreshCw } from "lucide-react";
-import { Tab } from '@headlessui/react';
-import dynamic from 'next/dynamic';
+import { Tab } from "@headlessui/react";
+import dynamic from "next/dynamic";
 
 import { useSessionData } from "@/hooks/apiHooks";
 import { useSessionStore } from "@/stores/sessionStore";
@@ -14,8 +14,7 @@ import { SessionStatusBadge } from "@/components/common/status-badges";
 import { RecordingsList } from "@/components/session/recordings-list";
 import { PatientData } from "@/components/session/patient-info";
 import AnalysisDisplay from "@/components/session/analysis-display";
-import { PatientDisplaySkeleton } from "@/components/common/loading-skeletons";
-import { AnalysisDisplaySkeleton } from "@/components/common/loading-skeletons";
+import { PatientDisplaySkeleton, AnalysisDisplaySkeleton } from "@/components/common/loading-skeletons";
 
 import type { InsuranceInfo } from "@/types";
 
@@ -23,8 +22,8 @@ export default function SessionPage() {
   const router = useRouter();
   const params = useParams();
   const sessionId = params?.sessionId as string;
-  const [activeTab, setActiveTab] = useState('consultation');
-  
+  const [activeTab, setActiveTab] = useState("consultation");
+
   const {
     session: sessionData,
     recordings,
@@ -32,7 +31,7 @@ export default function SessionPage() {
     clinicalAnalysis,
     isLoading,
     error,
-    fetchSessionState
+    fetchSessionState,
   } = useSessionData(sessionId);
 
   // Add loading state for refresh
@@ -87,11 +86,11 @@ export default function SessionPage() {
     gender: nullToUndefined(sessionData.patient.gender),
     emergency_contact: nullToUndefined(sessionData.patient.emergency_contact),
     insurance_info: insuranceInfo,
-    metadata: nullToUndefined(sessionData.patient.metadata)
+    metadata: nullToUndefined(sessionData.patient.metadata),
   };
 
   const AudioRecorder = dynamic(
-    () => import('@/components/session/audio-recorder'),
+    () => import("@/components/session/audio-recorder"),
     { ssr: false }
   );
 
@@ -124,25 +123,36 @@ export default function SessionPage() {
           </Suspense>
 
           {/* Tabs */}
-          <Tab.Group selectedIndex={activeTab === 'consultation' ? 0 : 1} onChange={index => setActiveTab(index === 0 ? 'consultation' : 'analysis')}>
+          <Tab.Group
+            selectedIndex={activeTab === "consultation" ? 0 : 1}
+            onChange={(index) =>
+              setActiveTab(index === 0 ? "consultation" : "analysis")
+            }
+          >
             <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/20 p-1">
-              <Tab className={({ selected }) =>
-                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 flex items-center justify-center gap-2
-                 ${selected
-                  ? 'bg-white shadow text-blue-700'
-                  : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
-                }`
-              }>
+              <Tab
+                className={({ selected }) =>
+                  `w-full rounded-lg py-2.5 text-sm font-medium leading-5 flex items-center justify-center gap-2
+                 ${
+                   selected
+                     ? "bg-white shadow text-blue-700"
+                     : "text-blue-100 hover:bg-white/[0.12] hover:text-white"
+                 }`
+                }
+              >
                 <Mic className="h-4 w-4" />
                 Consulta
               </Tab>
-              <Tab className={({ selected }) =>
-                `w-full rounded-lg py-2.5 text-sm font-medium leading-5 flex items-center justify-center gap-2
-                 ${selected
-                  ? 'bg-white shadow text-blue-700'
-                  : 'text-blue-100 hover:bg-white/[0.12] hover:text-white'
-                }`
-              }>
+              <Tab
+                className={({ selected }) =>
+                  `w-full rounded-lg py-2.5 text-sm font-medium leading-5 flex items-center justify-center gap-2
+                 ${
+                   selected
+                     ? "bg-white shadow text-blue-700"
+                     : "text-blue-100 hover:bg-white/[0.12] hover:text-white"
+                 }`
+                }
+              >
                 <Sparkles className="h-4 w-4" />
                 Análisis en Vivo
               </Tab>
@@ -160,7 +170,11 @@ export default function SessionPage() {
                         onClick={handleRefresh}
                         className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 rounded-lg border border-gray-300 shadow-sm transition-colors"
                       >
-                        <RefreshCw className="w-4 h-4 mr-2" />
+                        <RefreshCw
+                          className={`w-4 h-4 mr-2 ${
+                            isRefreshing ? "animate-spin" : ""
+                          }`}
+                        />
                         Actualizar
                       </button>
                     </div>
@@ -179,24 +193,31 @@ export default function SessionPage() {
               </Tab.Panel>
 
               <Tab.Panel className="space-y-4">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold text-gray-900">
-                      Análisis en Vivo
-                    </h2>
-                    <button
-                      onClick={() => fetchSessionState(sessionId)}
-                      className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 rounded-lg border border-gray-300 shadow-sm transition-colors"
-                    >
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Actualizar
-                    </button>
-                  </div>
-                  <div className="bg-white shadow rounded-lg p-6">
-                    <Suspense fallback={<AnalysisDisplaySkeleton />}>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    Consulta médica mejorada
+                  </h2>
+                  <button
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 rounded-lg border border-gray-300 shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <RefreshCw
+                      className={`w-4 h-4 mr-2 ${
+                        isRefreshing ? "animate-spin" : ""
+                      }`}
+                    />
+                    {isRefreshing ? "Actualizando..." : "Actualizar"}
+                  </button>
+                </div>
+                <div className="bg-white shadow rounded-lg p-6">
+                  <Suspense fallback={<AnalysisDisplaySkeleton />}>
+                    {isRefreshing ? (
+                      <AnalysisDisplaySkeleton />
+                    ) : (
                       <AnalysisDisplay sessionId={sessionId} />
-                    </Suspense>
-                  </div>
+                    )}
+                  </Suspense>
                 </div>
               </Tab.Panel>
             </Tab.Panels>

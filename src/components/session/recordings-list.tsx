@@ -2,15 +2,98 @@
 import React from 'react';
 import { format, isValid } from 'date-fns';
 import { recordingsStorage } from '@/lib/recordings';
-import type { Recording } from '@/types';
+import { 
+  ChevronDown, 
+  ChevronRight,
+} from 'lucide-react';
+import { AttributeTag, toSentenceCase, translations, type AttributeLabel, type EntityType } from '@/components/common/attribute-tag';
+import type { Recording, RecordingStatus } from '@/types';
+
+interface Transcription {
+  id: string;
+  recording_id: string;
+  content: string;
+  is_interim: boolean;
+  status: string;
+  language?: string;
+  duration?: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface Entity {
+  name: string;
+  type: string;
+  spans: any[];
+  attributes: Record<string, any>;
+  confidence: number;
+}
+
+interface Relationship {
+  type: string;
+  source: string;
+  target: string;
+  evidence: string;
+  metadata: {
+    impact: string;
+    severity: string;
+    certainty: string;
+    direction: string;
+    temporality: string;
+    clinical_significance: string;
+    confidence: number;
+  };
+  confidence: number;
+}
+
+interface ClinicalAnalysis {
+  id: string;
+  content: {
+    text: string;
+    version: string;
+    entities: Entity[];
+    relationships: Relationship[];
+    language: string;
+    confidence: number;
+  };
+  confidence: number;
+  created_at: string;
+  session_id: string;
+  updated_at: string;
+  recording_id: string;
+  analysis_type: string;
+}
 
 interface RecordingsListProps {
   recordings: Recording[];
+  transcriptions?: Transcription[];
+  clinicalAnalysis?: Record<string, ClinicalAnalysis[]>;
   onError: (message: string) => void;
 }
 
-export const RecordingsList: React.FC<RecordingsListProps> = ({ recordings, onError }) => {
+const statusToTranslationKey = (status: RecordingStatus | string): 'processing' | 'completed' | 'failed' | 'processed' => {
+  switch (status) {
+    case 'processing':
+      return 'processing';
+    case 'completed':
+      return 'completed';
+    case 'failed':
+      return 'failed';
+    case 'processed':
+      return 'processed';
+    default:
+      return 'processing';
+  }
+};
+
+export const RecordingsList: React.FC<RecordingsListProps> = ({ 
+  recordings, 
+  transcriptions = [], 
+  clinicalAnalysis = {},
+  onError 
+}) => {
   const [recordingUrls, setRecordingUrls] = React.useState<Record<string, string>>({});
+  const [expandedRecordings, setExpandedRecordings] = React.useState<Record<string, boolean>>({});
 
   const getSignedUrl = React.useCallback(async (recording: Recording) => {
     try {
@@ -53,46 +136,203 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({ recordings, onEr
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  return (
-    <div className="space-y-4">
-      {recordings.map((recording) => (
-        <div
-          key={recording.id}
-          className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-        >
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-gray-900">
-                {formatTime(recording.created_at)}
-              </span>
-              <span className="text-sm text-gray-500">
-                {formatDuration(recording.duration)}
-              </span>
+  const toggleExpanded = (recordingId: string) => {
+    setExpandedRecordings(prev => ({
+      ...prev,
+      [recordingId]: !prev[recordingId]
+    }));
+  };
+
+  const getTranscriptionForRecording = (recordingId: string) => {
+    return transcriptions.find(t => t.recording_id === recordingId);
+  };
+
+  const renderClinicalContent = (analysis: ClinicalAnalysis) => {
+    if (!analysis?.content) return null;
+    
+    return (
+      <div className="space-y-6">
+        {/* Display Entities */}
+        {analysis.content.entities.length > 0 && (
+          <div>
+            <h5 className="text-lg font-bold text-gray-900 mb-4">
+              {translations.entityTypes['Clinical Findings']}
+            </h5>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {analysis.content.entities.map((entity, idx) => (
+                <div 
+                  key={idx} 
+                  className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200"
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-gray-900">
+                      {toSentenceCase(entity.name)}
+                    </span>
+                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                      {translations.entityTypes[entity.type as EntityType] || toSentenceCase(entity.type)}
+                    </span>
+                  </div>
+                  {Object.entries(entity.attributes).length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {Object.entries(entity.attributes).map(([key, value]) => (
+                        <AttributeTag
+                          key={key}
+                          label={toSentenceCase(key) as AttributeLabel}
+                          value={value as string}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
-            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-              recording.status === 'processed' 
-                ? 'bg-green-100 text-green-800'
-                : recording.status === 'processing'
-                ? 'bg-yellow-100 text-yellow-800'
-                : recording.status === 'failed'
-                ? 'bg-red-100 text-red-800'
-                : 'bg-gray-100 text-gray-800'
-            }`}>
-              {recording.status.charAt(0).toUpperCase() + recording.status.slice(1)}
-            </span>
           </div>
-          
-          {recordingUrls[recording.id] && (
-            <audio
-              controls
-              className="w-full"
-              src={recordingUrls[recording.id]}
-            >
-              Your browser does not support the audio element.
-            </audio>
-          )}
-        </div>
-      ))}
+        )}
+
+        {/* Display Relationships */}
+        {analysis.content.relationships.length > 0 && (
+          <div className="mt-8">
+            <h5 className="text-lg font-bold text-gray-900 mb-4">
+              {translations.entityTypes['Clinical Relationships']}
+            </h5>
+            <div className="grid grid-cols-1 gap-4">
+              {analysis.content.relationships.map((rel, idx) => (
+                <div 
+                  key={idx} 
+                  className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="font-medium text-gray-900">{toSentenceCase(rel.source)}</span>
+                    <span className="text-sm font-medium px-3 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-100">
+                      {toSentenceCase(rel.type)}
+                    </span>
+                    <span className="font-medium text-gray-900">{toSentenceCase(rel.target)}</span>
+                  </div>
+                  <p className="text-sm text-gray-700 mb-3 bg-gray-50 p-3 rounded-md">
+                    {rel.evidence}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {rel.metadata.impact && (
+                      <AttributeTag label="Impact" value={rel.metadata.impact} />
+                    )}
+                    {rel.metadata.severity && (
+                      <AttributeTag label="Severity" value={rel.metadata.severity} />
+                    )}
+                    {rel.metadata.certainty && (
+                      <AttributeTag label="Certainty" value={rel.metadata.certainty} />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      {recordings.map((recording) => {
+        const isExpanded = expandedRecordings[recording.id];
+        const transcription = getTranscriptionForRecording(recording.id);
+        const analyses = clinicalAnalysis[recording.id] || [];
+        
+        return (
+          <div
+            key={recording.id}
+            className="bg-white shadow-sm rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+          >
+            {/* Recording Header */}
+            <div className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => toggleExpanded(recording.id)}
+                    className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    {isExpanded ? (
+                      <ChevronDown className="h-5 w-5 text-gray-500" />
+                    ) : (
+                      <ChevronRight className="h-5 w-5 text-gray-500" />
+                    )}
+                  </button>
+                  <div>
+                    <span className="text-sm font-medium text-gray-900">
+                      Grabación {formatTime(recording.created_at)}
+                    </span>
+                    <span className="text-sm text-gray-500 ml-2">
+                      ({formatDuration(recording.duration)})
+                    </span>
+                  </div>
+                </div>
+                <span className={`px-3 py-1 text-sm font-medium rounded-full ${
+                  recording.status === 'processed' 
+                    ? 'bg-green-50 text-green-700 border border-green-200'
+                    : recording.status === 'processing'
+                    ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                    : recording.status === 'failed'
+                    ? 'bg-red-50 text-red-700 border border-red-200'
+                    : 'bg-gray-50 text-gray-700 border border-gray-200'
+                }`}>
+                  {translations.status[statusToTranslationKey(recording.status)] || toSentenceCase(recording.status)}
+                </span>
+              </div>
+              
+              {recordingUrls[recording.id] && (
+                <div className="mt-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                  <audio
+                    controls
+                    className="w-full"
+                    src={recordingUrls[recording.id]}
+                  >
+                    Your browser does not support the audio element.
+                  </audio>
+                </div>
+              )}
+            </div>
+
+            {/* Expanded Content */}
+            {isExpanded && transcription && (
+              <div className="border-t border-gray-200">
+                <div className="p-6 bg-white">
+                  {/* Transcription Content */}
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-lg font-bold text-gray-900">Transcripción</h4>
+                      <span className={`text-sm font-medium px-3 py-1 rounded-full ${
+                        transcription.status === 'completed'
+                          ? 'bg-green-50 text-green-700 border border-green-200'
+                          : transcription.status === 'processing'
+                          ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                          : transcription.status === 'failed'
+                          ? 'bg-red-50 text-red-700 border border-red-200'
+                          : 'bg-gray-50 text-gray-700 border border-gray-200'
+                      }`}>
+                        {translations.status[statusToTranslationKey(transcription.status)] || toSentenceCase(transcription.status)}
+                      </span>
+                    </div>
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">
+                      {transcription.content || 'No hay contenido disponible'}
+                    </div>
+                  </div>
+
+                  {/* Clinical Analysis Content */}
+                  {analyses.length > 0 && (
+                    <div className="mt-8 pt-8 border-t border-gray-200">
+                      {analyses.map((analysis, index) => (
+                        <div key={index}>
+                          {renderClinicalContent(analysis)}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 };

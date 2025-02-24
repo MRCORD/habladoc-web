@@ -28,6 +28,8 @@ export default function SessionPage() {
   const {
     session: sessionData,
     recordings,
+    transcriptions,
+    clinicalAnalysis,
     isLoading,
     error,
   } = useSessionData(sessionId);
@@ -37,7 +39,7 @@ export default function SessionPage() {
   }
 
   const handleRecordingComplete = () => {
-    useSessionStore.getState().fetchRecordings(sessionId);
+    useSessionStore.getState().fetchSessionState(sessionId);
     // Switch to analysis tab after recording
     setActiveTab('analysis');
   };
@@ -136,6 +138,8 @@ export default function SessionPage() {
                     </h2>
                     <RecordingsList
                       recordings={recordings}
+                      transcriptions={transcriptions}
+                      clinicalAnalysis={clinicalAnalysis}
                       onError={(msg) => useSessionStore.setState({ error: msg })}
                     />
                   </div>

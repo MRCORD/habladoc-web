@@ -10,9 +10,79 @@ import type {
   Recording
 } from '@/types';
 
+interface EnhancedConsultation {
+  recording_id: string;
+  soap_subjective?: {
+    summary?: string;
+    components?: Record<string, any>;
+  };
+  soap_objective?: {
+    summary?: string;
+    components?: Record<string, any>;
+  };
+  soap_assessment?: {
+    summary?: string;
+    components?: Record<string, any>;
+  };
+  soap_plan?: {
+    summary?: string;
+    components?: Record<string, any>;
+  };
+}
+
+interface Transcription {
+  recording_id: string;
+  content: string;
+  status: string;
+  // ...other transcription fields
+}
+
+interface AnalysisResult {
+  id: string;
+  content: {
+    text: string;
+    version: string;
+    entities: Array<{
+      name: string;
+      type: string;
+      spans: any[];
+      attributes: Record<string, any>;
+      confidence: number;
+    }>;
+    relationships: Array<{
+      type: string;
+      source: string;
+      target: string;
+      evidence: string;
+      metadata: {
+        impact: string;
+        severity: string;
+        certainty: string;
+        direction: string;
+        temporality: string;
+        clinical_significance: string;
+        confidence: number;
+      };
+      confidence: number;
+    }>;
+    language: string;
+    confidence: number;
+  };
+  confidence: number;
+  created_at: string;
+  session_id: string;
+  updated_at: string;
+  recording_id: string;
+  analysis_type: string;
+  model_metadata?: Record<string, any>;
+}
+
 interface SessionState {
   currentSession: SessionWithDetails | null;
-  recordings: Recording[]; 
+  recordings: Recording[];
+  transcriptions: Transcription[];
+  clinicalAnalysis: Record<string, AnalysisResult[]>;
+  enhancedAnalysis: Record<string, EnhancedConsultation>;
   todaySessions: Session[];
   isLoading: boolean;
   error: string | null;
@@ -20,6 +90,7 @@ interface SessionState {
   // Actions
   fetchSession: (sessionId: string) => Promise<void>;
   fetchRecordings: (sessionId: string) => Promise<void>;
+  fetchSessionState: (sessionId: string) => Promise<void>;
   fetchTodaySessions: (doctorId: string) => Promise<void>;
   addRecording: (recording: Recording) => void;
   updateSession: (sessionId: string, data: Partial<Session>) => Promise<void>;
@@ -42,6 +113,9 @@ export const useSessionStore = create<SessionState>()(
       // Initial state
       currentSession: null,
       recordings: [],
+      transcriptions: [],
+      clinicalAnalysis: {},
+      enhancedAnalysis: {},
       todaySessions: [],
       isLoading: false,
       error: null,
@@ -74,6 +148,45 @@ export const useSessionStore = create<SessionState>()(
           const apiError = error as ApiErrorResponse;
           set({ 
             error: apiError.response?.data?.message || apiError.message || 'Failed to fetch recordings' 
+          });
+        }
+      },
+
+      fetchSessionState: async (sessionId: string) => {
+        try {
+          const response = await api.get<ApiResponse<any>>(`/api/v1/analysis/session/${sessionId}/complete-state`);
+          if (response.data.success) {
+            const { transcriptions = [], analysis_results = [], enhanced_consultations = [] } = response.data.data || {};
+            
+            // Separate clinical analysis and enhanced analysis
+            const clinicalAnalysis: Record<string, AnalysisResult[]> = {};
+            const enhancedAnalysis: Record<string, EnhancedConsultation> = {};
+            
+            // Group clinical analysis by recording
+            transcriptions.forEach((t: Transcription) => {
+              const recordingAnalyses = analysis_results.filter((ar: AnalysisResult) => 
+                ar.recording_id === t.recording_id && 
+                ar.analysis_type === 'clinical_analysis'
+              );
+
+              if (recordingAnalyses.length > 0) {
+                clinicalAnalysis[t.recording_id] = recordingAnalyses;
+              }
+            });
+
+            // Map enhanced consultations
+            enhanced_consultations.forEach((ec: EnhancedConsultation) => {
+              if (ec.recording_id) {
+                enhancedAnalysis[ec.recording_id] = ec;
+              }
+            });
+            
+            set({ transcriptions, clinicalAnalysis, enhancedAnalysis });
+          }
+        } catch (error) {
+          const apiError = error as ApiErrorResponse;
+          set({ 
+            error: apiError.response?.data?.message || apiError.message || 'Failed to fetch session state' 
           });
         }
       },
@@ -149,6 +262,9 @@ export const useSessionStore = create<SessionState>()(
         set({
           currentSession: null,
           recordings: [],
+          transcriptions: [],
+          clinicalAnalysis: {},
+          enhancedAnalysis: {},
           todaySessions: [],
           isLoading: false,
           error: null,

@@ -26,31 +26,44 @@ export function useInitialLoad(): { isLoading: boolean } {
 
 interface SessionData {
   session: SessionWithDetails | null;
-  recordings: Recording[]; // Changed from RecordingUploadResult[]
+  recordings: Recording[];
+  transcriptions: any[];
+  clinicalAnalysis: Record<string, any>;
   isLoading: boolean;
   error: string | null;
-  addRecording: (recording: Recording) => void; // Changed parameter type
+  addRecording: (recording: Recording) => void;
 }
 
 export function useSessionData(sessionId: string): SessionData {
   const fetchSession = useSessionStore((state) => state.fetchSession);
   const fetchRecordings = useSessionStore((state) => state.fetchRecordings);
+  const fetchSessionState = useSessionStore((state) => state.fetchSessionState);
   const addRecording = useSessionStore((state) => state.addRecording);
   const session = useSessionStore((state) => state.currentSession);
   const recordings = useSessionStore((state) => state.recordings);
+  const transcriptions = useSessionStore((state) => state.transcriptions);
+  const clinicalAnalysis = useSessionStore((state) => state.clinicalAnalysis);
   const isLoading = useSessionStore((state) => state.isLoading);
   const error = useSessionStore((state) => state.error);
 
   useEffect(() => {
     if (sessionId) {
-      fetchSession(sessionId);
-      fetchRecordings(sessionId);
+      // Fetch all data in parallel
+      Promise.all([
+        fetchSession(sessionId),
+        fetchRecordings(sessionId), // Get recordings from recordings endpoint
+        fetchSessionState(sessionId) // Get transcriptions from complete-state endpoint
+      ]).catch(error => 
+        console.error('Error fetching session data:', error)
+      );
     }
-  }, [sessionId, fetchSession, fetchRecordings]);
+  }, [sessionId, fetchSession, fetchRecordings, fetchSessionState]);
 
   return { 
     session, 
     recordings, 
+    transcriptions,
+    clinicalAnalysis,
     isLoading, 
     error, 
     addRecording 

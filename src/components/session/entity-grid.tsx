@@ -1,5 +1,3 @@
-// src/components/session/entity-grid.tsx
-
 import React, { useState } from 'react';
 import { 
   ChevronDown, 
@@ -7,7 +5,8 @@ import {
   Plus, 
   Minus
 } from 'lucide-react';
-import { AttributeTag, toSentenceCase, translations } from '@/components/common/attribute-tag';
+import { AttributeTag, translations } from '@/components/common/attribute-tag';
+import { toSentenceCase } from '@/utils/highlightEntities';
 
 interface Entity {
   name: string;

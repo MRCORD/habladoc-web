@@ -2,11 +2,9 @@
 import React from 'react';
 import { format, isValid } from 'date-fns';
 import { recordingsStorage } from '@/lib/recordings';
-import { 
-  ChevronDown, 
-  ChevronRight,
-} from 'lucide-react';
-import { AttributeTag, toSentenceCase, translations, type AttributeLabel, type EntityType } from '@/components/common/attribute-tag';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { AttributeTag, translations, type AttributeLabel, type EntityType } from '@/components/common/attribute-tag';
+import { toSentenceCase, highlightEntitiesInText } from '@/utils/highlightEntities';
 import type { Recording, RecordingStatus } from '@/types';
 
 interface Transcription {
@@ -313,7 +311,10 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                       </span>
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">
-                      {transcription.content || 'No hay contenido disponible'}
+                      {highlightEntitiesInText(
+                        transcription.content || 'No hay contenido disponible',
+                        analyses.flatMap(analysis => analysis.content?.entities || [])
+                      )}
                     </div>
                   </div>
 

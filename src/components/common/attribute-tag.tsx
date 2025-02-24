@@ -15,25 +15,7 @@ import {
   AlertTriangleIcon as SeverityIcon,
   CheckCircle2Icon as CertaintyIcon
 } from 'lucide-react';
-
-// Helper function to convert text to sentence case
-function toSentenceCase(str: string): string {
-  if (!str) return '';
-  
-  if (str.includes('-')) {
-    return str.split('-')
-      .map(toSentenceCase)
-      .join('-');
-  }
-  
-  if (str.includes(' ')) {
-    return str.split(' ')
-      .map(toSentenceCase)
-      .join(' ');
-  }
-
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-}
+import { toSentenceCase } from '@/utils/highlightEntities';
 
 export type AttributeLabel = 'Quality' | 'Location' | 'Intensity' | 'Context' | 'Duration' | 
                      'Frequency' | 'Measurement' | 'Progression' | 'Status' | 'Onset' | 
@@ -133,7 +115,7 @@ export function AttributeTag({ icon: CustomIcon, label, value }: AttributeTagPro
     if (['Progression', 'Status'].includes(label)) {
       return 'bg-purple-50 text-purple-700 border-purple-200';
     }
-
+    
     // Analysis-related attributes
     if (['Impact', 'Severity', 'Certainty'].includes(label)) {
       return 'bg-amber-50 text-amber-700 border-amber-200';

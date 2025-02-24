@@ -9,53 +9,7 @@ import {
 import api from '@/lib/api';
 import type { ApiResponse } from '@/types';
 import EntityGroups from './entity-groups';
-
-// Helper function to convert text to sentence case
-function toSentenceCase(str: string): string {
-  if (!str) return '';
-  
-  if (str.includes('-')) {
-    return str.split('-')
-      .map(toSentenceCase)
-      .join('-');
-  }
-  
-  if (str.includes(' ')) {
-    return str.split(' ')
-      .map(toSentenceCase)
-      .join(' ');
-  }
-
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-}
-
-// Helper function to highlight entities in text
-const highlightEntitiesInText = (text: string, entities: any[] = []) => {
-  if (!text || !entities.length) return text;
-
-  // Extract all entity names from the components
-  let allEntityNames = entities
-    .map(e => e.name?.toLowerCase())
-    .filter(Boolean);
-
-  // Create a regular expression to match whole words
-  const entityRegex = new RegExp(`\\b(${allEntityNames.join('|')})\\b`, 'gi');
-
-  return text.split(entityRegex).map((part, i) => {
-    if (allEntityNames.includes(part.toLowerCase())) {
-      return (
-        <span 
-          key={i} 
-          className="font-medium bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-md border border-blue-100" 
-          title="Entidad clínica identificada"
-        >
-          {toSentenceCase(part)}
-        </span>
-      );
-    }
-    return part;
-  });
-};
+import { toSentenceCase, highlightEntitiesInText } from '@/utils/highlightEntities';
 
 // Type definitions for SOAP data structure
 export interface SoapComponent {

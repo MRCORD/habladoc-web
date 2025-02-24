@@ -179,9 +179,25 @@ export default function SessionPage() {
               </Tab.Panel>
 
               <Tab.Panel className="space-y-4">
-                <Suspense fallback={<AnalysisDisplaySkeleton />}>
-                  <AnalysisDisplay sessionId={sessionId} />
-                </Suspense>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-gray-900">
+                      Análisis en Vivo
+                    </h2>
+                    <button
+                      onClick={() => fetchSessionState(sessionId)}
+                      className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 rounded-lg border border-gray-300 shadow-sm transition-colors"
+                    >
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Actualizar
+                    </button>
+                  </div>
+                  <div className="bg-white shadow rounded-lg p-6">
+                    <Suspense fallback={<AnalysisDisplaySkeleton />}>
+                      <AnalysisDisplay sessionId={sessionId} />
+                    </Suspense>
+                  </div>
+                </div>
               </Tab.Panel>
             </Tab.Panels>
           </Tab.Group>

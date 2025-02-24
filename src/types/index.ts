@@ -94,6 +94,8 @@ export interface Session {
   };
 }
 
+export type AnalysisStatus = 'completed' | 'processing' | 'failed' | 'pending';
+
 export interface Recording {
   id: string;
   session_id: string;
@@ -103,6 +105,7 @@ export interface Recording {
   file_size?: number | null;
   mime_type?: string | null;
   is_processed: boolean;
+  analysis_status: AnalysisStatus;
   metadata?: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;

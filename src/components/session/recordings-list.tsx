@@ -324,15 +324,15 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                   </div>
                 </div>
                 <span className={`px-3 py-1 text-sm font-medium rounded-full ${
-                  recording.status === 'processed' 
-                    ? 'bg-green-50 text-green-700 border border-green-200'
-                    : recording.status === 'processing'
-                    ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
-                    : recording.status === 'failed'
-                    ? 'bg-red-50 text-red-700 border border-red-200'
-                    : 'bg-gray-50 text-gray-700 border border-gray-200'
+                  recording.analysis_status === 'completed' 
+                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                    : recording.analysis_status === 'processing'
+                    ? 'bg-blue-50 text-blue-600 border border-blue-200'
+                    : recording.analysis_status === 'failed'
+                    ? 'bg-rose-50 text-rose-600 border border-rose-200'
+                    : 'bg-slate-50 text-slate-600 border border-slate-200'
                 }`}>
-                  {translations.status[statusToTranslationKey(recording.status)] || toSentenceCase(recording.status)}
+                  {toSentenceCase(recording.analysis_status)}
                 </span>
               </div>
               
@@ -357,19 +357,6 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-lg font-bold text-gray-900">Transcripción</h4>
-                      {transcription && (
-                        <span className={`text-sm font-medium px-3 py-1 rounded-full ${
-                          transcription.status === 'completed'
-                            ? 'bg-green-50 text-green-700 border border-green-200'
-                            : transcription.status === 'processing'
-                            ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
-                            : transcription.status === 'failed'
-                            ? 'bg-red-50 text-red-700 border border-red-200'
-                            : 'bg-gray-50 text-gray-700 border border-gray-200'
-                        }`}>
-                          {translations.status[statusToTranslationKey(transcription.status)] || toSentenceCase(transcription.status)}
-                        </span>
-                      )}
                     </div>
                     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">
                       {transcription ? 

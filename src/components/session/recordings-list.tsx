@@ -291,33 +291,38 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
             </div>
 
             {/* Expanded Content */}
-            {isExpanded && transcription && (
+            {isExpanded && (
               <div className="border-t border-gray-200">
                 <div className="p-6 bg-white">
                   {/* Transcription Content */}
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-lg font-bold text-gray-900">Transcripción</h4>
-                      <span className={`text-sm font-medium px-3 py-1 rounded-full ${
-                        transcription.status === 'completed'
-                          ? 'bg-green-50 text-green-700 border border-green-200'
-                          : transcription.status === 'processing'
-                          ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
-                          : transcription.status === 'failed'
-                          ? 'bg-red-50 text-red-700 border border-red-200'
-                          : 'bg-gray-50 text-gray-700 border border-gray-200'
-                      }`}>
-                        {translations.status[statusToTranslationKey(transcription.status)] || toSentenceCase(transcription.status)}
-                      </span>
-                    </div>
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">
-                      {highlightEntitiesInText(
-                        transcription.content || 'No hay contenido disponible',
-                        analyses.flatMap(analysis => analysis.content?.entities || [])
+                      {transcription && (
+                        <span className={`text-sm font-medium px-3 py-1 rounded-full ${
+                          transcription.status === 'completed'
+                            ? 'bg-green-50 text-green-700 border border-green-200'
+                            : transcription.status === 'processing'
+                            ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+                            : transcription.status === 'failed'
+                            ? 'bg-red-50 text-red-700 border border-red-200'
+                            : 'bg-gray-50 text-gray-700 border border-gray-200'
+                        }`}>
+                          {translations.status[statusToTranslationKey(transcription.status)] || toSentenceCase(transcription.status)}
+                        </span>
                       )}
                     </div>
+                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">
+                      {transcription ? 
+                        highlightEntitiesInText(
+                          transcription.content || 'No hay contenido disponible',
+                          analyses.flatMap(analysis => analysis.content?.entities || [])
+                        )
+                        : 'La grabación se está procesando...'
+                      }
+                    </div>
                   </div>
-
+                  
                   {/* Clinical Analysis Content */}
                   {analyses.length > 0 && (
                     <div className="mt-8 pt-8 border-t border-gray-200">

@@ -281,7 +281,10 @@ export default function AudioRecorder({
         throw new Error(recordingResponse.data.message || "Failed to save recording");
       }
 
-      // Reset state and notify parent
+      // Wait a moment to ensure the recording is processed
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Reset state and notify parent to refresh recordings
       setState(DEFAULT_STATE);
       onRecordingComplete();
 

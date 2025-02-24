@@ -143,8 +143,6 @@ export default function EnhancedConsultationDisplay({ sessionId }: { sessionId: 
 
   if (isLoading) return <AnalysisDisplaySkeleton />;
   if (error) return <ErrorMessage message={error} />;
-  if (!enhancedData)
-    return <p className="text-gray-500">No hay datos de consulta médica disponibles.</p>;
 
   return (
     <div className="bg-white shadow rounded-lg p-6 text-gray-800">
@@ -153,16 +151,31 @@ export default function EnhancedConsultationDisplay({ sessionId }: { sessionId: 
         <button
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
           <RefreshIcon className={`h-5 w-5 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
           {isRefreshing ? 'Actualizando...' : 'Actualizar'}
         </button>
       </div>
-      {renderSoapSection('Subjective', enhancedData.soap_subjective)}
-      {renderSoapSection('Objective', enhancedData.soap_objective)}
-      {renderSoapSection('Assessment', enhancedData.soap_assessment)}
-      {renderSoapSection('Plan', enhancedData.soap_plan)}
+
+      {!enhancedData ? (
+        <div className="text-center py-12 px-4">
+          <div className="rounded-lg border-2 border-dashed border-gray-300 p-12">
+            <RefreshIcon className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-4 text-lg font-medium text-gray-900">No hay datos de consulta médica</h3>
+            <p className="mt-2 text-sm text-gray-500">
+              Los datos de la consulta se generarán automáticamente cuando haya grabaciones procesadas.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <>
+          {renderSoapSection('Subjective', enhancedData.soap_subjective)}
+          {renderSoapSection('Objective', enhancedData.soap_objective)}
+          {renderSoapSection('Assessment', enhancedData.soap_assessment)}
+          {renderSoapSection('Plan', enhancedData.soap_plan)}
+        </>
+      )}
     </div>
   );
 }

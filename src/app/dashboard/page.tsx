@@ -137,7 +137,6 @@ export default function Dashboard() {
 
   // If we get this far, we have a user and a doctorProfile.
   // We'll either show sessions or the fallback mockSessions.
-
   const displaySessions = todaySessions.length > 0 ? todaySessions : mockSessions;
 
   return (
@@ -151,12 +150,10 @@ export default function Dashboard() {
           Esto es lo que está pasando con tus sesiones hoy
         </p>
       </div>
-
       {/* Stats Grid */}
       <Suspense fallback={<StatsGridSkeleton />}>
         <StatsGrid todaySessions={todaySessions} />
       </Suspense>
-
       {/* Recent Sessions */}
       <div className="bg-white shadow rounded-lg">
         <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
@@ -170,7 +167,9 @@ export default function Dashboard() {
           </button>
         </div>
         <div className="border-t border-gray-200">
-          <Suspense fallback={<SessionListSkeleton />}>
+          {isSessionsLoading ? (
+            <SessionListSkeleton />
+          ) : (
             <ul role="list" className="divide-y divide-gray-200">
               {displaySessions.map((session) => (
                 <SessionListItem
@@ -180,7 +179,7 @@ export default function Dashboard() {
                 />
               ))}
             </ul>
-          </Suspense>
+          )}
         </div>
       </div>
     </div>

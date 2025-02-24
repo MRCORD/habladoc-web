@@ -13,7 +13,8 @@ import {
   CircleDotIcon as StatusIcon,
   ArrowUpRightIcon as ImpactIcon,
   AlertTriangleIcon as SeverityIcon,
-  CheckCircle2Icon as CertaintyIcon
+  CheckCircle2Icon as CertaintyIcon,
+  LucideProps
 } from 'lucide-react';
 import { toSentenceCase } from '@/utils/highlightEntities';
 
@@ -68,7 +69,7 @@ type IconKey = 'duration' | 'frequency' | 'intensity' | 'location' | 'onset' |
                'progression' | 'quality' | 'context' | 'value' | 'unit' | 
                'status' | 'impact' | 'severity' | 'certainty';
 
-export const attributeIcons: Record<IconKey, React.ComponentType<any>> = {
+export const attributeIcons: Record<IconKey, React.ComponentType<LucideProps>> = {
   duration: DurationIcon,
   frequency: FrequencyIcon,
   intensity: IntensityIcon,
@@ -86,7 +87,7 @@ export const attributeIcons: Record<IconKey, React.ComponentType<any>> = {
 };
 
 export interface AttributeTagProps {
-  icon?: React.ComponentType<any>;
+  icon?: React.ComponentType<LucideProps>;
   label: string;
   value: string;
 }

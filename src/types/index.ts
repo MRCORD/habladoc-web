@@ -207,3 +207,53 @@ export enum SOAPComponent {
   THERAPEUTIC_PLAN = "therapeutic_plan",
   EDUCATION_PLAN = "education_plan"
 }
+
+export interface Entity {
+  name: string;
+  type: string;
+  spans: Array<{ start: number; end: number; text: string }>;
+  attributes: Record<string, string | number | boolean>;
+  confidence: number;
+}
+
+export interface Relationship {
+  type: string;
+  source: string;
+  target: string;
+  evidence: string;
+  metadata: {
+    impact: string;
+    severity: string;
+    certainty: string;
+    direction: string;
+    temporality: string;
+    clinical_significance: string;
+    confidence: number;
+  };
+  confidence: number;
+}
+
+export interface AnalysisResult {
+  id: string;
+  content: {
+    text: string;
+    version: string;
+    entities: Entity[];
+    relationships: Relationship[];
+    language: string;
+    confidence: number;
+  };
+  confidence: number;
+  created_at: string;
+  session_id: string;
+  updated_at: string;
+  recording_id: string;
+  analysis_type: string;
+  model_metadata?: Record<string, string | number | boolean>;
+}
+
+export interface Transcription {
+  recording_id: string;
+  content: string;
+  status: string;
+}

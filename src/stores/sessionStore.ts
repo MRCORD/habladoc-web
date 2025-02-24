@@ -10,23 +10,34 @@ import type {
   Recording
 } from '@/types';
 
+interface SoapComponent {
+  text?: string;
+  category?: string;
+  importance?: 'low' | 'medium' | 'high';
+  timestamp?: string;
+  metadata?: {
+    confidence?: number;
+    source?: string;
+  };
+}
+
 interface EnhancedConsultation {
   recording_id: string;
   soap_subjective?: {
     summary?: string;
-    components?: Record<string, any>;
+    components?: Record<string, SoapComponent>;
   };
   soap_objective?: {
     summary?: string;
-    components?: Record<string, any>;
+    components?: Record<string, SoapComponent>;
   };
   soap_assessment?: {
     summary?: string;
-    components?: Record<string, any>;
+    components?: Record<string, SoapComponent>;
   };
   soap_plan?: {
     summary?: string;
-    components?: Record<string, any>;
+    components?: Record<string, SoapComponent>;
   };
 }
 

@@ -3,7 +3,13 @@ import { useEffect } from 'react';
 import { useUserStore } from '@/stores/userStore';
 import { useSessionStore } from '@/stores/sessionStore';
 import { useUser } from '@auth0/nextjs-auth0/client';
-import type { Session, SessionWithDetails, Recording } from '@/types';
+import type { 
+  Session, 
+  SessionWithDetails, 
+  Recording, 
+  Transcription, 
+  AnalysisResult 
+} from '@/types';
 
 export function useInitialLoad(): { isLoading: boolean } {
   const { user: auth0User, isLoading: isAuth0Loading } = useUser();
@@ -27,8 +33,8 @@ export function useInitialLoad(): { isLoading: boolean } {
 interface SessionData {
   session: SessionWithDetails | null;
   recordings: Recording[];
-  transcriptions: any[];
-  clinicalAnalysis: Record<string, any>;
+  transcriptions: Transcription[];
+  clinicalAnalysis: Record<string, AnalysisResult[]>;
   isLoading: boolean;
   error: string | null;
   addRecording: (recording: Recording) => void;

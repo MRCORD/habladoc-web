@@ -68,6 +68,7 @@ interface RecordingsListProps {
   clinicalAnalysis?: Record<string, ClinicalAnalysis[]>;
   onError: (message: string) => void;
   isLoading?: boolean;
+  onRefresh?: () => Promise<void>;
 }
 
 const statusToTranslationKey = (status: RecordingStatus | string): 'processing' | 'completed' | 'failed' | 'processed' => {

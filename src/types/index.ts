@@ -212,7 +212,7 @@ export interface Entity {
   name: string;
   type: string;
   spans: Array<{ start: number; end: number; text: string }>;
-  attributes: Record<string, string | number | boolean>;
+  attributes: Record<string, string | number>;
   confidence: number;
 }
 
@@ -253,7 +253,11 @@ export interface AnalysisResult {
 }
 
 export interface Transcription {
+  id: string;
   recording_id: string;
   content: string;
   status: string;
+  is_interim: boolean;
+  created_at: string;
+  updated_at: string;
 }

@@ -16,7 +16,9 @@ import { highlightEntitiesInText } from "@/utils/highlightEntities";
 // Type definitions for SOAP data structure
 interface SoapComponentValue {
   name: string;
-  [key: string]: string | number | boolean | Record<string, unknown>;
+  value: string;
+  unit?: string;
+  [key: string]: string | number | undefined;
 }
 
 export interface SoapComponent {
@@ -28,11 +30,9 @@ export interface SoapComponent {
 
 export interface SoapSection {
   summary?: string;
-  components?: {
-    [key: string]: {
-      content: SoapComponent;
-    };
-  };
+  components: Record<string, {
+    content: SoapComponent;
+  }>;
 }
 
 export interface EnhancedConsultation {

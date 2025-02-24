@@ -178,25 +178,30 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                   key={idx} 
                   className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-gray-900">
-                      {toSentenceCase(entity.name)}
-                    </span>
-                    <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
-                      {translations.entityTypes[entity.type as EntityType] || toSentenceCase(entity.type)}
-                    </span>
-                  </div>
-                  {Object.entries(entity.attributes).length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      {Object.entries(entity.attributes).map(([key, value]) => (
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex items-baseline justify-between">
+                      <span className="font-medium text-gray-900">
+                        {toSentenceCase(entity.name)}
+                      </span>
+                      <div className="ml-3">
                         <AttributeTag
-                          key={key}
-                          label={toSentenceCase(key) as AttributeLabel}
-                          value={value as string}
+                          label={entity.type}
+                          value={translations.entityTypes[entity.type as EntityType] || toSentenceCase(entity.type)}
                         />
-                      ))}
+                      </div>
                     </div>
-                  )}
+                    {Object.entries(entity.attributes).length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {Object.entries(entity.attributes).map(([key, value]) => (
+                          <AttributeTag
+                            key={key}
+                            label={toSentenceCase(key) as AttributeLabel}
+                            value={value as string}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -215,38 +220,40 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                   key={idx} 
                   className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200"
                 >
-                  <div className="flex flex-wrap items-center gap-2 mb-3">
-                    <span className="font-medium text-gray-900">{toSentenceCase(rel.source)}</span>
-                    <AttributeTag
-                      label="Relationship"
-                      value={rel.type}
-                    />
-                    <span className="font-medium text-gray-900">{toSentenceCase(rel.target)}</span>
-                  </div>
-                  {rel.evidence && (
-                    <p className="text-sm text-gray-600 mb-3 bg-gray-50 p-3 rounded-md">
-                      {rel.evidence}
-                    </p>
-                  )}
-                  <div className="flex flex-wrap gap-2">
-                    {Object.entries(rel.metadata)
-                      .filter(([key, value]) => 
-                        value && 
-                        typeof value === 'string' && 
-                        !['direction', 'confidence'].includes(key)
-                      )
-                      .map(([key, value]) => {
-                        const label = key === 'clinical_significance' ? 'Context' :
-                                    key === 'temporality' ? 'Duration' :
-                                    toSentenceCase(key) as AttributeLabel;
-                        return (
-                          <AttributeTag
-                            key={key}
-                            label={label}
-                            value={value as string}
-                          />
-                        );
-                    })}
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-medium text-gray-900">{toSentenceCase(rel.source)}</span>
+                      <AttributeTag
+                        label="Relationship"
+                        value={rel.type}
+                      />
+                      <span className="font-medium text-gray-900">{toSentenceCase(rel.target)}</span>
+                    </div>
+                    {rel.evidence && (
+                      <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
+                        {rel.evidence}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(rel.metadata)
+                        .filter(([key, value]) => 
+                          value && 
+                          typeof value === 'string' && 
+                          !['direction', 'confidence'].includes(key)
+                        )
+                        .map(([key, value]) => {
+                          const label = key === 'clinical_significance' ? 'Context' :
+                                      key === 'temporality' ? 'Duration' :
+                                      toSentenceCase(key) as AttributeLabel;
+                          return (
+                            <AttributeTag
+                              key={key}
+                              label={label}
+                              value={value as string}
+                            />
+                          );
+                      })}
+                    </div>
                   </div>
                 </div>
               ))}

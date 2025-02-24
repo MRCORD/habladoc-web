@@ -22,8 +22,10 @@ export type AttributeLabel = 'Quality' | 'Location' | 'Intensity' | 'Context' | 
                      'Frequency' | 'Measurement' | 'Progression' | 'Status' | 'Onset' | 
                      'Value' | 'Impact' | 'Severity' | 'Certainty' | 'Relationship';
 
-export type EntityType = 'Symptoms' | 'Vital Signs' | 'Diagnoses' | 'Medication Effects' | 
-                 'Clinical Findings' | 'Clinical Relationships';
+export type EntityType = 'symptom' | 'condition' | 'medication' | 'vital_sign' | 
+                        'lab_result' | 'procedure' | 'Symptoms' | 'Vital Signs' | 
+                        'Diagnoses' | 'Medication Effects' | 'Clinical Findings' | 
+                        'Clinical Relationships';
 
 export type StatusType = 'processing' | 'completed' | 'failed' | 'processed';
 
@@ -51,6 +53,12 @@ export const translations = {
   } as Record<AttributeLabel, string>,
   // Entity types
   entityTypes: {
+    'symptom': 'Síntoma',
+    'condition': 'Condición',
+    'medication': 'Medicamento',
+    'vital_sign': 'Signo vital',
+    'lab_result': 'Resultado de laboratorio',
+    'procedure': 'Procedimiento',
     'Symptoms': 'Síntomas y signos',
     'Vital Signs': 'Signos vitales',
     'Diagnoses': 'Diagnósticos',
@@ -107,10 +115,17 @@ export interface AttributeTagProps {
 }
 
 export function AttributeTag({ icon: CustomIcon, label, value }: AttributeTagProps) {
-  // Get icon based on label if not provided
   const Icon = CustomIcon || attributeIcons[label.toLowerCase() as IconKey] || ContextIcon;
 
-  const getTagColor = (label: string) => {
+  const getTagColor = (label: string, value: string) => {
+    // Entity type colors - using a more distinct neutral color
+    const entityType = label.toLowerCase();
+    const isEntityTag = Object.keys(translations.entityTypes).some(key => key.toLowerCase() === entityType);
+    
+    if (isEntityTag) {
+      return 'bg-slate-100 text-slate-600 border border-slate-200';
+    }
+
     // Time-related attributes
     if (['Duration', 'Frequency', 'Onset'].includes(label)) {
       return 'bg-blue-50 text-blue-700 border-blue-200';
@@ -155,11 +170,6 @@ export function AttributeTag({ icon: CustomIcon, label, value }: AttributeTagPro
       }
     }
     
-    // Context and additional information
-    if (['Context'].includes(label)) {
-      return 'bg-gray-50 text-gray-700 border-gray-200';
-    }
-    
     return 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
@@ -167,19 +177,24 @@ export function AttributeTag({ icon: CustomIcon, label, value }: AttributeTagPro
   const formattedLabel = toSentenceCase(translations.attributes[label as AttributeLabel] || label);
   const formattedValue = label === 'Relationship' 
     ? toSentenceCase(translations.relationships[value.toLowerCase() as RelationType] || value)
+    : Object.keys(translations.entityTypes).includes(label.toLowerCase())
+    ? value // For entity types, use the translated value directly
     : toSentenceCase(value);
 
-  const tagColor = getTagColor(label);
+  const tagColor = getTagColor(label, value);
+  const isEntityType = Object.keys(translations.entityTypes).includes(label.toLowerCase());
 
-  // For relationship tags, only show the value without label and icon
-  if (label === 'Relationship') {
+  // For relationship tags and entity types, only show the value without label and icon
+  if (label === 'Relationship' || isEntityType) {
     return (
       <span 
-        className={`inline-flex items-center ${tagColor} px-2 py-1 rounded-md text-xs mr-2 mb-1 border shadow-sm hover:shadow-md transition-all duration-200`} 
+        className={`inline-flex items-center ${tagColor} ${
+          isEntityType 
+            ? 'px-4 py-1.5 text-sm rounded-lg'
+            : 'px-2 py-1 text-xs font-medium rounded'
+        }`} 
       >
-        <span className="font-medium">
-          {formattedValue}
-        </span>
+        {formattedValue}
       </span>
     );
   }
@@ -187,7 +202,7 @@ export function AttributeTag({ icon: CustomIcon, label, value }: AttributeTagPro
   // For all other tags, show with icon and label
   return (
     <span 
-      className={`inline-flex items-center gap-1.5 ${tagColor} px-2 py-1 rounded-md text-xs mr-2 mb-1 border shadow-sm hover:shadow-md transition-all duration-200`} 
+      className={`inline-flex items-center gap-1.5 ${tagColor} px-2 py-1 rounded-md text-xs`} 
     >
       <Icon className="h-3.5 w-3.5 flex-shrink-0" />
       <span className="font-medium">

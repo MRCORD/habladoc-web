@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  ChevronDown, 
-  ChevronRight, 
   Plus, 
   Minus
 } from 'lucide-react';
@@ -22,7 +20,7 @@ interface Entity {
   value?: string;
   unit?: string;
   status?: string;
-  [key: string]: any;
+  [key: string]: string | number | undefined;
 }
 
 interface EntityGridProps {

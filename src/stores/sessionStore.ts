@@ -37,34 +37,38 @@ interface Transcription {
   // ...other transcription fields
 }
 
+interface Entity {
+  name: string;
+  type: string;
+  spans: Array<{ start: number; end: number; text: string }>;
+  attributes: Record<string, string | number | boolean>;
+  confidence: number;
+}
+
+interface Relationship {
+  type: string;
+  source: string;
+  target: string;
+  evidence: string;
+  metadata: {
+    impact: string;
+    severity: string;
+    certainty: string;
+    direction: string;
+    temporality: string;
+    clinical_significance: string;
+    confidence: number;
+  };
+  confidence: number;
+}
+
 interface AnalysisResult {
   id: string;
   content: {
     text: string;
     version: string;
-    entities: Array<{
-      name: string;
-      type: string;
-      spans: any[];
-      attributes: Record<string, any>;
-      confidence: number;
-    }>;
-    relationships: Array<{
-      type: string;
-      source: string;
-      target: string;
-      evidence: string;
-      metadata: {
-        impact: string;
-        severity: string;
-        certainty: string;
-        direction: string;
-        temporality: string;
-        clinical_significance: string;
-        confidence: number;
-      };
-      confidence: number;
-    }>;
+    entities: Entity[];
+    relationships: Relationship[];
     language: string;
     confidence: number;
   };
@@ -74,7 +78,7 @@ interface AnalysisResult {
   updated_at: string;
   recording_id: string;
   analysis_type: string;
-  model_metadata?: Record<string, any>;
+  model_metadata?: Record<string, string | number | boolean>;
 }
 
 interface SessionState {
@@ -154,7 +158,12 @@ export const useSessionStore = create<SessionState>()(
 
       fetchSessionState: async (sessionId: string) => {
         try {
-          const response = await api.get<ApiResponse<any>>(`/api/v1/analysis/session/${sessionId}/complete-state`);
+          interface SessionStateResponse {
+            transcriptions: Transcription[];
+            analysis_results: AnalysisResult[];
+            enhanced_consultations: EnhancedConsultation[];
+          }
+          const response = await api.get<ApiResponse<SessionStateResponse>>(`/api/v1/analysis/session/${sessionId}/complete-state`);
           if (response.data.success) {
             const { transcriptions = [], analysis_results = [], enhanced_consultations = [] } = response.data.data || {};
             
@@ -168,12 +177,10 @@ export const useSessionStore = create<SessionState>()(
                 ar.recording_id === t.recording_id && 
                 ar.analysis_type === 'clinical_analysis'
               );
-
               if (recordingAnalyses.length > 0) {
                 clinicalAnalysis[t.recording_id] = recordingAnalyses;
               }
             });
-
             // Map enhanced consultations
             enhanced_consultations.forEach((ec: EnhancedConsultation) => {
               if (ec.recording_id) {

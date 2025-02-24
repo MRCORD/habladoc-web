@@ -14,8 +14,16 @@ import EntityGroups from "./entity-groups";
 import { highlightEntitiesInText } from "@/utils/highlightEntities";
 
 // Type definitions for SOAP data structure
+interface SoapComponentValue {
+  name: string;
+  [key: string]: string | number | boolean | Record<string, unknown>;
+}
+
 export interface SoapComponent {
-  [key: string]: any;
+  current_symptoms?: SoapComponentValue[];
+  diagnoses?: SoapComponentValue[];
+  vital_signs?: Record<string, SoapComponentValue>;
+  [key: string]: unknown;
 }
 
 export interface SoapSection {
@@ -51,7 +59,7 @@ export default function EnhancedConsultationDisplay({
     Plan: false,
   });
 
-  async function fetchEnhancedConsultation() {
+  const fetchEnhancedConsultation = React.useCallback(async () => {
     try {
       setError(null);
       setIsLoading(true);
@@ -70,22 +78,18 @@ export default function EnhancedConsultationDisplay({
           ? enhanced_consultations[0]
           : null
       );
-    } catch (err: any) {
-      setError(err.message || "Error al obtener los datos de la consulta médica");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Error al obtener los datos de la consulta médica";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
     }
-  }
+  }, [sessionId]);
 
   useEffect(() => {
     fetchEnhancedConsultation();
-  }, [sessionId]);
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await fetchEnhancedConsultation();
-  };
+  }, [fetchEnhancedConsultation]);
 
   function renderSoapSection(title: string, sectionData?: SoapSection) {
     const spanishTitles: { [key: string]: string } = {
@@ -97,7 +101,7 @@ export default function EnhancedConsultationDisplay({
 
     // Prepare entities if sectionData exists; otherwise, use an empty array.
     const entities = sectionData && sectionData.components
-      ? Object.entries(sectionData.components).flatMap(([_, compObj]) => {
+      ? Object.entries(sectionData.components).flatMap(([, compObj]) => {
           const content = compObj.content;
           if ("current_symptoms" in content) {
             return content.current_symptoms;
@@ -106,15 +110,17 @@ export default function EnhancedConsultationDisplay({
             return content.diagnoses;
           }
           if ("vital_signs" in content) {
-            const signs = content.vital_signs as Record<string, any>;
-            return Object.entries(signs).map(([name, data]) => ({
-              name,
-              ...(data as object),
+            const signs = content.vital_signs as Record<string, SoapComponentValue>;
+            return Object.entries(signs).map(([key, data]) => ({
+              ...data,
+              name: key
             }));
           }
           return [];
         })
       : [];
+
+    const safeEntities = entities.filter((entity): entity is SoapComponentValue => entity !== undefined);
 
     const isCollapsed = collapsedSections[title];
     const toggleCollapse = () => {
@@ -144,7 +150,7 @@ export default function EnhancedConsultationDisplay({
             {sectionData &&
             sectionData.summary &&
             sectionData.summary.trim() !== ""
-              ? highlightEntitiesInText(sectionData.summary, entities)
+              ? highlightEntitiesInText(sectionData.summary, safeEntities)
               : (
                 <span className="text-gray-500 italic">
                   No hay datos disponibles para esta sección.

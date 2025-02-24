@@ -2,7 +2,7 @@
 import React from 'react';
 import { format, isValid } from 'date-fns';
 import { recordingsStorage } from '@/lib/recordings';
-import { ChevronDown, ChevronRight, RefreshCw } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import { AttributeTag, translations, type AttributeLabel, type EntityType } from '@/components/common/attribute-tag';
 import { toSentenceCase, highlightEntitiesInText } from '@/utils/highlightEntities';
 import type { Recording, RecordingStatus } from '@/types';
@@ -22,8 +22,8 @@ interface Transcription {
 interface Entity {
   name: string;
   type: string;
-  spans: any[];
-  attributes: Record<string, any>;
+  spans: Array<{ start: number; end: number; text: string }>;
+  attributes: Record<string, string | number>;
   confidence: number;
 }
 
@@ -67,7 +67,6 @@ interface RecordingsListProps {
   transcriptions?: Transcription[];
   clinicalAnalysis?: Record<string, ClinicalAnalysis[]>;
   onError: (message: string) => void;
-  onRefresh: () => void;
   isLoading?: boolean;
 }
 
@@ -91,7 +90,6 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
   transcriptions = [], 
   clinicalAnalysis = {},
   onError,
-  onRefresh,
   isLoading = false
 }) => {
   const [recordingUrls, setRecordingUrls] = React.useState<Record<string, string>>({});

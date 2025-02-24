@@ -13,6 +13,7 @@ interface EntityAttributes {
   value?: string;
   unit?: string;
   status?: string;
+  [key: string]: string | number | undefined;
 }
 
 interface Entity extends EntityAttributes {
@@ -26,8 +27,34 @@ interface EntityGroup {
   type: string;
 }
 
+interface VitalSign {
+  value: string;
+  unit?: string;
+  confidence?: number;
+}
+
+interface MedicationEffect {
+  medication: string;
+  effect: string;
+  symptoms: string[];
+  confidence?: number;
+}
+
+interface SectionComponent {
+  content: {
+    current_symptoms?: Entity[];
+    medication_effects?: MedicationEffect[];
+    vital_signs?: Record<string, VitalSign>;
+    diagnoses?: Entity[];
+  };
+}
+
+interface SectionData {
+  components: Record<string, SectionComponent>;
+}
+
 interface EntityGroupsProps {
-  sectionData?: any;
+  sectionData?: SectionData;
   showTitle?: boolean;
 }
 
@@ -35,13 +62,13 @@ const EntityGroups = ({ sectionData, showTitle = true }: EntityGroupsProps) => {
   if (!sectionData?.components) return null;
 
   // Extract and organize entities by type
-  const entityGroups = Object.entries(sectionData.components).reduce((groups: EntityGroup[], [key, value]: [string, any]) => {
+  const entityGroups = Object.entries(sectionData.components).reduce((groups: EntityGroup[], [, value]) => {
     const content = value.content;
     
-    if ('current_symptoms' in content) {
+    if ('current_symptoms' in content && content.current_symptoms) {
       groups.push({
         title: 'Síntomas',
-        entities: content.current_symptoms.map((symptom: any) => ({
+        entities: content.current_symptoms.map((symptom) => ({
           ...symptom,
           name: symptom.name
         })),
@@ -49,10 +76,10 @@ const EntityGroups = ({ sectionData, showTitle = true }: EntityGroupsProps) => {
       });
     }
     
-    if ('medication_effects' in content) {
+    if ('medication_effects' in content && content.medication_effects) {
       groups.push({
         title: 'Efectos de Medicamentos',
-        entities: content.medication_effects.map((effect: any) => ({
+        entities: content.medication_effects.map((effect) => ({
           name: effect.medication,
           effect: effect.effect,
           context: effect.symptoms.join(', '),
@@ -62,10 +89,10 @@ const EntityGroups = ({ sectionData, showTitle = true }: EntityGroupsProps) => {
       });
     }
     
-    if ('vital_signs' in content) {
+    if ('vital_signs' in content && content.vital_signs) {
       groups.push({
         title: 'Signos Vitales',
-        entities: Object.entries(content.vital_signs).map(([name, data]: [string, any]) => ({
+        entities: Object.entries(content.vital_signs).map(([name, data]) => ({
           name,
           value: data.value,
           unit: data.unit || '',
@@ -75,10 +102,10 @@ const EntityGroups = ({ sectionData, showTitle = true }: EntityGroupsProps) => {
       });
     }
     
-    if ('diagnoses' in content) {
+    if ('diagnoses' in content && content.diagnoses) {
       groups.push({
         title: 'Diagnósticos',
-        entities: content.diagnoses.map((diagnosis: any) => ({
+        entities: content.diagnoses.map((diagnosis) => ({
           ...diagnosis,
           name: diagnosis.name
         })),

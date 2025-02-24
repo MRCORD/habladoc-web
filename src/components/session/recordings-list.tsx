@@ -249,12 +249,6 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="flex justify-end mb-4">
-          <div className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-md border border-gray-200 shadow-sm">
-            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-            Actualizando...
-          </div>
-        </div>
         {[1, 2].map((index) => (
           <div key={index} className="bg-white shadow-sm rounded-lg border border-gray-200 p-4 animate-pulse">
             <div className="flex items-center justify-between mb-3">
@@ -278,15 +272,6 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={onRefresh}
-          className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 rounded-md border border-gray-300 shadow-sm transition-colors"
-        >
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Actualizar
-        </button>
-      </div>
       {sortedRecordings.map((recording) => {
         const isExpanded = expandedRecordings[recording.id];
         const transcription = getTranscriptionForRecording(recording.id);

@@ -3,7 +3,7 @@
 
 import { useState, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Mic, Sparkles } from "lucide-react";
+import { ArrowLeft, Mic, Sparkles, RefreshCw } from "lucide-react";
 import { Tab } from '@headlessui/react';
 import dynamic from 'next/dynamic';
 
@@ -151,18 +151,29 @@ export default function SessionPage() {
             <Tab.Panels className="mt-6">
               <Tab.Panel className="space-y-4">
                 {recordings.length > 0 && (
-                  <div className="bg-white shadow rounded-lg p-6">
-                    <h2 className="text-lg font-medium text-gray-900 mb-4">
-                      Grabaciones
-                    </h2>
-                    <RecordingsList
-                      recordings={recordings}
-                      transcriptions={transcriptions}
-                      clinicalAnalysis={clinicalAnalysis}
-                      onError={(msg) => useSessionStore.setState({ error: msg })}
-                      onRefresh={handleRefresh}
-                      isLoading={isRefreshing}
-                    />
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-2xl font-bold text-gray-900">
+                        Grabaciones
+                      </h2>
+                      <button
+                        onClick={handleRefresh}
+                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 rounded-lg border border-gray-300 shadow-sm transition-colors"
+                      >
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Actualizar
+                      </button>
+                    </div>
+                    <div className="bg-white shadow rounded-lg p-6">
+                      <RecordingsList
+                        recordings={recordings}
+                        transcriptions={transcriptions}
+                        clinicalAnalysis={clinicalAnalysis}
+                        onError={(msg) => useSessionStore.setState({ error: msg })}
+                        onRefresh={handleRefresh}
+                        isLoading={isRefreshing}
+                      />
+                    </div>
                   </div>
                 )}
               </Tab.Panel>

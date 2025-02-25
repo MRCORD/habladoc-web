@@ -497,8 +497,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
   const aiPatterns = enhancedData?.ai_patterns || [];
   const aiTimeline = enhancedData?.ai_timeline?.events || [];
   const aiSuggestions = enhancedData?.ai_suggestions || [];
-  const aiConfidence = enhancedData?.ai_confidence || 0;
-
+  
   // Process entities for highlighting and display
   const allSymptoms = getAllSymptoms();
   const allDiagnoses = getAllDiagnoses();
@@ -506,8 +505,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
   
   // Group high priority risks
   const highPriorityRisks = aiRisks.filter(risk => risk.severity === 'high');
-  const otherRisks = aiRisks.filter(risk => risk.severity !== 'high');
-
+  
   // Find clinical relationships
   const clinicalRelationships = findClinicalRelationships(allDiagnoses, allSymptoms);
 
@@ -933,7 +931,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                           
                           const isHigh = range.max > 0 && numericValue > range.max;
                           const isLow = range.min > 0 && numericValue < range.min;
-                          const isNormal = !isHigh && !isLow;
                           
                           return (
                             <div key={key} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">

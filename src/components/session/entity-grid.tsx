@@ -3,7 +3,6 @@ import {
   Plus, 
   Minus,
   ChevronDown,
-  ChevronRight,
   Pill,
   Activity,
   Heart
@@ -13,11 +12,9 @@ import { AttributeTag, toSentenceCase } from '@/components/common/attribute-tag'
 // Simple Badge component to replace missing UI component
 const Badge = ({ 
   children, 
-  variant, 
   className = "" 
 }: { 
   children: React.ReactNode; 
-  variant?: string; 
   className?: string; 
 }) => {
   return (
@@ -173,7 +170,6 @@ const EntityGrid: React.FC<EntityGridProps> = ({
         <div className="flex items-center gap-2">
           <h3 className="font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
           <Badge 
-            variant="outline" 
             className="bg-white/80 dark:bg-gray-700/80 bg-opacity-60 backdrop-blur-sm text-gray-700 dark:text-gray-300 text-xs px-2 py-1 font-medium border-opacity-20 dark:border-opacity-40"
           >
             {entities.length}

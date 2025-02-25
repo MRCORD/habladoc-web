@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -20,16 +19,13 @@ import {
   BarChart2,
   CheckCircle,
   Clipboard,
-  Filter,
   Calendar,
-  Heart,
   Thermometer
 } from "lucide-react";
 import { ErrorMessage } from "@/components/common/error-message";
 import { AnalysisDisplaySkeleton } from "@/components/common/loading-skeletons";
 import api from "@/lib/api";
 import EntityGrid from "./entity-grid";
-import EntityGroups from "./entity-groups";
 import { highlightEntitiesInText } from "@/utils/highlightEntities";
 import { AttributeTag, toSentenceCase } from "@/components/common/attribute-tag";
 
@@ -40,22 +36,22 @@ interface EnhancedConsultationData {
   soap_assessment?: SoapSection;
   soap_plan?: SoapSection;
   ai_patterns?: PatternItem[];
-  ai_reasoning?: any;
+  ai_reasoning?: AIReasoning;
   ai_risks?: RiskItem[];
   ai_timeline?: Timeline;
   ai_confidence?: number;
   ai_suggestions?: Suggestion[];
   version?: string;
-  metadata?: Record<string, any>;
-  [key: string]: any;
+  metadata?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 interface SoapSection {
   summary?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   components?: Record<string, {
     content: SoapContent;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
     components?: string[];
     confidence?: number;
   }>;
@@ -67,9 +63,9 @@ interface SoapContent {
   medication_effects?: MedicationEffect[];
   vital_signs?: Record<string, VitalSign>;
   diagnoses?: Entity[];
-  findings?: Record<string, any>;
+  findings?: Record<string, Finding>;
   system_findings?: Record<string, { findings: Entity[] }>;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface Entity {
@@ -87,7 +83,7 @@ interface Entity {
   value?: string;
   unit?: string;
   supporting_evidence?: string[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface MedicationEffect {
@@ -110,8 +106,8 @@ interface RiskItem {
   category?: string;
   evidence?: string[];
   confidence?: number;
-  metadata?: Record<string, any>;
-  [key: string]: any;
+  metadata?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 
 interface PatternItem {
@@ -119,16 +115,16 @@ interface PatternItem {
   type: string;
   evidence?: string[];
   confidence: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   affected_components?: string[];
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface Suggestion {
   text: string;
   type: string;
   confidence: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface TimelineEvent {
@@ -137,7 +133,7 @@ interface TimelineEvent {
   timestamp: string;
   confidence: number;
   details?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   component_refs?: string[];
 }
 
@@ -145,11 +141,18 @@ interface Timeline {
   events: TimelineEvent[];
 }
 
-// Interface for transformed section data to match what EntityGroups expects
-interface SectionData {
-  components: Record<string, {
-    content: SoapContent;
-  }>;
+interface Finding {
+  description?: string;
+  value?: string | number;
+  status?: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface AIReasoning {
+  explanation: string;
+  confidence: number;
+  supporting_evidence?: string[];
+  metadata?: Record<string, unknown>;
 }
 
 interface AnalysisDisplayProps {
@@ -217,7 +220,12 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
     const processSection = (section?: SoapSection): SoapSection | undefined => {
       if (!section) return undefined;
       
-      const processedComponents: Record<string, any> = {};
+      const processedComponents: Record<string, { 
+        content: SoapContent; 
+        metadata?: Record<string, unknown>; 
+        components?: string[]; 
+        confidence?: number; 
+      }> = {};
       
       if (section.components) {
         Object.entries(section.components).forEach(([key, component]) => {
@@ -302,20 +310,10 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
         hour: '2-digit',
         minute: '2-digit'
       });
-    } catch (e) {
+    } catch (error) {
+      console.error("Error formatting date:", error);
       return dateString;
     }
-  };
-
-  // Transform SoapSection to SectionData for EntityGroups component
-  const transformToSectionData = (soapSection?: SoapSection): SectionData | undefined => {
-    if (!soapSection || !soapSection.components) {
-      return undefined;
-    }
-    
-    return {
-      components: soapSection.components
-    };
   };
 
   // Get all symptoms from various sections
@@ -380,9 +378,9 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
         });
       case 'recent':
         return filteredSymptoms.sort((a, b) => {
-          const aOnset = a.onset || '';
-          const bOnset = b.onset || '';
-          return bOnset.localeCompare(aOnset); // Assuming newer dates come later in string comparison
+          const aOnset = (a.onset as string) || '';
+          const bOnset = (b.onset as string) || '';
+          return bOnset.localeCompare(aOnset);
         });
       case 'confidence':
       default:
@@ -500,8 +498,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
   const aiPatterns = enhancedData?.ai_patterns || [];
   const aiTimeline = enhancedData?.ai_timeline?.events || [];
   const aiSuggestions = enhancedData?.ai_suggestions || [];
-  const aiConfidence = enhancedData?.ai_confidence || 0;
-
+  
   // Process entities for highlighting and display
   const allSymptoms = getAllSymptoms();
   const allDiagnoses = getAllDiagnoses();
@@ -509,8 +506,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
   
   // Group high priority risks
   const highPriorityRisks = aiRisks.filter(risk => risk.severity === 'high');
-  const otherRisks = aiRisks.filter(risk => risk.severity !== 'high');
-
+  
   // Find clinical relationships
   const clinicalRelationships = findClinicalRelationships(allDiagnoses, allSymptoms);
 
@@ -533,17 +529,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
               <span>{tab.label}</span>
             </button>
           ))}
-          
-          <div className="ml-auto">
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-              <span className="hidden sm:inline">Actualizar</span>
-            </button>
-          </div>
         </div>
       </div>
 
@@ -865,7 +850,14 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                     {allSymptoms.length > 0 ? (
                       <EntityGrid
                         title="Síntomas"
-                        entities={getFilteredSymptoms(allSymptoms)}
+                        entities={getFilteredSymptoms(allSymptoms).map(symptom => ({
+                          ...symptom,
+                          // Ensure complex objects are stringified while maintaining required properties
+                          ...(Object.entries(symptom).reduce((acc, [key, value]) => ({
+                            ...acc,
+                            [key]: typeof value === 'object' && value !== null ? JSON.stringify(value) : value
+                          }), {}))
+                        }))}
                       />
                     ) : (
                       <p className="text-gray-500 dark:text-gray-400 italic">
@@ -940,7 +932,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                           
                           const isHigh = range.max > 0 && numericValue > range.max;
                           const isLow = range.min > 0 && numericValue < range.min;
-                          const isNormal = !isHigh && !isLow;
                           
                           return (
                             <div key={key} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">

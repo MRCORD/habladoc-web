@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Activity, Heart, Thermometer, Droplet } from 'lucide-react';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 import EntityGrid, { Entity } from './entity-grid';
 
 interface VitalSign {
@@ -40,14 +40,6 @@ interface EntityGroupItem {
   entities: Entity[];
   type: string;
 }
-
-// Mapped categories to create consistent icons and styles
-const categoryIcons = {
-  symptoms: Activity,
-  vitals: Thermometer,
-  diagnoses: Heart,
-  medications: Droplet
-};
 
 const EntityGroups: React.FC<EntityGroupsProps> = ({ 
   sectionData, 

@@ -310,7 +310,8 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
         hour: '2-digit',
         minute: '2-digit'
       });
-    } catch {
+    } catch (error) {
+      console.error("Error formatting date:", error);
       return dateString;
     }
   };

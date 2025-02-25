@@ -133,7 +133,7 @@ export default function EnhancedConsultationDisplay({
     return (
       <section className="mb-10">
         <div
-          className="flex items-center cursor-pointer mb-3 hover:text-blue-600 transition-colors"
+          className="flex items-center cursor-pointer mb-3 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
           onClick={toggleCollapse}
         >
           {isCollapsed ? (
@@ -141,18 +141,18 @@ export default function EnhancedConsultationDisplay({
           ) : (
             <ChevronDown className="h-6 w-6 mr-2" />
           )}
-          <h2 className="text-2xl font-bold">{spanishTitles[title] || title}</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{spanishTitles[title] || title}</h2>
         </div>
 
         {/* Summary area */}
-        <div className="bg-gray-50 p-3 rounded">
-          <p className="text-sm leading-relaxed">
+        <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+          <p className="text-sm leading-relaxed dark:text-gray-200">
             {sectionData &&
             sectionData.summary &&
             sectionData.summary.trim() !== ""
               ? highlightEntitiesInText(sectionData.summary, safeEntities)
               : (
-                <span className="text-gray-500 italic">
+                <span className="text-gray-500 dark:text-gray-400 italic">
                   No hay datos disponibles para esta sección.
                 </span>
               )}
@@ -167,7 +167,7 @@ export default function EnhancedConsultationDisplay({
                 <EntityGroups sectionData={sectionData} showTitle={true} />
               </div>
             ) : (
-              <div className="mt-4 p-3 text-gray-500 italic border-t border-gray-200">
+              <div className="mt-4 p-3 text-gray-500 dark:text-gray-400 italic border-t border-gray-200 dark:border-gray-700">
                 No hay datos adicionales para mostrar.
               </div>
             )}
@@ -186,28 +186,28 @@ export default function EnhancedConsultationDisplay({
         <AnalysisDisplaySkeleton />
       ) : !enhancedData ? (
         <div className="text-center py-12 px-4">
-          <div className="rounded-lg border-2 border-dashed border-gray-300 p-12">
-            <RefreshIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
+          <div className="rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700 p-12">
+            <RefreshIcon className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" />
+            <h3 className="mt-4 text-lg font-medium text-gray-900 dark:text-gray-100">
               No hay datos de consulta médica
             </h3>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               Los datos de la consulta se generarán automáticamente cuando haya grabaciones procesadas.
             </p>
           </div>
         </div>
       ) : (
         <>
-          <div className="bg-white shadow rounded-lg p-6">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             {renderSoapSection("Subjective", enhancedData.soap_subjective)}
           </div>
-          <div className="bg-white shadow rounded-lg p-6">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             {renderSoapSection("Objective", enhancedData.soap_objective)}
           </div>
-          <div className="bg-white shadow rounded-lg p-6">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             {renderSoapSection("Assessment", enhancedData.soap_assessment)}
           </div>
-          <div className="bg-white shadow rounded-lg p-6">
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
             {renderSoapSection("Plan", enhancedData.soap_plan)}
           </div>
         </>

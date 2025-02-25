@@ -21,23 +21,23 @@ export function RecordingStatusBadge({ status, className }: RecordingBadgeProps)
   const statusConfig: Record<RecordingStatus, { label: string; classes: string }> = {
     pending: {
       label: 'Pendiente',
-      classes: 'bg-yellow-100 text-yellow-800',
+      classes: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300',
     },
     recording: {
       label: 'Grabando',
-      classes: 'bg-red-100 text-red-800',
+      classes: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300',
     },
     processing: {
       label: 'Procesando',
-      classes: 'bg-blue-100 text-blue-800',
+      classes: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
     },
     completed: {
       label: 'Completado',
-      classes: 'bg-green-100 text-green-800',
+      classes: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
     },
     failed: {
       label: 'Error',
-      classes: 'bg-red-100 text-red-800',
+      classes: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300',
     },
   };
 
@@ -53,7 +53,7 @@ export function RecordingStatusBadge({ status, className }: RecordingBadgeProps)
     >
       {config.label}
       {status === 'recording' && (
-        <span className="ml-1.5 h-2 w-2 rounded-full bg-red-400 animate-pulse" />
+        <span className="ml-1.5 h-2 w-2 rounded-full bg-red-400 dark:bg-red-500 animate-pulse" />
       )}
     </span>
   );
@@ -63,19 +63,19 @@ export function SessionStatusBadge({ status, className }: SessionBadgeProps) {
   const statusConfig: Record<SessionStatus, { label: string; classes: string }> = {
     scheduled: {
       label: 'Programada',
-      classes: 'bg-indigo-100 text-indigo-800',
+      classes: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300',
     },
     in_progress: {
       label: 'En Progreso',
-      classes: 'bg-blue-100 text-blue-800',
+      classes: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
     },
     completed: {
       label: 'Completada',
-      classes: 'bg-green-100 text-green-800',
+      classes: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
     },
     cancelled: {
       label: 'Cancelada',
-      classes: 'bg-gray-100 text-gray-800',
+      classes: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-300',
     },
   };
 
@@ -91,7 +91,7 @@ export function SessionStatusBadge({ status, className }: SessionBadgeProps) {
     >
       {config.label}
       {status === 'in_progress' && (
-        <span className="ml-1.5 h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
+        <span className="ml-1.5 h-2 w-2 rounded-full bg-blue-400 dark:bg-blue-500 animate-pulse" />
       )}
     </span>
   );
@@ -102,16 +102,15 @@ export function StatusBadgeExample() {
   return (
     <div className="space-y-4">
       <div className="space-x-2">
-        <h3 className="text-sm font-medium text-gray-700 mb-2">Recording Statuses:</h3>
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Recording Statuses:</h3>
         <RecordingStatusBadge status="pending" />
         <RecordingStatusBadge status="recording" />
         <RecordingStatusBadge status="processing" />
         <RecordingStatusBadge status="completed" />
         <RecordingStatusBadge status="failed" />
       </div>
-
       <div className="space-x-2">
-        <h3 className="text-sm font-medium text-gray-700 mb-2">Session Statuses:</h3>
+        <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Session Statuses:</h3>
         <SessionStatusBadge status="scheduled" />
         <SessionStatusBadge status="in_progress" />
         <SessionStatusBadge status="completed" />

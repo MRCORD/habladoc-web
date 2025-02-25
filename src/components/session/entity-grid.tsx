@@ -37,15 +37,15 @@ const EntityGrid = ({ entities, title, onEntityClick }: EntityGridProps) => {
   const getHeaderColor = (title: string) => {
     switch (title) {
       case translations.entityTypes['Symptoms']:
-        return 'from-blue-50 to-white border-blue-100';
+        return 'from-blue-50 to-white dark:from-blue-900/30 dark:to-gray-800 border-blue-100 dark:border-blue-800';
       case translations.entityTypes['Vital Signs']:
-        return 'from-cyan-50 to-white border-cyan-100';
+        return 'from-cyan-50 to-white dark:from-cyan-900/30 dark:to-gray-800 border-cyan-100 dark:border-cyan-800';
       case translations.entityTypes['Diagnoses']:
-        return 'from-emerald-50 to-white border-emerald-100';
+        return 'from-emerald-50 to-white dark:from-emerald-900/30 dark:to-gray-800 border-emerald-100 dark:border-emerald-800';
       case translations.entityTypes['Medication Effects']:
-        return 'from-purple-50 to-white border-purple-100';
+        return 'from-purple-50 to-white dark:from-purple-900/30 dark:to-gray-800 border-purple-100 dark:border-purple-800';
       default:
-        return 'from-gray-50 to-white border-gray-100';
+        return 'from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 border-gray-100 dark:border-gray-700';
     }
   };
 
@@ -63,19 +63,19 @@ const EntityGrid = ({ entities, title, onEntityClick }: EntityGridProps) => {
   const headerColor = getHeaderColor(title);
 
   return (
-    <div className="border rounded-lg bg-white shadow-sm">
+    <div className="border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm">
       {/* Header */}
-      <div className={`p-4 border-b flex justify-between items-center bg-gradient-to-r ${headerColor}`}>
+      <div className={`p-4 border-b dark:border-gray-700 flex justify-between items-center bg-gradient-to-r ${headerColor}`}>
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-gray-900">{title}</h3>
-          <span className="bg-white bg-opacity-60 backdrop-blur-sm text-gray-700 text-xs px-2 py-1 rounded-full font-medium border border-opacity-20">
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
+          <span className="bg-white dark:bg-gray-700 bg-opacity-60 backdrop-blur-sm text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded-full font-medium border border-opacity-20 dark:border-opacity-40">
             {entities.length}
           </span>
         </div>
         {hasMore && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-blue-600 hover:text-blue-800 transition-colors"
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
           >
             {isExpanded ? (
               <Minus className="h-4 w-4" />
@@ -96,24 +96,24 @@ const EntityGrid = ({ entities, title, onEntityClick }: EntityGridProps) => {
               className={`
                 group cursor-pointer rounded-lg p-2 transition-all duration-200 relative
                 ${selectedEntity?.name === entity.name 
-                  ? 'bg-blue-50 border-blue-200 shadow-sm' 
-                  : 'bg-white hover:bg-gray-50 border-gray-100 hover:border-gray-200'
+                  ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 shadow-sm' 
+                  : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'
                 }
                 border
               `}
             >
-              <div className="relative text-sm font-medium text-gray-900 group-hover:text-blue-700 transition-colors pr-4 overflow-hidden">
+              <div className="relative text-sm font-medium text-gray-900 dark:text-gray-100 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors pr-4 overflow-hidden">
                 <span className="truncate block">
                   {toSentenceCase(entity.name)}
                 </span>
                 <div className={`absolute right-0 top-0 h-full w-8 bg-gradient-to-l ${
                   selectedEntity?.name === entity.name 
-                    ? 'from-blue-50' 
-                    : 'from-white group-hover:from-gray-50'
+                    ? 'from-blue-50 dark:from-blue-900/30' 
+                    : 'from-white dark:from-gray-800 group-hover:from-gray-50 dark:group-hover:from-gray-700'
                 } to-transparent`}></div>
               </div>
               {entity.confidence && (
-                <div className={`text-xs ${selectedEntity?.name === entity.name ? 'text-blue-600' : 'text-gray-500'}`}>
+                <div className={`text-xs ${selectedEntity?.name === entity.name ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
                   {Math.round(entity.confidence * 100)}% confianza
                 </div>
               )}
@@ -127,9 +127,9 @@ const EntityGrid = ({ entities, title, onEntityClick }: EntityGridProps) => {
                   maxWidth: 'max-content'
                 }}
               >
-                <div className="bg-gray-900/95 backdrop-blur-sm text-white text-xs rounded-md px-3 py-2 max-w-[250px] break-words shadow-lg">
+                <div className="bg-gray-900/95 dark:bg-black/95 backdrop-blur-sm text-white text-xs rounded-md px-3 py-2 max-w-[250px] break-words shadow-lg">
                   {toSentenceCase(entity.name)}
-                  <div className="absolute w-2 h-2 bg-gray-900/95 transform rotate-45 left-1/2 -translate-x-1/2 -bottom-1"></div>
+                  <div className="absolute w-2 h-2 bg-gray-900/95 dark:bg-black/95 transform rotate-45 left-1/2 -translate-x-1/2 -bottom-1"></div>
                 </div>
               </div>
             </div>
@@ -140,7 +140,7 @@ const EntityGrid = ({ entities, title, onEntityClick }: EntityGridProps) => {
         {hasMore && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="mt-4 text-sm text-blue-600 hover:text-blue-800 md:hidden w-full text-center font-medium"
+            className="mt-4 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 md:hidden w-full text-center font-medium"
           >
             {isExpanded ? 'Ver menos' : `Ver ${entities.length - 3} más`}
           </button>
@@ -149,7 +149,7 @@ const EntityGrid = ({ entities, title, onEntityClick }: EntityGridProps) => {
 
       {/* Selected entity details */}
       {selectedEntity && (
-        <div className="border-t p-4 bg-gradient-to-b from-gray-50 to-white">
+        <div className="border-t dark:border-gray-700 p-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-700 dark:to-gray-800">
           <div className="flex flex-wrap gap-2">
             {selectedEntity.quality && (
               <AttributeTag label="Quality" value={selectedEntity.quality} />

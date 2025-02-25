@@ -143,10 +143,10 @@ export default function Dashboard() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Welcome Section */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           Bienvenido, Dr. {user.last_name}
         </h1>
-        <p className="text-gray-500">
+        <p className="text-gray-500 dark:text-gray-400">
           Esto es lo que está pasando con tus sesiones hoy
         </p>
       </div>
@@ -155,9 +155,9 @@ export default function Dashboard() {
         <StatsGrid todaySessions={todaySessions} />
       </Suspense>
       {/* Recent Sessions */}
-      <div className="bg-white shadow rounded-lg">
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
         <div className="px-4 py-5 sm:px-6 flex justify-between items-center">
-          <h2 className="text-lg font-medium text-gray-900">Sesiones Recientes</h2>
+          <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">Sesiones Recientes</h2>
           <button
             onClick={() => router.push('/dashboard/new-session')}
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90"
@@ -166,11 +166,11 @@ export default function Dashboard() {
             Nueva Sesión
           </button>
         </div>
-        <div className="border-t border-gray-200">
+        <div className="border-t border-gray-200 dark:border-gray-700">
           {isSessionsLoading ? (
             <SessionListSkeleton />
           ) : (
-            <ul role="list" className="divide-y divide-gray-200">
+            <ul role="list" className="divide-y divide-gray-200 dark:divide-gray-700">
               {displaySessions.map((session) => (
                 <SessionListItem
                   key={session.id}

@@ -123,32 +123,32 @@ export function AttributeTag({ icon: CustomIcon, label, value }: AttributeTagPro
     const isEntityTag = Object.keys(translations.entityTypes).some(key => key.toLowerCase() === entityType);
     
     if (isEntityTag) {
-      return 'bg-slate-100 text-slate-600 border border-slate-200';
+      return 'bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
     }
 
     // Time-related attributes
     if (['Duration', 'Frequency', 'Onset'].includes(label)) {
-      return 'bg-blue-50 text-blue-700 border-blue-200';
+      return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
     }
     
     // Measurement-related attributes
     if (['Value', 'Measurement', 'Intensity'].includes(label)) {
-      return 'bg-cyan-50 text-cyan-700 border-cyan-200';
+      return 'bg-cyan-50 text-cyan-700 border-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-300 dark:border-cyan-800';
     }
     
     // Location and physical attributes
     if (['Location', 'Quality'].includes(label)) {
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800';
     }
     
     // Progress-related attributes
     if (['Progression', 'Status'].includes(label)) {
-      return 'bg-purple-50 text-purple-700 border-purple-200';
+      return 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800';
     }
     
     // Analysis-related attributes
     if (['Impact', 'Severity', 'Certainty'].includes(label)) {
-      return 'bg-amber-50 text-amber-700 border-amber-200';
+      return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800';
     }
 
     // Relationship-related attributes
@@ -156,21 +156,21 @@ export function AttributeTag({ icon: CustomIcon, label, value }: AttributeTagPro
       switch (value.toLowerCase()) {
         case 'indicates':
         case 'associated':
-          return 'bg-blue-50 text-blue-700 border-blue-200';
+          return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
         case 'causes':
         case 'exacerbates':
-          return 'bg-red-50 text-red-700 border-red-200';
+          return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800';
         case 'treats':
         case 'improves':
-          return 'bg-green-50 text-green-700 border-green-200';
+          return 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
         case 'contraindicates':
-          return 'bg-orange-50 text-orange-700 border-orange-200';
+          return 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:border-orange-800';
         default:
-          return 'bg-gray-50 text-gray-700 border-gray-200';
+          return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
       }
     }
     
-    return 'bg-gray-50 text-gray-700 border-gray-200';
+    return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
   };
 
   // Format both label and value in sentence case

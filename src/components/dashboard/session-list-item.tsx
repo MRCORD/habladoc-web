@@ -38,16 +38,16 @@ export function SessionListItem({ session, onSelect }: SessionListItemProps) {
 
   return (
     <li 
-      className="px-4 py-3 sm:px-6 hover:bg-gray-50 cursor-pointer transition-colors"
+      className="px-4 py-3 sm:px-6 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
       onClick={onSelect}
     >
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-1">
-          <p className="text-sm font-medium text-indigo-600">
+          <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400">
             {patientInfo.name}
           </p>
           {patientInfo.document && (
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               DNI: {patientInfo.document}
             </p>
           )}
@@ -55,16 +55,16 @@ export function SessionListItem({ session, onSelect }: SessionListItemProps) {
         <div className="flex items-center gap-4">
           <SessionStatusBadge status={session.status} />
           <div className="flex flex-col items-end">
-            <div className="flex items-center gap-2 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 shadow-sm">
-              <svg className="h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <div className="flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 px-3 py-1.5 rounded-lg border border-blue-100 dark:border-blue-800 shadow-sm">
+              <svg className="h-4 w-4 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
               </svg>
-              <span className="text-sm font-semibold text-blue-700">
+              <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
                 {getFormattedTime(session.scheduled_for)}
               </span>
             </div>
             {session.duration && (
-              <span className="text-xs text-gray-500 mt-0.5">
+              <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 {formatDuration(session.duration)}
               </span>
             )}

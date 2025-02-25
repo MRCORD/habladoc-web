@@ -1,6 +1,7 @@
 // app/layout.tsx
 import { AuthProvider } from '@/components/auth/auth-provider';
 import { Header } from '@/components/layout/header';
+import { ThemeProvider } from '@/components/theme/theme-provider';
 import './globals.css';
 
 export const metadata = {
@@ -16,12 +17,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AuthProvider>
-          <div className="min-h-screen bg-gray-100">
-            <Header />
-            <main>{children}</main>
-          </div>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <div className="min-h-screen bg-background">
+              <Header />
+              <main>{children}</main>
+            </div>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

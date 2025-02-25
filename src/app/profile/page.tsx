@@ -55,26 +55,26 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 profile-page">
-      <div className="bg-white shadow-md rounded-lg overflow-hidden">
+      <div className="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
         {/* Profile Header */}
-        <div className="px-4 py-5 sm:px-6 border-b border-gray-200">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center space-x-4">
-              <UserCircle className="h-12 w-12 text-gray-400" />
+              <UserCircle className="h-12 w-12 text-gray-400 dark:text-gray-500" />
               <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
                   {user.first_name} {user.last_name}
                 </h2>
                 {specialty && (
-                  <p className="text-sm text-gray-500">{specialty.name}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{specialty.name}</p>
                 )}
-                <p className="text-sm text-gray-500">DNI: {user.document_number}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">DNI: {user.document_number}</p>
               </div>
             </div>
             <div className="mt-4 sm:mt-0 sm:ml-4">
               <button
                 onClick={() => setIsDrawerOpen(true)}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800 focus:ring-primary"
               >
                 Editar Perfil
               </button>
@@ -87,14 +87,14 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {/* Contact Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Información de Contacto</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Información de Contacto</h3>
               <div className="space-y-3">
-                <div className="flex items-center text-gray-700">
+                <div className="flex items-center text-gray-700 dark:text-gray-300">
                   <Mail className="h-5 w-5 mr-2" />
                   <span>{user.email}</span>
                 </div>
                 {user.phone && (
-                  <div className="flex items-center text-gray-700">
+                  <div className="flex items-center text-gray-700 dark:text-gray-300">
                     <Phone className="h-5 w-5 mr-2" />
                     <span>{user.phone}</span>
                   </div>
@@ -104,14 +104,14 @@ export default function ProfilePage() {
 
             {/* Professional Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Información Profesional</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Información Profesional</h3>
               <div className="space-y-3">
-                <div className="flex items-center text-gray-700">
+                <div className="flex items-center text-gray-700 dark:text-gray-300">
                   <Clipboard className="h-5 w-5 mr-2" />
                   <span>Número de Licencia: {doctorProfile.license_number}</span>
                 </div>
                 {languages && (
-                  <div className="flex items-center text-gray-700">
+                  <div className="flex items-center text-gray-700 dark:text-gray-300">
                     <Globe2 className="h-5 w-5 mr-2" />
                     <span>
                       Idiomas: {languages
@@ -121,7 +121,7 @@ export default function ProfilePage() {
                   </div>
                 )}
                 {consultationFee !== undefined && (
-                  <div className="flex items-center text-gray-700">
+                  <div className="flex items-center text-gray-700 dark:text-gray-300">
                     <DollarSign className="h-5 w-5 mr-2" />
                     <span>Tarifa de Consulta: ${consultationFee} USD</span>
                   </div>

@@ -320,9 +320,9 @@ export default function AudioRecorder({
   };
 
   return (
-    <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 w-11/12 sm:w-[26rem] bg-white border p-4 shadow-lg rounded-xl z-50">
+    <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 w-11/12 sm:w-[26rem] bg-white dark:bg-gray-800 border dark:border-gray-700 p-4 shadow-lg rounded-xl z-50">
       {state.error && (
-        <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm mb-3">
+        <div className="p-3 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg text-sm mb-3">
           {state.error}
         </div>
       )}
@@ -333,7 +333,7 @@ export default function AudioRecorder({
           {state.isRecording && (
             <span className="text-red-500 text-sm animate-pulse">● REC</span>
           )}
-          <span className="text-lg font-mono text-gray-700">{formattedDuration()}</span>
+          <span className="text-lg font-mono text-gray-700 dark:text-gray-300">{formattedDuration()}</span>
         </div>
 
         <div className="flex gap-2">
@@ -378,7 +378,7 @@ export default function AudioRecorder({
 
       {/* Audio Preview + Actions */}
       {state.audioUrl && !state.isRecording && (
-        <div className="border-t pt-3 flex flex-col space-y-3">
+        <div className="border-t dark:border-gray-700 pt-3 flex flex-col space-y-3">
           <audio
             src={state.audioUrl}
             controls
@@ -393,7 +393,7 @@ export default function AudioRecorder({
           <div className="flex gap-2">
             <button
               onClick={discardRecording}
-              className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-200 hover:bg-gray-300 rounded-md transition"
+              className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-md transition"
               title="Descartar grabación"
             >
               <Trash2 className="w-4 h-4 mr-1" />

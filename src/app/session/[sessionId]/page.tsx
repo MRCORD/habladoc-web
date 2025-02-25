@@ -1,4 +1,3 @@
-// src/app/session/[sessionId]/page.tsx
 "use client";
 
 import { useState, Suspense } from "react";
@@ -102,11 +101,11 @@ export default function SessionPage() {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => router.push("/dashboard")}
-              className="p-2 text-black bg-transparent hover:bg-gray-200 rounded-full"
+              className="p-2 text-black dark:text-white bg-transparent hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <h1 className="text-lg sm:text-2xl font-bold text-gray-900">
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
               Sesión en Progreso
             </h1>
           </div>
@@ -129,13 +128,13 @@ export default function SessionPage() {
               setActiveTab(index === 0 ? "consultation" : "analysis")
             }
           >
-            <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/20 p-1">
+            <Tab.List className="flex space-x-1 rounded-xl bg-blue-900/20 dark:bg-blue-900/40 p-1">
               <Tab
                 className={({ selected }) =>
                   `w-full rounded-lg py-2.5 text-sm font-medium leading-5 flex items-center justify-center gap-2
                  ${
                    selected
-                     ? "bg-white shadow text-blue-700"
+                     ? "bg-white dark:bg-gray-800 shadow text-blue-700 dark:text-blue-400"
                      : "text-blue-100 hover:bg-white/[0.12] hover:text-white"
                  }`
                 }
@@ -148,7 +147,7 @@ export default function SessionPage() {
                   `w-full rounded-lg py-2.5 text-sm font-medium leading-5 flex items-center justify-center gap-2
                  ${
                    selected
-                     ? "bg-white shadow text-blue-700"
+                     ? "bg-white dark:bg-gray-800 shadow text-blue-700 dark:text-blue-400"
                      : "text-blue-100 hover:bg-white/[0.12] hover:text-white"
                  }`
                 }
@@ -163,12 +162,12 @@ export default function SessionPage() {
                 {recordings.length > 0 && (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <h2 className="text-2xl font-bold text-gray-900">
+                      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                         Grabaciones
                       </h2>
                       <button
                         onClick={handleRefresh}
-                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 rounded-lg border border-gray-300 shadow-sm transition-colors"
+                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm transition-colors"
                       >
                         <RefreshCw
                           className={`w-4 h-4 mr-2 ${
@@ -178,7 +177,7 @@ export default function SessionPage() {
                         Actualizar
                       </button>
                     </div>
-                    <div className="bg-white shadow rounded-lg p-6">
+                    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                       <RecordingsList
                         recordings={recordings}
                         transcriptions={transcriptions}
@@ -194,13 +193,13 @@ export default function SessionPage() {
 
               <Tab.Panel className="space-y-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold text-gray-900">
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                     Consulta médica mejorada
                   </h2>
                   <button
                     onClick={handleRefresh}
                     disabled={isRefreshing}
-                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 rounded-lg border border-gray-300 shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <RefreshCw
                       className={`w-4 h-4 mr-2 ${
@@ -210,7 +209,7 @@ export default function SessionPage() {
                     {isRefreshing ? "Actualizando..." : "Actualizar"}
                   </button>
                 </div>
-                <div className="bg-white shadow rounded-lg p-6">
+                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                   <Suspense fallback={<AnalysisDisplaySkeleton />}>
                     {isRefreshing ? (
                       <AnalysisDisplaySkeleton />

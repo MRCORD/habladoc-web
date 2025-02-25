@@ -169,18 +169,18 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
         {/* Display Entities */}
         {analysis.content.entities.length > 0 && (
           <div>
-            <h5 className="text-lg font-bold text-gray-900 mb-4">
+            <h5 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">
               {translations.entityTypes['Clinical Findings']}
             </h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {analysis.content.entities.map((entity, idx) => (
                 <div 
                   key={idx} 
-                  className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200"
+                  className="bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all duration-200"
                 >
                   <div className="flex flex-col space-y-2">
                     <div className="flex items-baseline justify-between">
-                      <span className="font-medium text-gray-900">
+                      <span className="font-medium text-gray-900 dark:text-gray-100">
                         {toSentenceCase(entity.name)}
                       </span>
                       <div className="ml-3">
@@ -211,26 +211,26 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
         {/* Display Relationships */}
         {analysis.content.relationships.length > 0 && (
           <div className="mt-8">
-            <h5 className="text-lg font-bold text-gray-900 mb-4">
+            <h5 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">
               {translations.entityTypes['Clinical Relationships']}
             </h5>
             <div className="grid grid-cols-1 gap-4">
               {analysis.content.relationships.map((rel, idx) => (
                 <div 
                   key={idx} 
-                  className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200"
+                  className="bg-white dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm hover:shadow-md transition-all duration-200"
                 >
                   <div className="flex flex-col space-y-2">
                     <div className="flex items-baseline gap-2">
-                      <span className="font-medium text-gray-900">{toSentenceCase(rel.source)}</span>
+                      <span className="font-medium text-gray-900 dark:text-gray-100">{toSentenceCase(rel.source)}</span>
                       <AttributeTag
                         label="Relationship"
                         value={rel.type}
                       />
-                      <span className="font-medium text-gray-900">{toSentenceCase(rel.target)}</span>
+                      <span className="font-medium text-gray-900 dark:text-gray-100">{toSentenceCase(rel.target)}</span>
                     </div>
                     {rel.evidence && (
-                      <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
                         {rel.evidence}
                       </p>
                     )}
@@ -268,19 +268,19 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
     return (
       <div className="space-y-6">
         {[1, 2].map((index) => (
-          <div key={index} className="bg-white shadow-sm rounded-lg border border-gray-200 p-4 animate-pulse">
+          <div key={index} className="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 p-4 animate-pulse">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
                 <div className="space-y-2">
-                  <div className="h-4 w-32 bg-gray-200 rounded"></div>
-                  <div className="h-3 w-20 bg-gray-200 rounded"></div>
+                  <div className="h-4 w-32 bg-gray-200 dark:bg-gray-600 rounded"></div>
+                  <div className="h-3 w-20 bg-gray-200 dark:bg-gray-600 rounded"></div>
                 </div>
               </div>
-              <div className="h-6 w-24 bg-gray-200 rounded-full"></div>
+              <div className="h-6 w-24 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
             </div>
-            <div className="mt-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
-              <div className="h-12 bg-gray-200 rounded w-full"></div>
+            <div className="mt-2 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+              <div className="h-12 bg-gray-200 dark:bg-gray-600 rounded w-full"></div>
             </div>
           </div>
         ))}
@@ -298,7 +298,7 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
         return (
           <div
             key={recording.id}
-            className="bg-white shadow-sm rounded-lg border border-gray-200 hover:border-gray-300 transition-colors"
+            className="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
           >
             {/* Recording Header */}
             <div className="p-4">
@@ -306,38 +306,38 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => toggleExpanded(recording.id)}
-                    className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                    className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                   >
                     {isExpanded ? (
-                      <ChevronDown className="h-5 w-5 text-gray-500" />
+                      <ChevronDown className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                     ) : (
-                      <ChevronRight className="h-5 w-5 text-gray-500" />
+                      <ChevronRight className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                     )}
                   </button>
                   <div>
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       Grabación {formatTime(recording.created_at)}
                     </span>
-                    <span className="text-sm text-gray-500 ml-2">
+                    <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">
                       ({formatDuration(recording.duration)})
                     </span>
                   </div>
                 </div>
                 <span className={`px-3 py-1 text-sm font-medium rounded-full ${
                   recording.analysis_status === 'completed' 
-                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-800'
                     : recording.analysis_status === 'processing'
-                    ? 'bg-blue-50 text-blue-600 border border-blue-200'
+                    ? 'bg-blue-50 text-blue-600 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
                     : recording.analysis_status === 'failed'
-                    ? 'bg-rose-50 text-rose-600 border border-rose-200'
-                    : 'bg-slate-50 text-slate-600 border border-slate-200'
+                    ? 'bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-900/30 dark:text-rose-300 dark:border-rose-800'
+                    : 'bg-slate-50 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
                 }`}>
                   {toSentenceCase(recording.analysis_status)}
                 </span>
               </div>
               
               {recordingUrls[recording.id] && (
-                <div className="mt-2 bg-gray-50 p-3 rounded-lg border border-gray-200">
+                <div className="mt-2 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
                   <audio
                     controls
                     className="w-full"
@@ -351,14 +351,14 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
 
             {/* Expanded Content */}
             {isExpanded && (
-              <div className="border-t border-gray-200">
-                <div className="p-6 bg-white">
+              <div className="border-t border-gray-200 dark:border-gray-700">
+                <div className="p-6 bg-white dark:bg-gray-800">
                   {/* Transcription Content */}
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-bold text-gray-900">Transcripción</h4>
+                      <h4 className="text-lg font-bold text-gray-900 dark:text-gray-100">Transcripción</h4>
                     </div>
-                    <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">
+                    <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600 text-sm text-gray-900 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">
                       {transcription ? 
                         highlightEntitiesInText(
                           transcription.content || 'No hay contenido disponible',
@@ -371,7 +371,7 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                   
                   {/* Clinical Analysis Content */}
                   {analyses.length > 0 && (
-                    <div className="mt-8 pt-8 border-t border-gray-200">
+                    <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
                       {analyses.map((analysis, index) => (
                         <div key={index}>
                           {renderClinicalContent(analysis)}

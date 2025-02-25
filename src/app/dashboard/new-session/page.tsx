@@ -72,17 +72,17 @@ export default function NewSessionPage() {
       <div className="mb-8">
         <button
           onClick={() => router.back()}
-          className="flex items-center text-gray-600 hover:text-gray-900"
+          className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
         >
           <ArrowLeft className="h-5 w-5 mr-2" />
           Volver
         </button>
-        <h1 className="text-2xl font-bold text-gray-900 mt-4">Nueva Sesión</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-4">Nueva Sesión</h1>
       </div>
 
       {/* Patient Search */}
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Buscar Paciente</h2>
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 mb-6">
+        <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Buscar Paciente</h2>
         <div className="max-w-xl">
           <div className="flex gap-4">
             <input
@@ -90,12 +90,12 @@ export default function NewSessionPage() {
               value={documentNumber}
               onChange={(e) => setDocumentNumber(e.target.value)}
               placeholder="Ingrese número de DNI"
-              className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary sm:text-sm"
+              className="block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
             />
             <button
               onClick={handleSearch}
               disabled={isPatientLoading}
-              className="inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              className="inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isPatientLoading ? (
                 <div className="h-5 w-5 bg-white/20 rounded animate-pulse"></div>

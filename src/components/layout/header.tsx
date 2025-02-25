@@ -6,6 +6,8 @@ import Image from 'next/image';
 import { Fragment } from 'react';
 import { Menu, Transition } from '@headlessui/react';
 import { UserIcon } from '@heroicons/react/24/outline';
+import { MoonIcon, SunIcon, ComputerDesktopIcon } from '@heroicons/react/24/solid';
+import { useTheme } from '@/components/theme/theme-provider';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -13,9 +15,10 @@ function classNames(...classes: string[]) {
 
 export function Header() {
   const { user, isLoading } = useUser();
+  const { theme, setTheme } = useTheme();
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="bg-background shadow-sm border-b border-gray-200 dark:border-gray-800">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between items-center">
           <div className="flex-shrink-0">
@@ -29,7 +32,7 @@ export function Header() {
                 {user ? (
                   <Menu as="div" className="relative ml-3">
                     <div>
-                      <Menu.Button className="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                      <Menu.Button className="flex rounded-full bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
                         {user.picture ? (
                           <Image
                             className="h-8 w-8 rounded-full"
@@ -39,7 +42,7 @@ export function Header() {
                             height={32}
                           />
                         ) : (
-                          <UserIcon className="h-8 w-8 rounded-full p-1 border border-gray-300" />
+                          <UserIcon className="h-8 w-8 rounded-full p-1 border border-gray-300 dark:border-gray-600" />
                         )}
                       </Menu.Button>
                     </div>
@@ -52,14 +55,14 @@ export function Header() {
                       leaveFrom="transform opacity-100 scale-100"
                       leaveTo="transform opacity-0 scale-95"
                     >
-                      <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white dark:bg-gray-800 py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                         <Menu.Item>
                           {({ active }) => (
                             <Link
                               href="/dashboard"
                               className={classNames(
-                                active ? 'bg-gray-100' : '',
-                                'block px-4 py-2 text-sm text-gray-700'
+                                active ? 'bg-gray-100 dark:bg-gray-700' : '',
+                                'block px-4 py-2 text-sm text-gray-700 dark:text-gray-300'
                               )}
                             >
                               Dashboard
@@ -71,21 +74,52 @@ export function Header() {
                             <Link
                               href="/profile"
                               className={classNames(
-                                active ? 'bg-gray-100' : '',
-                                'block px-4 py-2 text-sm text-gray-700'
+                                active ? 'bg-gray-100 dark:bg-gray-700' : '',
+                                'block px-4 py-2 text-sm text-gray-700 dark:text-gray-300'
                               )}
                             >
                               Perfil
                             </Link>
                           )}
                         </Menu.Item>
+
+                        {/* Theme options */}
+                        <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700">
+                          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Tema</p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setTheme("light")}
+                              className={`flex items-center justify-center h-8 w-8 rounded-md ${theme === "light" ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}`}
+                              title="Modo Claro"
+                            >
+                              <SunIcon className="h-5 w-5" />
+                            </button>
+                            
+                            <button
+                              onClick={() => setTheme("dark")}
+                              className={`flex items-center justify-center h-8 w-8 rounded-md ${theme === "dark" ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}`}
+                              title="Modo Oscuro"
+                            >
+                              <MoonIcon className="h-5 w-5" />
+                            </button>
+                            
+                            <button
+                              onClick={() => setTheme("system")}
+                              className={`flex items-center justify-center h-8 w-8 rounded-md ${theme === "system" ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}`}
+                              title="Tema del Sistema"
+                            >
+                              <ComputerDesktopIcon className="h-5 w-5" />
+                            </button>
+                          </div>
+                        </div>
+                        
                         <Menu.Item>
                           {({ active }) => (
                             <Link
                               href="/api/auth/logout"
                               className={classNames(
-                                active ? 'bg-gray-100' : '',
-                                'block px-4 py-2 text-sm text-gray-700'
+                                active ? 'bg-gray-100 dark:bg-gray-700' : '',
+                                'block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-t border-gray-200 dark:border-gray-700'
                               )}
                             >
                               Cerrar sesión
@@ -99,7 +133,7 @@ export function Header() {
                   <div className="flex items-center space-x-4">
                     <Link
                       href="/api/auth/login"
-                      className="text-sm font-medium text-gray-700 hover:text-gray-900"
+                      className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
                     >
                       Iniciar sesión
                     </Link>

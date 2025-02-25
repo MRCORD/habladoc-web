@@ -121,7 +121,7 @@ const EntityGroups = ({ sectionData, showTitle = true }: EntityGroupsProps) => {
   return (
     <div className="space-y-4">
       {showTitle && (
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Entidades Identificadas
         </h3>
       )}

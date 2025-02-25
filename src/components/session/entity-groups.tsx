@@ -1,22 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, Activity, Heart, Thermometer, Droplet } from 'lucide-react';
-import EntityGrid, { Entity, EntityType } from './entity-grid';
-
-interface EntityAttributes {
-  frequency?: string;
-  intensity?: string;
-  duration?: string;
-  location?: string;
-  onset?: string;
-  progression?: string;
-  quality?: string;
-  context?: string;
-  value?: string;
-  unit?: string;
-  status?: string;
-  supporting_evidence?: string[];
-  [key: string]: string | string[] | number | undefined;
-}
+import EntityGrid, { Entity } from './entity-grid';
 
 interface VitalSign {
   value: string;

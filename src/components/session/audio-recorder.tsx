@@ -64,6 +64,11 @@ const FILE_EXTENSION = 'mp3'; // Storage file extension
 
 const ffmpeg = typeof window !== 'undefined' ? new FFmpeg() : null;
 
+// Add type definition for WebKit AudioContext
+interface WebKitAudioContext extends AudioContext {
+  createMediaStreamSource(stream: MediaStream): MediaStreamAudioSourceNode;
+}
+
 export default function AudioRecorder({
   sessionId,
   doctorId,
@@ -150,8 +155,11 @@ export default function AudioRecorder({
   // Set up audio analysis for volume indicators
   const setupAudioAnalysis = (stream: MediaStream) => {
     try {
-      // Create audio context
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      // Create audio context with proper typing
+      const AudioContext = window.AudioContext || (window as { webkitAudioContext?: new () => WebKitAudioContext }).webkitAudioContext;
+      if (!AudioContext) {
+        throw new Error('AudioContext not supported');
+      }
       audioContextRef.current = new AudioContext();
       
       // Create analyser node
@@ -413,12 +421,6 @@ export default function AudioRecorder({
     const minutes = Math.floor(state.duration / 60);
     const seconds = (state.duration % 60).toString().padStart(2, "0");
     return `${minutes}:${seconds}`;
-  };
-
-  // Calculate volume bar height
-  const getVolumeHeight = () => {
-    if (!showVolumeIndicator || state.isPaused) return 0;
-    return Math.max(4, Math.round(state.audioLevel * 40));
   };
 
   // Render volume indicator

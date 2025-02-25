@@ -15,7 +15,7 @@ import {
   Wand2,
   RefreshCw
 } from 'lucide-react';
-import { AttributeTag, translations, toSentenceCase } from '@/components/common/attribute-tag';
+import { AttributeTag, toSentenceCase } from '@/components/common/attribute-tag';
 import { highlightEntitiesInText } from '@/utils/highlightEntities';
 import type { Recording, RecordingStatus, AnalysisStatus } from '@/types';
 

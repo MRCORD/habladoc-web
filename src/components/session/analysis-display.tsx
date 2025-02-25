@@ -40,13 +40,13 @@ interface EnhancedConsultationData {
   soap_assessment?: SoapSection;
   soap_plan?: SoapSection;
   ai_patterns?: PatternItem[];
-  ai_reasoning?: any;
+  ai_reasoning?: AIReasoning;
   ai_risks?: RiskItem[];
   ai_timeline?: Timeline;
   ai_confidence?: number;
   ai_suggestions?: Suggestion[];
   version?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   [key: string]: any;
 }
 
@@ -67,7 +67,7 @@ interface SoapContent {
   medication_effects?: MedicationEffect[];
   vital_signs?: Record<string, VitalSign>;
   diagnoses?: Entity[];
-  findings?: Record<string, any>;
+  findings?: Record<string, Finding>;
   system_findings?: Record<string, { findings: Entity[] }>;
   [key: string]: any;
 }
@@ -143,6 +143,20 @@ interface TimelineEvent {
 
 interface Timeline {
   events: TimelineEvent[];
+}
+
+interface Finding {
+  description?: string;
+  value?: string | number;
+  status?: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface AIReasoning {
+  explanation: string;
+  confidence: number;
+  supporting_evidence?: string[];
+  metadata?: Record<string, unknown>;
 }
 
 // Interface for transformed section data to match what EntityGroups expects
@@ -302,20 +316,9 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
         hour: '2-digit',
         minute: '2-digit'
       });
-    } catch (e) {
+    } catch {
       return dateString;
     }
-  };
-
-  // Transform SoapSection to SectionData for EntityGroups component
-  const transformToSectionData = (soapSection?: SoapSection): SectionData | undefined => {
-    if (!soapSection || !soapSection.components) {
-      return undefined;
-    }
-    
-    return {
-      components: soapSection.components
-    };
   };
 
   // Get all symptoms from various sections
@@ -533,17 +536,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
               <span>{tab.label}</span>
             </button>
           ))}
-          
-          <div className="ml-auto">
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-              <span className="hidden sm:inline">Actualizar</span>
-            </button>
-          </div>
         </div>
       </div>
 

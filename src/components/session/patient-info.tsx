@@ -17,7 +17,6 @@ import {
   BadgeAlert
 } from 'lucide-react';
 import type { User } from '@/types';
-import { AttributeTag } from '@/components/common/attribute-tag';
 
 interface EmergencyContact {
   name?: string;

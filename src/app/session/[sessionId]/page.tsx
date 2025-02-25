@@ -93,9 +93,13 @@ export default function SessionPage() {
     { ssr: false }
   );
 
+  // Calculate the height of the audio recorder - approximately 80px for standard, 160px with preview
+  const audioRecorderHeight = 120; // A good average height considering both states
+
   return (
     <>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main content with bottom padding to prevent audio recorder overlap */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style={{ paddingBottom: `${audioRecorderHeight}px` }}>
         {/* Header */}
         <div className="flex items-center justify-between mb-8 flex-wrap">
           <div className="flex items-center space-x-2">

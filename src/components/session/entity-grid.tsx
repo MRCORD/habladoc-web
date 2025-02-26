@@ -28,41 +28,6 @@ const Badge = ({
   );
 };
 
-// Note: We'll keep the Tooltip component in the code but won't use it for entities
-const Tooltip = ({ 
-  content, 
-  children, 
-  side = "top" 
-}: { 
-  content: React.ReactNode; 
-  children: React.ReactNode; 
-  side?: "top" | "bottom" | "left" | "right"; 
-}) => {
-  return (
-    <div className="relative group">
-      {children}
-      <div className={`absolute ${
-        side === "top" ? "bottom-full mb-2" : 
-        side === "bottom" ? "top-full mt-2" : 
-        side === "left" ? "right-full mr-2" : 
-        "left-full ml-2"} 
-        z-10 invisible opacity-0 group-hover:visible group-hover:opacity-100 
-        transition-opacity duration-300 pointer-events-none`}>
-        <div className="bg-gray-900 text-white text-xs rounded p-2 max-w-xs shadow-lg">
-          {content}
-          <div className={`absolute ${
-            side === "top" ? "top-full left-1/2 -translate-x-1/2 -mt-1 border-t-gray-900" : 
-            side === "bottom" ? "bottom-full left-1/2 -translate-x-1/2 -mb-1 border-b-gray-900" : 
-            side === "left" ? "left-full top-1/2 -translate-y-1/2 -ml-1 border-l-gray-900" : 
-            "right-full top-1/2 -translate-y-1/2 -mr-1 border-r-gray-900"} 
-            border-solid border-8 border-transparent w-0 h-0`}>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export type EntityType = 'symptom' | 'condition' | 'medication' | 'vital_sign' | 
                          'lab_result' | 'procedure' | 'Symptoms' | 'Vital Signs' | 
                          'Diagnoses' | 'Medication Effects' | 'Clinical Findings' | 

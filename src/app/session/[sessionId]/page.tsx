@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense, useCallback } from "react";
+import { useState, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Mic, Sparkles, RefreshCw } from "lucide-react";
 import { Tab } from "@headlessui/react";

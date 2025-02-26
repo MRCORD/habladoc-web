@@ -24,6 +24,32 @@ interface MedicationEffect {
   confidence?: number;
 }
 
+interface DiagnosticPlan {
+  tests: TestItem[]; // Changed from optional to required
+  rationale?: string;
+  priority?: string;
+}
+
+interface TherapeuticPlan {
+  medications: MedicationItem[]; // Changed from optional to required
+  procedures?: string[];
+  lifestyle_changes?: string[];
+  followup?: string;
+}
+
+interface EducationPlan {
+  recommendations: RecommendationItem[]; // Changed from optional to required
+  materials?: string[];
+  topics?: string[];
+}
+
+interface Finding {
+  description?: string;
+  value?: string | number;
+  status?: string;
+  metadata?: Record<string, unknown>;
+}
+
 interface SectionComponent {
   content: {
     current_symptoms?: Entity[];
@@ -31,13 +57,16 @@ interface SectionComponent {
     vital_signs?: Record<string, VitalSign>;
     diagnoses?: Entity[];
     differential_diagnoses?: Entity[];
-    diagnostic_plan?: any;
-    therapeutic_plan?: any;
-    education_plan?: any;
-    findings?: Record<string, any>;
+    diagnostic_plan?: DiagnosticPlan;
+    therapeutic_plan?: TherapeuticPlan;
+    education_plan?: EducationPlan;
+    findings?: Record<string, Finding>;
     system_findings?: Record<string, { findings: Entity[] }>;
     lab_results?: Entity[];
-    [key: string]: any;
+    medications?: MedicationItem[]; // Added this field
+    tests?: TestItem[]; // Added this field
+    recommendations?: RecommendationItem[]; // Added this field
+    [key: string]: unknown;
   };
   confidence?: number;
 }
@@ -52,16 +81,18 @@ interface SectionData {
   confidence?: number;
 }
 
+interface FilterOptions {
+  showActiveOnly: boolean;
+  sortBy: string;
+}
+
 interface EntityGroupsProps {
   sectionData?: SectionData;
   soapSection?: SOAPSectionType;
   showTitle?: boolean;
   className?: string;
-  filter?: {
-    showActiveOnly?: boolean;
-    sortBy?: string;
-  };
-  setFilter?: (filter: any) => void;
+  filter?: FilterOptions;
+  setFilter?: (filter: FilterOptions) => void;
 }
 
 // Entity Group Item interface
@@ -78,21 +109,30 @@ interface MedicationItem {
   dosage?: string;
   frequency?: string;
   duration?: string;
-  [key: string]: any;
+  route?: string;
+  instructions?: string;
+  contraindications?: string[];
+  sideEffects?: string[];
+  [key: string]: string | string[] | undefined;
 }
 
 interface TestItem {
   name: string;
   reason?: string;
   urgency?: string;
-  [key: string]: any;
+  location?: string;
+  instructions?: string;
+  preparation?: string;
+  [key: string]: string | undefined;
 }
 
 interface RecommendationItem {
   text: string;
   type?: string;
   importance?: string;
-  [key: string]: any;
+  category?: string;
+  followup?: string;
+  [key: string]: string | undefined;
 }
 
 // Mapping of component types to SOAP sections
@@ -269,7 +309,7 @@ const EntityGroups: React.FC<EntityGroupsProps> = ({
           examFindings.push({
             name: finding.description || area,
             status: finding.status,
-            value: finding.value,
+            value: finding.value?.toString(), // Convert number to string if needed
             location: area,
             type: 'physical_finding'
           });
@@ -381,6 +421,7 @@ const EntityGroups: React.FC<EntityGroupsProps> = ({
         title: 'Recomendaciones',
         entities: content.recommendations.map((rec: RecommendationItem) => ({
           ...rec,
+          name: rec.text, // Use the text as the name property
           type: 'recommendation'
         })),
         type: 'recommendations',

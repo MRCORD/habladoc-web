@@ -15,13 +15,11 @@ import {
   BarChart2,
   CheckCircle,
   Calendar,
-  Thermometer,
   Filter
 } from "lucide-react";
 import { ErrorMessage } from "@/components/common/error-message";
 import { AnalysisDisplaySkeleton } from "@/components/common/loading-skeletons";
 import api from "@/lib/api";
-import EntityGrid from "./entity-grid";
 import EntityGroups from "./entity-groups";
 import { highlightEntitiesInText } from "@/utils/highlightEntities";
 import { AttributeTag, toSentenceCase } from "@/components/common/attribute-tag";

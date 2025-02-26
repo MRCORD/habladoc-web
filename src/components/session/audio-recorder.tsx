@@ -423,38 +423,6 @@ export default function AudioRecorder({
     return `${minutes}:${seconds}`;
   };
 
-  // Render volume indicator
-  const renderVolumeIndicator = () => {
-    if (!showVolumeIndicator) return null;
-    
-    return (
-      <div className="flex items-center gap-1 ml-3">
-        <Volume2 className={`h-4 w-4 ${state.isPaused ? 'text-gray-400' : 'text-blue-500'}`} />
-        <div className="flex items-end gap-[2px] h-6">
-          {[...Array(7)].map((_, index) => (
-            <div 
-              key={index}
-              className={`w-1 rounded-sm ${
-                state.isPaused 
-                  ? 'bg-gray-300 dark:bg-gray-600' 
-                  : state.audioLevel > index * 0.15
-                    ? 'bg-blue-500 dark:bg-blue-400'
-                    : 'bg-gray-300 dark:bg-gray-600'
-              }`}
-              style={{ 
-                height: state.isPaused 
-                  ? 4 
-                  : state.audioLevel > index * 0.15 
-                    ? Math.max(4, 4 + index * 3) 
-                    : 4 
-              }}
-            ></div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className={`fixed bottom-6 left-0 right-0 z-50 flex justify-center items-center ${className}`}>
       {/* Glowing background effect */}

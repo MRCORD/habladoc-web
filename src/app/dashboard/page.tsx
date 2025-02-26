@@ -138,6 +138,7 @@ export default function Dashboard() {
   // If we get this far, we have a user and a doctorProfile.
   // We'll either show sessions or the fallback mockSessions.
   const displaySessions = todaySessions.length > 0 ? todaySessions : mockSessions;
+  const usingMockData = todaySessions.length === 0;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -175,7 +176,8 @@ export default function Dashboard() {
                 <SessionListItem
                   key={session.id}
                   session={session}
-                  onSelect={() => router.push(`/session/${session.id}`)}
+                  onSelect={!usingMockData ? () => router.push(`/session/${session.id}`) : undefined}
+                  isLoading={isSessionsLoading}
                 />
               ))}
             </ul>

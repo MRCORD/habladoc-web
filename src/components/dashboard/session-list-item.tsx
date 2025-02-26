@@ -16,10 +16,11 @@ const getPatientName = (session: Session): { name: string; document?: string } =
 
 interface SessionListItemProps {
   session: Session;
-  onSelect: () => void;
+  onSelect?: () => void;  // Made optional
+  isLoading?: boolean;
 }
 
-export function SessionListItem({ session, onSelect }: SessionListItemProps) {
+export function SessionListItem({ session, onSelect, isLoading = false }: SessionListItemProps) {
   // Helper function to safely format time only
   const getFormattedTime = (dateStr?: string | null) => {
     if (!dateStr) return '---';
@@ -38,8 +39,8 @@ export function SessionListItem({ session, onSelect }: SessionListItemProps) {
 
   return (
     <li 
-      className="px-4 py-3 sm:px-6 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
-      onClick={onSelect}
+      className={`px-4 py-3 sm:px-6 ${onSelect && !isLoading && 'hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer'} transition-colors`}
+      onClick={onSelect && !isLoading ? onSelect : undefined}
     >
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-1">

@@ -28,7 +28,7 @@ const Badge = ({
   );
 };
 
-// Tooltip component
+// Note: We'll keep the Tooltip component in the code but won't use it for entities
 const Tooltip = ({ 
   content, 
   children, 
@@ -228,55 +228,23 @@ const EntityGrid: React.FC<EntityGridProps> = ({
             >
               <div className="flex items-center gap-2">
                 {getEntityIcon(entity, title)}
-                <div className="relative font-medium text-gray-900 dark:text-gray-100 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors pr-4 overflow-hidden">
-                  <span className="truncate block text-sm">
+                <div className="relative font-medium text-gray-900 dark:text-gray-100 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
+                  <span className="text-sm">
                     {entity.status === "active" && "● "}{toSentenceCase(entity.name)}
                   </span>
                 </div>
               </div>
-              <div className="flex justify-between items-center mt-1.5">
+              
+              <div className="flex flex-col mt-1.5 gap-1.5">
+                {/* Only show confidence percentage, removed all tags */}
                 {entity.confidence !== undefined && (
                   <div className={`text-xs ${selectedEntity?.name === entity.name ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
                     {Math.round(entity.confidence * 100)}% confianza
                   </div>
                 )}
                 
-                {(entity.intensity || entity.status || entity.location) && (
-                  <div className="flex items-center gap-1">
-                    {entity.intensity && (
-                      <span className="inline-block px-1.5 py-0.5 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded">
-                        {entity.intensity}
-                      </span>
-                    )}
-                    {entity.location && !condensed && (
-                      <span className="inline-block px-1.5 py-0.5 text-xs bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded">
-                        {entity.location}
-                      </span>
-                    )}
-                  </div>
-                )}
+                {/* Removed the flex container with all entity tags */}
               </div>
-              
-              {/* Tooltip with entity details */}
-              <Tooltip 
-                content={
-                  <div className="max-w-xs p-2">
-                    <div className="font-medium mb-1">{toSentenceCase(entity.name)}</div>
-                    <ul className="text-xs space-y-1">
-                      {entity.status && <li><strong>Estado:</strong> {entity.status}</li>}
-                      {entity.location && <li><strong>Ubicación:</strong> {entity.location}</li>}
-                      {entity.duration && <li><strong>Duración:</strong> {entity.duration}</li>}
-                      {entity.intensity && <li><strong>Intensidad:</strong> {entity.intensity}</li>}
-                      {entity.frequency && <li><strong>Frecuencia:</strong> {entity.frequency}</li>}
-                      {entity.context && <li><strong>Contexto:</strong> {entity.context}</li>}
-                      {entity.confidence && <li><strong>Confianza:</strong> {Math.round(entity.confidence * 100)}%</li>}
-                    </ul>
-                  </div>
-                }
-                side="top"
-              >
-                <span className="sr-only">Más información</span>
-              </Tooltip>
             </div>
           ))}
         </div>

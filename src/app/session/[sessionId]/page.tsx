@@ -164,33 +164,30 @@ export default function SessionPage() {
 
             <Tab.Panels className="mt-4">
               <Tab.Panel className="space-y-4">
-                {recordings.length > 0 && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                        Grabaciones
-                      </h2>
-                      <button
-                        onClick={handleRefresh}
-                        disabled={isRefreshing}
-                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md border border-gray-300 dark:border-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                      >
-                        <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                        {isRefreshing ? 'Actualizando...' : 'Actualizar'}
-                      </button>
-                    </div>
-                    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                      <RecordingsList
-                        recordings={recordings}
-                        transcriptions={transcriptions}
-                        clinicalAnalysis={clinicalAnalysis}
-                        onError={(msg) => useSessionStore.setState({ error: msg })}
-                        isLoading={isRefreshing}
-                        // No longer passing onRefresh - using outer button only
-                      />
-                    </div>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                      Grabaciones
+                    </h2>
+                    <button
+                      onClick={handleRefresh}
+                      disabled={isRefreshing}
+                      className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md border border-gray-300 dark:border-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                    >
+                      <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                      {isRefreshing ? 'Actualizando...' : 'Actualizar'}
+                    </button>
                   </div>
-                )}
+                  <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                    <RecordingsList
+                      recordings={recordings}
+                      transcriptions={transcriptions}
+                      clinicalAnalysis={clinicalAnalysis}
+                      onError={(msg) => useSessionStore.setState({ error: msg })}
+                      isLoading={isRefreshing}
+                    />
+                  </div>
+                </div>
               </Tab.Panel>
 
               <Tab.Panel className="space-y-4">

@@ -303,14 +303,18 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
   return (
     <div className={`space-y-6 ${className}`}>
       {sortedRecordings.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800">
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
+          <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700">
             <Headphones className="h-6 w-6 text-gray-600 dark:text-gray-400" />
           </div>
-          <h3 className="mt-3 text-sm font-medium text-gray-900 dark:text-gray-100">No hay grabaciones</h3>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            Graba la consulta para comenzar el proceso de análisis.
+          <h3 className="mt-3 text-base font-semibold text-gray-900 dark:text-gray-100">No hay grabaciones</h3>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+            Para comenzar, graba la consulta usando el botón de micrófono. El análisis comenzará automáticamente una vez finalices la grabación.
           </p>
+          <div className="mt-4 inline-flex items-center text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-3 py-1.5 rounded-full">
+            <Clock className="h-3.5 w-3.5 mr-1.5" />
+            Las grabaciones aparecerán aquí
+          </div>
         </div>
       ) : (
         <>

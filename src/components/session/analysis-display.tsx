@@ -8,7 +8,7 @@ import {
   Activity, 
   MessageCircle, 
   Stethoscope,
-  BrainCircuit,
+  Brain,
   Clock,
   Zap,
   Lightbulb,
@@ -459,7 +459,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
     { id: "objective", label: "Objetiva", icon: <Activity className="h-4 w-4" /> },
     { id: "assessment", label: "Diagnóstica", icon: <Stethoscope className="h-4 w-4" /> },
     { id: "plan", label: "Plan", icon: <CheckCircle className="h-4 w-4" /> },
-    { id: "insights", label: "Análisis IA", icon: <BrainCircuit className="h-4 w-4" /> }
+    { id: "insights", label: "Análisis IA", icon: <Brain className="h-4 w-4" /> }
   ];
   
   // Extract key data from the enhanced consultation
@@ -512,13 +512,20 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
       </div>
 
       {!enhancedData ? (
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 text-center">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-            No hay datos de consulta médica
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-8 text-center">
+          <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 mb-4">
+            <Lightbulb className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            No hay análisis disponible
           </h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-4">
-            Los datos de la consulta se generarán automáticamente cuando haya grabaciones procesadas.
+          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-4">
+            El análisis de la consulta se generará automáticamente una vez que las grabaciones sean procesadas.
           </p>
+          <div className="inline-flex items-center text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-3 py-1.5 rounded-full">
+            <Clock className="h-3.5 w-3.5 mr-1.5" />
+            Esperando procesamiento...
+          </div>
         </div>
       ) : (
         <>
@@ -1069,7 +1076,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
               <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                    <BrainCircuit className="h-5 w-5 text-purple-500 mr-2" />
+                    <Brain className="h-5 w-5 text-purple-500 mr-2" />
                     Patrones Clínicos
                   </h3>
                   <button 

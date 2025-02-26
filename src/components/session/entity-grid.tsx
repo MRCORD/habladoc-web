@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { 
-  Plus, 
-  Minus,
   ChevronDown,
-  Pill,
+  Minus,
   Activity,
-  Heart
+  Pill,
+  Heart,
+  Thermometer,
+  FileText,
+  Droplet
 } from 'lucide-react';
 import { AttributeTag, toSentenceCase } from '@/components/common/attribute-tag';
 
-// Simple Badge component to replace missing UI component
+// Badge component with improved styling
 const Badge = ({ 
   children, 
   className = "" 
@@ -19,14 +21,14 @@ const Badge = ({
 }) => {
   return (
     <span 
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${className}`}
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${className}`}
     >
       {children}
     </span>
   );
 };
 
-// Simple Tooltip component to replace missing UI component
+// Tooltip component
 const Tooltip = ({ 
   content, 
   children, 
@@ -88,15 +90,21 @@ export interface Entity {
 interface EntityGridProps {
   entities: Entity[];
   title: string;
+  count?: number;
   onEntityClick?: (entity: Entity) => void;
   className?: string;
+  hideHeader?: boolean;
+  condensed?: boolean; // New prop for condensed view
 }
 
 const EntityGrid: React.FC<EntityGridProps> = ({ 
   entities, 
   title, 
+  count,
   onEntityClick,
-  className = ""
+  className = "",
+  hideHeader = false,
+  condensed = false
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
@@ -136,6 +144,15 @@ const EntityGrid: React.FC<EntityGridProps> = ({
     if (entityType.includes('condition') || entityType.includes('diagnós') || entityType.includes('diagnos')) {
       return <Heart className="h-3.5 w-3.5 text-emerald-500" />;
     }
+    if (entityType.includes('vital') || entityType.includes('sign')) {
+      return <Thermometer className="h-3.5 w-3.5 text-cyan-500" />;
+    }
+    if (entityType.includes('lab') || entityType.includes('test')) {
+      return <FileText className="h-3.5 w-3.5 text-amber-500" />;
+    }
+    if (entityType.includes('bleed') || entityType.includes('hemorr') || entityType.includes('sangr')) {
+      return <Droplet className="h-3.5 w-3.5 text-red-500" />;
+    }
     
     return null;
   };
@@ -162,43 +179,46 @@ const EntityGrid: React.FC<EntityGridProps> = ({
   };
 
   const headerColor = getHeaderColor(title);
+  const displayCount = count !== undefined ? count : entities.length;
 
   return (
     <div className={`border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm ${className}`}>
-      {/* Header */}
-      <div className={`p-4 border-b dark:border-gray-700 flex justify-between items-center bg-gradient-to-r ${headerColor}`}>
-        <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
-          <Badge 
-            className="bg-white/80 dark:bg-gray-700/80 bg-opacity-60 backdrop-blur-sm text-gray-700 dark:text-gray-300 text-xs px-2 py-1 font-medium border-opacity-20 dark:border-opacity-40"
-          >
-            {entities.length}
-          </Badge>
+      {/* Header - conditionally shown */}
+      {!hideHeader && (
+        <div className={`p-3 border-b dark:border-gray-700 flex justify-between items-center bg-gradient-to-r ${headerColor}`}>
+          <div className="flex items-center gap-2">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
+            <Badge 
+              className="bg-white/80 dark:bg-gray-700/80 bg-opacity-60 backdrop-blur-sm text-gray-700 dark:text-gray-300 text-xs px-2 py-1 font-medium"
+            >
+              {displayCount}
+            </Badge>
+          </div>
+          {hasMore && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors focus:outline-none"
+              aria-label={isExpanded ? "Mostrar menos" : "Mostrar más"}
+            >
+              {isExpanded ? (
+                <Minus className="h-4 w-4" />
+              ) : (
+                <ChevronDown className="h-4 w-4" />
+              )}
+            </button>
+          )}
         </div>
-        {hasMore && (
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors focus:outline-none"
-            aria-label={isExpanded ? "Mostrar menos" : "Mostrar más"}
-          >
-            {isExpanded ? (
-              <Minus className="h-4 w-4" />
-            ) : (
-              <Plus className="h-4 w-4" />
-            )}
-          </button>
-        )}
-      </div>
+      )}
 
       {/* Grid of entities */}
-      <div className="p-4">
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+      <div className="p-3">
+        <div className={`grid ${condensed ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'}`}>
           {displayEntities.map((entity, idx) => (
             <div
               key={`${entity.name}-${idx}`}
               onClick={() => handleEntityClick(entity)}
               className={`
-                group cursor-pointer rounded-lg p-2 transition-all duration-200 relative
+                group cursor-pointer rounded-lg p-2.5 transition-all duration-200 relative
                 ${selectedEntity?.name === entity.name 
                   ? `${getConfidenceColor(entity.confidence)} shadow-sm` 
                   : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'
@@ -206,26 +226,36 @@ const EntityGrid: React.FC<EntityGridProps> = ({
                 border
               `}
             >
-              <div className="flex items-center space-x-1.5">
+              <div className="flex items-center gap-2">
                 {getEntityIcon(entity, title)}
                 <div className="relative font-medium text-gray-900 dark:text-gray-100 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors pr-4 overflow-hidden">
                   <span className="truncate block text-sm">
                     {entity.status === "active" && "● "}{toSentenceCase(entity.name)}
                   </span>
-                  <div className={`absolute right-0 top-0 h-full w-8 bg-gradient-to-l ${
-                    selectedEntity?.name === entity.name 
-                      ? entity.confidence 
-                        ? getConfidenceColor(entity.confidence).replace("bg-", "from-").replace("text-", "")
-                        : "from-blue-50 dark:from-blue-900/30" 
-                      : 'from-white dark:from-gray-800 group-hover:from-gray-50 dark:group-hover:from-gray-700'
-                  } to-transparent`}></div>
                 </div>
               </div>
-              {entity.confidence !== undefined && (
-                <div className={`text-xs mt-1 ${selectedEntity?.name === entity.name ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                  {Math.round(entity.confidence * 100)}% confianza
-                </div>
-              )}
+              <div className="flex justify-between items-center mt-1.5">
+                {entity.confidence !== undefined && (
+                  <div className={`text-xs ${selectedEntity?.name === entity.name ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                    {Math.round(entity.confidence * 100)}% confianza
+                  </div>
+                )}
+                
+                {(entity.intensity || entity.status || entity.location) && (
+                  <div className="flex items-center gap-1">
+                    {entity.intensity && (
+                      <span className="inline-block px-1.5 py-0.5 text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded">
+                        {entity.intensity}
+                      </span>
+                    )}
+                    {entity.location && !condensed && (
+                      <span className="inline-block px-1.5 py-0.5 text-xs bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded">
+                        {entity.location}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
               
               {/* Tooltip with entity details */}
               <Tooltip 
@@ -252,10 +282,10 @@ const EntityGrid: React.FC<EntityGridProps> = ({
         </div>
 
         {/* Show more/less button for mobile */}
-        {hasMore && (
+        {hasMore && !condensed && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="mt-4 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 md:hidden w-full text-center font-medium focus:outline-none"
+            className="mt-3 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 md:hidden w-full text-center font-medium focus:outline-none"
           >
             {isExpanded ? 'Ver menos' : `Ver ${entities.length - 3} más`}
           </button>
@@ -263,10 +293,10 @@ const EntityGrid: React.FC<EntityGridProps> = ({
       </div>
 
       {/* Selected entity details */}
-      {selectedEntity && (
+      {selectedEntity && !condensed && (
         <div className="border-t dark:border-gray-700 p-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-700 dark:to-gray-800">
           <div className="flex items-center justify-between mb-2">
-            <h4 className="font-medium text-sm">Detalles del {title.toLowerCase().replace(/s$/, '')}</h4>
+            <h4 className="font-medium text-sm">Detalles de {title.toLowerCase().replace(/s$/, '')}</h4>
             <button 
               onClick={() => setSelectedEntity(null)}
               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"

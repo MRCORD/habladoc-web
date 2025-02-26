@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState, useEffect, useCallback } from "react";
 import { 
   ChevronDown, 
@@ -20,12 +18,14 @@ import {
   CheckCircle,
   Clipboard,
   Calendar,
-  Thermometer
+  Thermometer,
+  Filter
 } from "lucide-react";
 import { ErrorMessage } from "@/components/common/error-message";
 import { AnalysisDisplaySkeleton } from "@/components/common/loading-skeletons";
 import api from "@/lib/api";
-import EntityGrid from "./entity-grid";
+import EntityGrid from "./entity-grid"; // Use the original entity-grid
+import EntityGroups from "./entity-groups"; // Use the fixed entity-groups
 import { highlightEntitiesInText } from "@/utils/highlightEntities";
 import { AttributeTag, toSentenceCase } from "@/components/common/attribute-tag";
 
@@ -159,6 +159,34 @@ interface AnalysisDisplayProps {
   sessionId: string;
 }
 
+// Define SOAP section type
+type SOAPSectionType = 'subjective' | 'objective' | 'assessment' | 'plan';
+
+// Helper interface to convert SoapSection to SectionData
+interface SectionData {
+  components?: Record<string, {
+    content: any;
+    confidence?: number;
+  }>;
+  summary?: string;
+  metadata?: Record<string, unknown>;
+  confidence?: number;
+}
+
+// Helper function to convert SoapSection to SectionData
+const convertToSectionData = (section?: SoapSection): SectionData => {
+  if (!section) {
+    return {};
+  }
+
+  return {
+    components: section.components,
+    summary: section.summary,
+    metadata: section.metadata,
+    confidence: section.confidence
+  };
+};
+
 export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
   const [enhancedData, setEnhancedData] = useState<EnhancedConsultationData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -175,8 +203,10 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
     Timeline: false,
     Suggestions: false
   });
-  const [symptomsFilter, setSymptomsFilter] = useState<string>("confidence");
-  const [showActiveOnly, setShowActiveOnly] = useState<boolean>(false);
+  const [entityFilter, setEntityFilter] = useState({
+    showActiveOnly: false,
+    sortBy: "confidence"
+  });
 
   const fetchEnhancedConsultation = useCallback(async () => {
     try {
@@ -346,48 +376,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
     return [];
   };
 
-  // Filter and sort symptoms based on filter settings
-  const getFilteredSymptoms = (symptoms: Entity[]): Entity[] => {
-    let filteredSymptoms = [...symptoms];
-    
-    // Apply active-only filter if enabled
-    if (showActiveOnly) {
-      filteredSymptoms = filteredSymptoms.filter(s => s.status === 'active');
-    }
-    
-    // Apply sorting based on selected filter
-    switch (symptomsFilter) {
-      case 'severity':
-        return filteredSymptoms.sort((a, b) => {
-          const severityOrder = {
-            'severe': 3,
-            'high': 3,
-            'moderate': 2,
-            'medium': 2,
-            'mild': 1,
-            'low': 1,
-            '': 0
-          };
-          const aIntensity = a.intensity?.toLowerCase() || '';
-          const bIntensity = b.intensity?.toLowerCase() || '';
-          
-          const aValue = Object.entries(severityOrder).find(([key]) => aIntensity.includes(key))?.[1] || 0;
-          const bValue = Object.entries(severityOrder).find(([key]) => bIntensity.includes(key))?.[1] || 0;
-          
-          return bValue - aValue;
-        });
-      case 'recent':
-        return filteredSymptoms.sort((a, b) => {
-          const aOnset = (a.onset as string) || '';
-          const bOnset = (b.onset as string) || '';
-          return bOnset.localeCompare(aOnset);
-        });
-      case 'confidence':
-      default:
-        return filteredSymptoms.sort((a, b) => (b.confidence || 0) - (a.confidence || 0));
-    }
-  };
-
   // Find relationships between symptoms and diagnoses
   const findClinicalRelationships = (diagnoses: Entity[], symptoms: Entity[]): Array<{diagnosis: Entity, symptoms: Entity[]}> => {
     const relationships: Array<{diagnosis: Entity, symptoms: Entity[]}> = [];
@@ -483,9 +471,9 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
   const tabs = [
     { id: "summary", label: "Resumen", icon: <FileText className="h-4 w-4" /> },
     { id: "subjective", label: "Subjetiva", icon: <MessageCircle className="h-4 w-4" /> },
-    { id: "objective", label: "Objetiva", icon: <Activity className="h-4 w-4" /> }, // New tab
+    { id: "objective", label: "Objetiva", icon: <Activity className="h-4 w-4" /> },
     { id: "assessment", label: "Diagnóstica", icon: <Stethoscope className="h-4 w-4" /> },
-    { id: "plan", label: "Plan", icon: <Clipboard className="h-4 w-4" /> }, // New tab
+    { id: "plan", label: "Plan", icon: <Clipboard className="h-4 w-4" /> },
     { id: "insights", label: "Análisis IA", icon: <BrainCircuit className="h-4 w-4" /> }
   ];
   
@@ -498,6 +486,12 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
   const aiPatterns = enhancedData?.ai_patterns || [];
   const aiTimeline = enhancedData?.ai_timeline?.events || [];
   const aiSuggestions = enhancedData?.ai_suggestions || [];
+  
+  // Convert SOAP sections to SectionData for EntityGroups component
+  const subjectiveData = convertToSectionData(soapSubjective);
+  const objectiveData = convertToSectionData(soapObjective);
+  const assessmentData = convertToSectionData(soapAssessment);
+  const planData = convertToSectionData(soapPlan);
   
   // Process entities for highlighting and display
   const allSymptoms = getAllSymptoms();
@@ -530,6 +524,18 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Refresh button - universal for all tabs */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md border border-gray-300 dark:border-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          {isRefreshing ? 'Actualizando...' : 'Actualizar'}
+        </button>
       </div>
 
       {isRefreshing ? (
@@ -692,7 +698,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                 </div>
               </div>
               
-              {/* NEW: Clinical Relationships */}
+              {/* Clinical Relationships */}
               {clinicalRelationships.length > 0 && (
                 <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
@@ -728,7 +734,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                 </div>
               )}
               
-              {/* Patterns & connections - Similar to original */}
+              {/* Patterns & connections */}
               {aiPatterns.length > 0 && (
                 <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -758,7 +764,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                           <div className="flex justify-between items-center mb-1">
                             <span className="font-medium">
                               {pattern.type === 'clinical_correlation' ? 'Correlación Clínica' : 
-                              pattern.type === 'medication_effect' ? 'Efecto Medicamentoso' : 
+                              pattern.type === 'medication_effect' ? 'Efecto del Medicamento' : 
                               pattern.type === 'symptom_progression' ? 'Progresión de Síntomas' :
                               'Patrón Identificado'}
                             </span>
@@ -781,435 +787,247 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
             </div>
           )}
           
-          {/* SUBJECTIVE TAB - Enhanced with filtering */}
+          {/* SUBJECTIVE TAB - Enhanced with proper header hierarchy */}
           {activeTab === "subjective" && (
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
-                  <MessageCircle className="h-5 w-5 mr-2" />
-                  Evaluación subjetiva
-                </h3>
-                <button 
-                  onClick={() => toggleSection('Subjective')}
-                  className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
-                >
-                  {collapsedSections.Subjective ? (
-                    <ChevronDown className="h-5 w-5" />
-                  ) : (
-                    <ChevronUp className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-              
-              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6 text-gray-900 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
-                {soapSubjective.summary ? (
-                  <div>
-                    {highlightEntitiesInText(soapSubjective.summary, allEntities)}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 dark:text-gray-400 italic">
-                    No hay datos subjetivos disponibles.
-                  </p>
-                )}
-              </div>
-              
-              {!collapsedSections.Subjective && (
-                <div className="mt-6">
-                  {/* Enhanced Symptom Reporting with filters */}
-                  <div className="mt-8">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center">
-                        <Activity className="h-5 w-5 text-blue-500 mr-2" />
-                        Síntomas Reportados
-                      </h4>
-                      
-                      <div className="flex items-center gap-2">
-                        <select 
-                          className="text-sm px-2 py-1 rounded border border-gray-300 dark:border-gray-600 
-                                    bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300"
-                          value={symptomsFilter}
-                          onChange={(e) => setSymptomsFilter(e.target.value)}
-                        >
-                          <option value="confidence">Por confianza</option>
-                          <option value="severity">Por intensidad</option>
-                          <option value="recent">Más recientes</option>
-                        </select>
-                        <button
-                          onClick={() => setShowActiveOnly(!showActiveOnly)}
-                          className={`text-sm px-2 py-1 rounded 
-                                    ${showActiveOnly 
-                                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-300 dark:border-blue-700' 
-                                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600'}`}
-                        >
-                          {showActiveOnly ? 'Solo activos ✓' : 'Solo activos'}
-                        </button>
-                      </div>
-                    </div>
-                    
-                    {/* Standard view with EntityGroups */}
-                    {allSymptoms.length > 0 ? (
-                      <EntityGrid
-                        title="Síntomas"
-                        entities={getFilteredSymptoms(allSymptoms).map(symptom => ({
-                          ...symptom,
-                          // Ensure complex objects are stringified while maintaining required properties
-                          ...(Object.entries(symptom).reduce((acc, [key, value]) => ({
-                            ...acc,
-                            [key]: typeof value === 'object' && value !== null ? JSON.stringify(value) : value
-                          }), {}))
-                        }))}
-                      />
+            <div className="space-y-6">
+              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
+                    <MessageCircle className="h-5 w-5 mr-2" />
+                    Evaluación subjetiva
+                  </h2>
+                  <button 
+                    onClick={() => toggleSection('Subjective')}
+                    className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
+                  >
+                    {collapsedSections.Subjective ? (
+                      <ChevronDown className="h-5 w-5" />
                     ) : (
-                      <p className="text-gray-500 dark:text-gray-400 italic">
-                        No se han reportado síntomas.
-                      </p>
+                      <ChevronUp className="h-5 w-5" />
                     )}
-                  </div>
+                  </button>
                 </div>
-              )}
-            </div>
-          )}
-          
-          {/* NEW: OBJECTIVE TAB */}
-          {activeTab === "objective" && (
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
-                  <Activity className="h-5 w-5 mr-2" />
-                  Evaluación objetiva
-                </h3>
-                <button 
-                  onClick={() => toggleSection('Objective')}
-                  className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
-                >
-                  {collapsedSections.Objective ? (
-                    <ChevronDown className="h-5 w-5" />
-                  ) : (
-                    <ChevronUp className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-              
-              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6 text-gray-900 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
-                {soapObjective.summary ? (
-                  <div>{highlightEntitiesInText(soapObjective.summary, allEntities)}</div>
-                ) : (
-                  <p className="text-gray-500 dark:text-gray-400 italic">
-                    No hay datos objetivos disponibles.
-                  </p>
-                )}
-              </div>
-              
-              {!collapsedSections.Objective && (
-                <>
-                  {/* Vital Signs Section */}
-                  {soapObjective.components?.vital_signs && (
-                    <div className="mt-6">
-                      <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                        <Thermometer className="h-5 w-5 text-blue-500 mr-2" />
-                        Signos Vitales
-                      </h4>
-                      
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                        {Object.entries(soapObjective.components.vital_signs.content.vital_signs || {}).map(([key, vital]) => {
-                          const normalRanges: Record<string, {min: number, max: number}> = {
-                            'blood_pressure': {min: 90, max: 140}, // Systolic
-                            'heart_rate': {min: 60, max: 100},
-                            'temperature': {min: 36, max: 37.5},
-                            'respiratory_rate': {min: 12, max: 20},
-                            'oxygen_saturation': {min: 95, max: 100}
-                          };
-                          
-                          const getValue = (value: string) => {
-                            if (key === 'blood_pressure') {
-                              return parseInt(value.split('/')[0]);
-                            }
-                            return parseFloat(value);
-                          };
-                          
-                          const numericValue = getValue(vital.value);
-                          const range = normalRanges[key] || {min: 0, max: 0};
-                          
-                          const isHigh = range.max > 0 && numericValue > range.max;
-                          const isLow = range.min > 0 && numericValue < range.min;
-                          
-                          return (
-                            <div key={key} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                              <div className="text-sm text-gray-500 dark:text-gray-400">{toSentenceCase(key.replace('_', ' '))}</div>
-                              <div className="text-xl font-bold mt-1">
-                                {vital.value} {vital.unit || ''}
-                              </div>
-                              {range.min > 0 && (
-                                <div className="mt-2 text-xs">
-                                  <span className={
-                                    isHigh ? 'text-red-500 dark:text-red-400' : 
-                                    isLow ? 'text-blue-500 dark:text-blue-400' : 
-                                    'text-green-500 dark:text-green-400'
-                                  }>
-                                    {isHigh ? 'Elevado' : isLow ? 'Bajo' : 'Normal'}
-                                  </span>
-                                  <span className="text-gray-500 dark:text-gray-400 ml-1">
-                                    ({range.min}-{range.max})
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Physical Exam Findings */}
-                  {soapObjective.components?.physical_exam && (
-                    <div className="mt-6">
-                      <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                        <Stethoscope className="h-5 w-5 text-emerald-500 mr-2" />
-                        Hallazgos del Examen Físico
-                      </h4>
-                      
-                      <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
-                        {soapObjective.components.physical_exam.content.findings ? (
-                          <div className="space-y-4">
-                            {Object.entries(soapObjective.components.physical_exam.content.findings).map(([system, data]) => (
-                              <div key={system} className="border-b border-gray-200 dark:border-gray-600 pb-3 last:border-0">
-                                <h5 className="font-medium text-gray-900 dark:text-gray-100 capitalize mb-2">{toSentenceCase(system.replace('_', ' '))}</h5>
-                                <p className="text-sm text-gray-700 dark:text-gray-300">
-                                  {typeof data === 'string' ? data : data.description || JSON.stringify(data)}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-gray-500 dark:text-gray-400 italic">
-                            No hay hallazgos del examen físico registrados.
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          )}
-          
-          {/* ASSESSMENT TAB - Enhanced with differential diagnosis visualization */}
-          {activeTab === "assessment" && (
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
-                  <Stethoscope className="h-5 w-5 mr-2" />
-                  Evaluación diagnóstica
-                </h3>
-                <button 
-                  onClick={() => toggleSection('Assessment')}
-                  className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
-                >
-                  {collapsedSections.Assessment ? (
-                    <ChevronDown className="h-5 w-5" />
-                  ) : (
-                    <ChevronUp className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-              
-              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6 text-gray-900 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
-                {soapAssessment.summary ? (
-                  <div>
-                    {highlightEntitiesInText(soapAssessment.summary, allEntities)}
-                  </div>
-                ) : (
-                  <p className="text-gray-500 dark:text-gray-400 italic">
-                    No hay datos de evaluación diagnóstica disponibles.
-                  </p>
-                )}
-              </div>
-              
-              {!collapsedSections.Assessment && (
-                <div className="mt-6">
-                  <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                    <Stethoscope className="h-5 w-5 text-blue-500 mr-2" />
-                    Diagnósticos
-                  </h4>
-                  
-                  {soapAssessment?.components?.clinical_impression?.content?.diagnoses ? (
-                    <div className="space-y-6">
-                      {/* Primary diagnoses (confidence >= 0.8) */}
-                      <div className="space-y-2">
-                        <h5 className="font-medium text-green-700 dark:text-green-300 flex items-center">
-                          <CheckCircle className="h-4 w-4 mr-2" />
-                          Diagnósticos Primarios
-                        </h5>
-                        <div className="flex flex-wrap gap-2">
-                          {soapAssessment.components.clinical_impression.content.diagnoses
-                            .filter(d => d.confidence && d.confidence >= 0.8)
-                            .map((diagnosis, idx) => (
-                              <div 
-                                key={idx} 
-                                className={`px-3 py-2 rounded-lg text-sm font-medium border ${diagnosis.confidence ? getConfidenceColor(diagnosis.confidence) : ""}`}
-                              >
-                                {diagnosis.status === "active" && "● "}
-                                {diagnosis.name}
-                                <div className="text-xs mt-1">
-                                  {diagnosis.location && <span className="mr-2">En: {diagnosis.location}</span>}
-                                  {diagnosis.duration && <span>Duración: {diagnosis.duration}</span>}
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                      
-                      {/* Differential diagnoses (confidence < 0.8) */}
-                      {soapAssessment.components.clinical_impression.content.diagnoses.some(d => d.confidence && d.confidence < 0.8) && (
-                        <div className="space-y-2">
-                          <h5 className="font-medium text-yellow-700 dark:text-yellow-300 flex items-center">
-                            <ListFilter className="h-4 w-4 mr-2" />
-                            Diagnósticos Diferenciales
-                          </h5>
-                          
-                          {/* NEW: Enhanced differential visualization with probabilities */}
-                          <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                            <div className="space-y-4">
-                              {soapAssessment.components.clinical_impression.content.diagnoses
-                                .filter(d => d.confidence && d.confidence < 0.8)
-                                .sort((a, b) => (b.confidence || 0) - (a.confidence || 0))
-                                .map((diagnosis, idx) => (
-                                  <div key={idx} className="flex items-center gap-3">
-                                    <div className="w-24 text-sm font-medium">
-                                      {Math.round((diagnosis.confidence || 0) * 100)}%
-                                    </div>
-                                    <div className="flex-1">
-                                      <div className="h-6 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
-                                        <div 
-                                          className={`h-full ${
-                                            (diagnosis.confidence || 0) >= 0.7 ? 'bg-blue-500' : 
-                                            (diagnosis.confidence || 0) >= 0.5 ? 'bg-yellow-500' : 
-                                            'bg-gray-400'
-                                          }`}
-                                          style={{ width: `${Math.round((diagnosis.confidence || 0) * 100)}%` }}
-                                        />
-                                      </div>
-                                    </div>
-                                    <div className="text-sm">{diagnosis.name}</div>
-                                    {diagnosis.supporting_evidence && diagnosis.supporting_evidence.length > 0 && (
-                                      <button
-                                        className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                                        title={`Evidencia: ${diagnosis.supporting_evidence.join(', ')}`}
-                                      >
-                                        Ver evidencia
-                                      </button>
-                                    )}
-                                  </div>
-                                ))}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* NEW: Clinical Relationships */}
-                      {clinicalRelationships.length > 0 && (
-                        <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-                          <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-3">
-                            Relaciones Diagnósticas
-                          </h5>
-                          
-                          <div className="space-y-4">
-                            {clinicalRelationships.map((rel, idx) => (
-                              <div key={idx} className="p-3 border border-blue-200 dark:border-blue-800 rounded-lg 
-                                                     bg-blue-50 dark:bg-blue-900/20">
-                                <div className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                                  {rel.diagnosis.name}
-                                </div>
-                                <div className="pl-4 border-l-2 border-blue-300 dark:border-blue-700">
-                                  <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Síntomas relacionados:</div>
-                                  <div className="flex flex-wrap gap-2">
-                                    {rel.symptoms.map((symptom, i) => (
-                                      <span key={i} className="px-2 py-1 text-xs bg-white dark:bg-gray-800 
-                                                            rounded-full border border-gray-200 dark:border-gray-700">
-                                        {symptom.name}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                
+                {/* Summary section */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6 text-gray-900 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
+                  {soapSubjective.summary ? (
+                    <div>
+                      {highlightEntitiesInText(soapSubjective.summary, allEntities)}
                     </div>
                   ) : (
                     <p className="text-gray-500 dark:text-gray-400 italic">
-                      No se han establecido diagnósticos.
+                      No hay datos subjetivos disponibles.
                     </p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Entities section - with a single, unified header */}
+              {!collapsedSections.Subjective && (
+                <EntityGroups
+                  sectionData={subjectiveData}
+                  soapSection="subjective"
+                  showTitle={true}
+                  filter={entityFilter}
+                  setFilter={setEntityFilter}
+                />
+              )}
+            </div>
+          )}
+          
+          {/* OBJECTIVE TAB */}
+          {activeTab === "objective" && (
+            <div className="space-y-6">
+              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
+                    <Activity className="h-5 w-5 mr-2" />
+                    Evaluación objetiva
+                  </h2>
+                  <button 
+                    onClick={() => toggleSection('Objective')}
+                    className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
+                  >
+                    {collapsedSections.Objective ? (
+                      <ChevronDown className="h-5 w-5" />
+                    ) : (
+                      <ChevronUp className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+                
+                {/* Summary section */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6 text-gray-900 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
+                  {soapObjective.summary ? (
+                    <div>{highlightEntitiesInText(soapObjective.summary, allEntities)}</div>
+                  ) : (
+                    <p className="text-gray-500 dark:text-gray-400 italic">
+                      No hay datos objetivos disponibles.
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Entities section - with a single, unified header */}
+              {!collapsedSections.Objective && (
+                <EntityGroups
+                  sectionData={objectiveData}
+                  soapSection="objective"
+                  showTitle={true}
+                  filter={entityFilter}
+                  setFilter={setEntityFilter}
+                />
+              )}
+            </div>
+          )}
+          
+          {/* ASSESSMENT TAB */}
+          {activeTab === "assessment" && (
+            <div className="space-y-6">
+              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
+                    <Stethoscope className="h-5 w-5 mr-2" />
+                    Evaluación diagnóstica
+                  </h2>
+                  <button 
+                    onClick={() => toggleSection('Assessment')}
+                    className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
+                  >
+                    {collapsedSections.Assessment ? (
+                      <ChevronDown className="h-5 w-5" />
+                    ) : (
+                      <ChevronUp className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+                
+                {/* Summary section */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6 text-gray-900 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
+                  {soapAssessment.summary ? (
+                    <div>
+                      {highlightEntitiesInText(soapAssessment.summary, allEntities)}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 dark:text-gray-400 italic">
+                      No hay datos de evaluación diagnóstica disponibles.
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              {/* Entities section - with a single, unified header */}
+              {!collapsedSections.Assessment && (
+                <div className="space-y-6">
+                  <EntityGroups
+                    sectionData={assessmentData}
+                    soapSection="assessment"
+                    showTitle={true}
+                    filter={entityFilter}
+                    setFilter={setEntityFilter}
+                  />
+                
+                  {/* Clinical Relationships */}
+                  {clinicalRelationships.length > 0 && (
+                    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                        <ListFilter className="h-5 w-5 text-indigo-500 mr-2" />
+                        Relaciones Diagnósticas
+                      </h3>
+                      
+                      <div className="space-y-4">
+                        {clinicalRelationships.map((rel, idx) => (
+                          <div key={idx} className="p-3 border border-blue-200 dark:border-blue-800 rounded-lg 
+                                                 bg-blue-50 dark:bg-blue-900/20">
+                            <div className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+                              {rel.diagnosis.name}
+                            </div>
+                            <div className="pl-4 border-l-2 border-blue-300 dark:border-blue-700">
+                              <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Síntomas relacionados:</div>
+                              <div className="flex flex-wrap gap-2">
+                                {rel.symptoms.map((symptom, i) => (
+                                  <span key={i} className="px-2 py-1 text-xs bg-white dark:bg-gray-800 
+                                                        rounded-full border border-gray-200 dark:border-gray-700">
+                                    {symptom.name}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
             </div>
           )}
           
-          {/* NEW: PLAN TAB */}
+          {/* PLAN TAB */}
           {activeTab === "plan" && (
-            <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
-                  <Clipboard className="h-5 w-5 mr-2" />
-                  Plan de Tratamiento
-                </h3>
-                <button 
-                  onClick={() => toggleSection('Plan')}
-                  className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
-                >
-                  {collapsedSections.Plan ? (
-                    <ChevronDown className="h-5 w-5" />
+            <div className="space-y-6">
+              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
+                    <Clipboard className="h-5 w-5 mr-2" />
+                    Plan de Tratamiento
+                  </h2>
+                  <button 
+                    onClick={() => toggleSection('Plan')}
+                    className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
+                  >
+                    {collapsedSections.Plan ? (
+                      <ChevronDown className="h-5 w-5" />
+                    ) : (
+                      <ChevronUp className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
+                
+                {/* Summary section */}
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6 text-gray-900 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
+                  {soapPlan?.summary ? (
+                    <div>{highlightEntitiesInText(soapPlan.summary, allEntities)}</div>
                   ) : (
-                    <ChevronUp className="h-5 w-5" />
+                    <p className="text-gray-500 dark:text-gray-400 italic">
+                      No hay información del plan disponible.
+                    </p>
                   )}
-                </button>
+                </div>
               </div>
               
-              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6 text-gray-900 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
-                {soapPlan?.summary ? (
-                  <div>{highlightEntitiesInText(soapPlan.summary, allEntities)}</div>
-                ) : (
-                  <p className="text-gray-500 dark:text-gray-400 italic">
-                    No hay información del plan disponible.
-                  </p>
-                )}
-              </div>
-              
+              {/* Entities section - with a single, unified header */}
               {!collapsedSections.Plan && (
-                <>
+                <div className="space-y-6">
+                  <EntityGroups
+                    sectionData={planData}
+                    soapSection="plan"
+                    showTitle={true}
+                    filter={entityFilter}
+                    setFilter={setEntityFilter}
+                  />
+                  
                   {/* Treatment Recommendations */}
                   {soapPlan?.components?.therapeutic_plan && (
-                    <div className="mt-6">
-                      <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
                         <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
                         Recomendaciones de Tratamiento
-                      </h4>
+                      </h3>
                       
                       <div className="space-y-4">
                         {Object.entries(soapPlan.components.therapeutic_plan.content || {}).map(([key, plan]) => {
-                          if (!plan || typeof plan !== 'object') return null;
+                          if (!plan || typeof plan !== 'object' || 
+                              key === 'medications' || Array.isArray(plan)) return null;
                           
                           return (
                             <div key={key} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
                               <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-2 capitalize">
                                 {toSentenceCase(key.replace('_', ' '))}
                               </h5>
-                              {typeof plan === 'string' ? (
-                                <p>{plan}</p>
-                              ) : Array.isArray(plan) ? (
-                                <ul className="space-y-2">
-                                  {plan.map((item, idx) => (
-                                    <li key={idx} className="flex items-start">
-                                      <CheckCircle className="h-4 w-4 text-green-500 mr-2 mt-0.5" />
-                                      <span>{typeof item === 'string' ? item : JSON.stringify(item)}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <pre className="text-sm overflow-x-auto">{JSON.stringify(plan, null, 2)}</pre>
-                              )}
+                              <div className="text-sm text-gray-700 dark:text-gray-300">
+                                {JSON.stringify(plan)}
+                              </div>
                             </div>
                           );
                         })}
@@ -1218,12 +1036,12 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                   )}
                   
                   {/* Suggested Follow-up */}
-                  {aiSuggestions && aiSuggestions.length > 0 && (
-                    <div className="mt-6">
-                      <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                  {aiSuggestions && aiSuggestions.filter(s => s.type === 'follow_up').length > 0 && (
+                    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
                         <Calendar className="h-5 w-5 text-blue-500 mr-2" />
                         Seguimiento Recomendado
-                      </h4>
+                      </h3>
                       
                       <div className="space-y-3">
                         {aiSuggestions
@@ -1243,33 +1061,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                       </div>
                     </div>
                   )}
-                  
-                  {/* Educational Resources */}
-                  {allDiagnoses.length > 0 && (
-                    <div className="mt-6">
-                      <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                        <FileText className="h-5 w-5 text-amber-500 mr-2" />
-                        Material Educativo para el Paciente
-                      </h4>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {allDiagnoses
-                          .filter(d => d.confidence && d.confidence > 0.7)
-                          .map((diagnosis, idx) => (
-                            <div key={idx} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg flex items-center justify-between">
-                              <div className="flex items-center">
-                                <FileText className="h-4 w-4 text-amber-500 mr-2" />
-                                <span>Guía para pacientes: {diagnosis.name}</span>
-                              </div>
-                              <button className="text-xs px-3 py-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700">
-                                Ver
-                              </button>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-                </>
+                </div>
               )}
             </div>
           )}
@@ -1339,7 +1131,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                           <div className="flex justify-between items-center mb-1">
                             <span className="font-medium">
                               {pattern.type === 'clinical_correlation' ? 'Correlación Clínica' : 
-                              pattern.type === 'medication_effect' ? 'Efecto Medicamentoso' : 
+                              pattern.type === 'medication_effect' ? 'Efecto del Medicamento' : 
                               pattern.type === 'symptom_progression' ? 'Progresión de Síntomas' :
                               'Patrón Identificado'}
                             </span>
@@ -1364,7 +1156,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                 )}
               </div>
 
-              {/* Timeline section - original version rather than enhanced */}
+              {/* Timeline section */}
               {aiTimeline && aiTimeline.length > 0 && (
                 <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">

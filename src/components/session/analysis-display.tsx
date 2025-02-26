@@ -78,7 +78,7 @@ interface Entity {
   value?: string;
   unit?: string;
   supporting_evidence?: string[];
-  [key: string]: unknown;
+  [key: string]: string | number | string[] | undefined;
 }
 
 interface MedicationEffect {
@@ -154,13 +154,10 @@ interface AnalysisDisplayProps {
   sessionId: string;
 }
 
-// Define SOAP section type
-type SOAPSectionType = 'subjective' | 'objective' | 'assessment' | 'plan';
-
 // Helper interface to convert SoapSection to SectionData
 interface SectionData {
   components?: Record<string, {
-    content: any;
+    content: SoapContent;
     confidence?: number;
   }>;
   summary?: string;

@@ -8,7 +8,6 @@ import {
   Play, 
   Upload, 
   Trash2, 
-  Volume2, 
   AlertCircle,
   Loader2
 } from "lucide-react";

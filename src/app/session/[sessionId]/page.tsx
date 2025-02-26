@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Mic, Sparkles, RefreshCw } from "lucide-react";
 import { Tab } from "@headlessui/react";
@@ -22,6 +22,9 @@ export default function SessionPage() {
   const params = useParams();
   const sessionId = params?.sessionId as string;
   const [activeTab, setActiveTab] = useState("consultation");
+  
+  // Add loading state for refresh
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const {
     session: sessionData,
@@ -32,9 +35,6 @@ export default function SessionPage() {
     error,
     fetchSessionState,
   } = useSessionData(sessionId);
-
-  // Add loading state for refresh
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   if (!sessionId) {
     return <ErrorMessage message="Invalid session parameters" />;
@@ -52,6 +52,7 @@ export default function SessionPage() {
     }
   };
 
+  // Single refresh handler that can be called from any component
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
@@ -161,7 +162,7 @@ export default function SessionPage() {
               </Tab>
             </Tab.List>
 
-            <Tab.Panels className="mt-6">
+            <Tab.Panels className="mt-4">
               <Tab.Panel className="space-y-4">
                 {recordings.length > 0 && (
                   <div className="space-y-4">
@@ -171,14 +172,11 @@ export default function SessionPage() {
                       </h2>
                       <button
                         onClick={handleRefresh}
-                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm transition-colors"
+                        disabled={isRefreshing}
+                        className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md border border-gray-300 dark:border-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                       >
-                        <RefreshCw
-                          className={`w-4 h-4 mr-2 ${
-                            isRefreshing ? "animate-spin" : ""
-                          }`}
-                        />
-                        Actualizar
+                        <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                        {isRefreshing ? 'Actualizando...' : 'Actualizar'}
                       </button>
                     </div>
                     <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
@@ -187,8 +185,8 @@ export default function SessionPage() {
                         transcriptions={transcriptions}
                         clinicalAnalysis={clinicalAnalysis}
                         onError={(msg) => useSessionStore.setState({ error: msg })}
-                        onRefresh={handleRefresh}
                         isLoading={isRefreshing}
+                        // No longer passing onRefresh - using outer button only
                       />
                     </div>
                   </div>
@@ -203,14 +201,10 @@ export default function SessionPage() {
                   <button
                     onClick={handleRefresh}
                     disabled={isRefreshing}
-                    className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md border border-gray-300 dark:border-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
                   >
-                    <RefreshCw
-                      className={`w-4 h-4 mr-2 ${
-                        isRefreshing ? "animate-spin" : ""
-                      }`}
-                    />
-                    {isRefreshing ? "Actualizando..." : "Actualizar"}
+                    <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    {isRefreshing ? 'Actualizando...' : 'Actualizar'}
                   </button>
                 </div>
                 <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
@@ -218,7 +212,10 @@ export default function SessionPage() {
                     {isRefreshing ? (
                       <AnalysisDisplaySkeleton />
                     ) : (
-                      <AnalysisDisplay sessionId={sessionId} />
+                      <AnalysisDisplay 
+                        sessionId={sessionId}
+                        // No longer passing onRefresh - using outer button only
+                      />
                     )}
                   </Suspense>
                 </div>

@@ -9,14 +9,11 @@ import {
   MessageCircle, 
   Stethoscope,
   BrainCircuit,
-  RefreshCw,
-  ListFilter,
   Clock,
   Zap,
   Lightbulb,
   BarChart2,
   CheckCircle,
-  Clipboard,
   Calendar,
   Thermometer,
   Filter
@@ -24,8 +21,8 @@ import {
 import { ErrorMessage } from "@/components/common/error-message";
 import { AnalysisDisplaySkeleton } from "@/components/common/loading-skeletons";
 import api from "@/lib/api";
-import EntityGrid from "./entity-grid"; // Use the original entity-grid
-import EntityGroups from "./entity-groups"; // Use the fixed entity-groups
+import EntityGrid from "./entity-grid";
+import EntityGroups from "./entity-groups";
 import { highlightEntitiesInText } from "@/utils/highlightEntities";
 import { AttributeTag, toSentenceCase } from "@/components/common/attribute-tag";
 
@@ -191,7 +188,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
   const [enhancedData, setEnhancedData] = useState<EnhancedConsultationData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>("summary");
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
     Subjective: false,
@@ -234,7 +230,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
       setError(errorMessage);
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
   }, [sessionId]);
 
@@ -294,11 +289,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
   useEffect(() => {
     fetchEnhancedConsultation();
   }, [fetchEnhancedConsultation]);
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    await fetchEnhancedConsultation();
-  };
 
   const toggleSection = (section: string) => {
     setCollapsedSections(prev => ({
@@ -473,7 +463,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
     { id: "subjective", label: "Subjetiva", icon: <MessageCircle className="h-4 w-4" /> },
     { id: "objective", label: "Objetiva", icon: <Activity className="h-4 w-4" /> },
     { id: "assessment", label: "Diagnóstica", icon: <Stethoscope className="h-4 w-4" /> },
-    { id: "plan", label: "Plan", icon: <Clipboard className="h-4 w-4" /> },
+    { id: "plan", label: "Plan", icon: <CheckCircle className="h-4 w-4" /> },
     { id: "insights", label: "Análisis IA", icon: <BrainCircuit className="h-4 w-4" /> }
   ];
   
@@ -526,35 +516,14 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
         </div>
       </div>
 
-      {/* Refresh button - universal for all tabs */}
-      <div className="flex justify-end">
-        <button
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md border border-gray-300 dark:border-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          {isRefreshing ? 'Actualizando...' : 'Actualizar'}
-        </button>
-      </div>
-
-      {isRefreshing ? (
-        <AnalysisDisplaySkeleton />
-      ) : !enhancedData ? (
+      {!enhancedData ? (
         <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 text-center">
-          <RefreshCw className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
             No hay datos de consulta médica
           </h3>
           <p className="text-gray-500 dark:text-gray-400 mb-4">
             Los datos de la consulta se generarán automáticamente cuando haya grabaciones procesadas.
           </p>
-          <button
-            onClick={handleRefresh}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
-          >
-            Actualizar
-          </button>
         </div>
       ) : (
         <>
@@ -702,7 +671,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
               {clinicalRelationships.length > 0 && (
                 <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                    <ListFilter className="h-5 w-5 text-indigo-500 mr-2" />
+                    <Filter className="h-5 w-5 text-indigo-500 mr-2" />
                     Relaciones Clínicas
                   </h3>
                   
@@ -739,7 +708,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                 <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                      <ListFilter className="h-5 w-5 text-purple-500 mr-2" />
+                      <Filter className="h-5 w-5 text-purple-500 mr-2" />
                       Patrones y Conexiones
                     </h3>
                     <button 
@@ -931,7 +900,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                   {clinicalRelationships.length > 0 && (
                     <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                       <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                        <ListFilter className="h-5 w-5 text-indigo-500 mr-2" />
+                        <Filter className="h-5 w-5 text-indigo-500 mr-2" />
                         Relaciones Diagnósticas
                       </h3>
                       
@@ -969,7 +938,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
               <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
-                    <Clipboard className="h-5 w-5 mr-2" />
+                    <CheckCircle className="h-5 w-5 mr-2" />
                     Plan de Tratamiento
                   </h2>
                   <button 

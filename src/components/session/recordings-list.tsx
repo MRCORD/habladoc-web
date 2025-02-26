@@ -12,8 +12,7 @@ import {
   AlertTriangle,
   Clock,
   Calendar,
-  Wand2,
-  RefreshCw
+  Wand2
 } from 'lucide-react';
 import { AttributeTag, toSentenceCase } from '@/components/common/attribute-tag';
 import { highlightEntitiesInText } from '@/utils/highlightEntities';
@@ -80,7 +79,6 @@ interface RecordingsListProps {
   clinicalAnalysis?: Record<string, ClinicalAnalysis[]>;
   onError: (message: string) => void;
   isLoading?: boolean;
-  onRefresh?: () => Promise<void>;
   className?: string;
 }
 
@@ -106,13 +104,11 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
   clinicalAnalysis = {},
   onError,
   isLoading = false,
-  onRefresh,
   className = ""
 }) => {
   const [recordingUrls, setRecordingUrls] = useState<Record<string, string>>({});
   const [expandedRecordings, setExpandedRecordings] = useState<Record<string, boolean>>({});
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Audio elements refs
   const audioRefs = React.useRef<Record<string, HTMLAudioElement | null>>({});
@@ -219,17 +215,6 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
     }
   };
 
-  const handleRefresh = async () => {
-    if (onRefresh) {
-      setIsRefreshing(true);
-      try {
-        await onRefresh();
-      } finally {
-        setIsRefreshing(false);
-      }
-    }
-  };
-
   // Component to render the analysis entities in a clean format
   const renderEntities = (entities: Entity[]) => {
     if (entities.length === 0) return null;
@@ -329,30 +314,14 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Headphones className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-              <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                Grabaciones de la sesión
-              </h3>
-              <span className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                {sortedRecordings.length}
-              </span>
-            </div>
-            
-            {onRefresh && (
-              <button
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 
-                  bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 
-                  rounded-md border border-gray-300 dark:border-gray-600 
-                  transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                <span>Actualizar</span>
-              </button>
-            )}
+          <div className="flex items-center gap-2">
+            <Headphones className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            <h3 className="font-medium text-gray-900 dark:text-gray-100">
+              Grabaciones de la sesión
+            </h3>
+            <span className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium px-2.5 py-0.5 rounded-full">
+              {sortedRecordings.length}
+            </span>
           </div>
           
           {sortedRecordings.map((recording) => {

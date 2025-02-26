@@ -456,145 +456,153 @@ export default function AudioRecorder({
   };
 
   return (
-    <div className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 shadow-xl border-t border-gray-200 dark:border-gray-700 p-4 z-50 ${className}`}>
+    <div className={`fixed bottom-6 left-0 right-0 z-50 flex justify-center items-center ${className}`}>
+      {/* Glowing background effect */}
+      <div className="absolute h-14 w-14 bg-red-500/30 dark:bg-red-500/20 rounded-full blur-xl animate-pulse"></div>
+      
       {ffmpegLoading && (
-        <div className="absolute inset-0 bg-black/10 dark:bg-black/30 flex items-center justify-center z-10 backdrop-blur-sm">
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg flex items-center gap-3">
+        <div className="absolute inset-0 bg-black/10 dark:bg-black/30 flex items-center justify-center z-10 backdrop-blur-sm rounded-full">
+          <div className="bg-white dark:bg-gray-800 p-3 rounded-full shadow-lg flex items-center gap-2">
             <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
-            <span className="text-sm font-medium">Cargando componentes de audio...</span>
+            <span className="text-sm font-medium">Cargando audio...</span>
           </div>
         </div>
       )}
       
       {state.error && (
-        <div className="p-3 mb-3 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg text-sm flex items-start">
-          <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
-          <span>{state.error}</span>
+        <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 p-2.5 bg-red-50 dark:bg-red-900/90 text-red-700 dark:text-red-300 rounded-full border border-red-200 dark:border-red-800/50 text-sm flex items-center shadow-md">
+          <AlertCircle className="h-4 w-4 mr-1.5 flex-shrink-0" />
+          <span className="max-w-xs truncate">{state.error}</span>
         </div>
       )}
 
-      <div className="max-w-5xl mx-auto">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Left side: timer + controls */}
-          <div className="flex items-center">
-            {/* Timer */}
-            <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg px-3 py-1 mr-4">
-              {state.isRecording && (
-                <span className={`flex h-3 w-3 mr-2 ${state.isPaused ? 'hidden' : ''}`}>
-                  <span className="relative inline-flex h-full w-full rounded-full bg-red-500 opacity-75 animate-ping"></span>
-                  <span className="absolute inline-flex h-3 w-3 rounded-full bg-red-500"></span>
-                </span>
-              )}
-              <span className="text-lg font-mono text-gray-700 dark:text-gray-300 tabular-nums">
-                {formattedDuration()}
-              </span>
-              
-              {/* Volume indicator */}
-              {renderVolumeIndicator()}
-            </div>
-
-            {/* Record Button */}
-            {!state.isRecording && !state.audioUrl && (
+      {!state.audioUrl ? (
+        // Recording state - Larger more noticeable floating pill
+        <div className="bg-white/95 dark:bg-gray-800/95 shadow-xl rounded-full py-2.5 px-5 border border-gray-200 dark:border-gray-700 backdrop-blur-sm flex items-center gap-4 max-w-md">
+          {!state.isRecording ? (
+            // Initial state - just record button with label
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">Grabar audio</span>
               <button
                 onClick={startRecording}
                 disabled={ffmpegLoading || !ffmpegLoaded}
-                className="p-3 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors relative group focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-3 bg-red-500 hover:bg-red-600 text-white rounded-full transition-all shadow-md relative group focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-100 animate-pulse"
                 title="Iniciar grabación"
               >
-                <Mic className="w-6 h-6" />
-                <span className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-2 py-1 text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
-                  Iniciar grabación
-                </span>
+                <Mic className="h-5 w-5" />
               </button>
-            )}
-
-            {/* Stop Button */}
-            {state.isRecording && (
-              <button
-                onClick={stopRecording}
-                className="p-3 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors relative group focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-                title="Detener grabación"
-              >
-                <Square className="w-5 h-5" />
-                <span className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-2 py-1 text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
-                  Detener grabación
-                </span>
-              </button>
-            )}
-
-            {/* Pause/Resume Button */}
-            {state.isRecording && (
-              <button
-                onClick={togglePause}
-                className={`ml-2 p-3 ${
-                  state.isPaused 
-                    ? "bg-blue-500 hover:bg-blue-600" 
-                    : "bg-yellow-500 hover:bg-yellow-600"
-                } text-white rounded-full transition-colors relative group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800`}
-                title={state.isPaused ? "Reanudar grabación" : "Pausar grabación"}
-              >
-                {state.isPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
-                <span className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-2 py-1 text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
-                  {state.isPaused ? "Reanudar grabación" : "Pausar grabación"}
-                </span>
-              </button>
-            )}
-          </div>
-
-          {/* Right side: Audio preview & actions */}
-          {state.audioUrl && !state.isRecording && (
-            <div className="flex items-center gap-4 w-full sm:w-auto">
-              <div className="flex-1 sm:w-64 bg-gray-100 dark:bg-gray-700 rounded-lg p-2">
-                <audio
-                  src={state.audioUrl}
-                  controls
-                  className="w-full"
-                  onError={() => {
-                    setState(prev => ({
-                      ...prev,
-                      error: "Error al reproducir la grabación"
-                    }));
-                  }}
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={discardRecording}
-                  className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-md transition-colors relative group focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-                  title="Descartar grabación"
-                >
-                  <Trash2 className="w-4 h-4 mr-1" />
-                  <span className="hidden sm:inline">Descartar</span>
-                  <span className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-2 py-1 text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity sm:hidden">
-                    Descartar grabación
-                  </span>
-                </button>
-                <button
-                  onClick={uploadRecording}
-                  disabled={state.isUploading}
-                  className="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors relative group focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
-                  title="Enviar grabación"
-                >
-                  {state.isUploading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                      <span className="hidden sm:inline">Enviando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="w-4 h-4 mr-1" />
-                      <span className="hidden sm:inline">Enviar</span>
-                    </>
-                  )}
-                  <span className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white px-2 py-1 text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity sm:hidden">
-                    Enviar grabación
-                  </span>
-                </button>
-              </div>
             </div>
+          ) : (
+            // Recording state - timer, waveform, controls
+            <>
+              {/* Recording indicator */}
+              <div className="flex items-center gap-1.5">
+                <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
+                <span className="text-sm font-medium text-red-500">REC</span>
+              </div>
+              
+              {/* Timer display */}
+              <div className="flex items-center">
+                <span className="text-base font-mono text-gray-700 dark:text-gray-300 tabular-nums font-medium min-w-[48px]">
+                  {formattedDuration()}
+                </span>
+              </div>
+              
+              {/* Volume indicator */}
+              {showVolumeIndicator && (
+                <div className="flex-1 px-2 max-w-[140px]">
+                  <div className="flex items-end h-8 gap-[2px] justify-center">
+                    {[...Array(12)].map((_, index) => (
+                      <div 
+                        key={index}
+                        className={`w-[3px] rounded-full ${
+                          state.isPaused 
+                            ? 'bg-gray-300 dark:bg-gray-600' 
+                            : state.audioLevel > index * 0.08
+                              ? 'bg-blue-500 dark:bg-blue-400'
+                              : 'bg-gray-200 dark:bg-gray-600'
+                        }`}
+                        style={{ 
+                          height: state.isPaused 
+                            ? 4 
+                            : state.audioLevel > index * 0.08 
+                              ? Math.max(4, Math.min(24, state.audioLevel * 35 - index)) 
+                              : 4 
+                        }}
+                      ></div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Control buttons during recording */}
+              <div className="flex items-center gap-2">
+                {/* Pause/Resume */}
+                <button
+                  onClick={togglePause}
+                  className={`p-2 ${
+                    state.isPaused 
+                      ? "bg-blue-500 hover:bg-blue-600" 
+                      : "bg-yellow-500 hover:bg-yellow-600"
+                  } text-white rounded-full transition-all shadow-sm hover:shadow relative focus:outline-none focus:ring-2 focus:ring-offset-1 transform hover:scale-105 active:scale-100`}
+                >
+                  {state.isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                </button>
+                
+                {/* Stop button */}
+                <button
+                  onClick={stopRecording}
+                  className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-all shadow-sm hover:shadow relative focus:outline-none focus:ring-2 focus:ring-offset-1 transform hover:scale-105 active:scale-100"
+                >
+                  <Square className="w-4 h-4" />
+                </button>
+              </div>
+            </>
           )}
         </div>
-      </div>
+      ) : (
+        // Preview & Upload UI - More noticeable
+        <div className="bg-white/95 dark:bg-gray-800/95 shadow-xl rounded-full py-3 px-4 border border-gray-200 dark:border-gray-700 backdrop-blur-sm flex items-center gap-3 max-w-md">
+          <div className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full bg-green-500"></div>
+            <span className="text-sm font-medium text-green-600 dark:text-green-400">Grabación lista</span>
+          </div>
+          <div className="w-44 sm:w-64">
+            <audio
+              src={state.audioUrl}
+              controls
+              className="h-8 w-full"
+              onError={() => {
+                setState(prev => ({
+                  ...prev,
+                  error: "Error al reproducir la grabación"
+                }));
+              }}
+            />
+          </div>
+          <div className="flex gap-1.5">
+            <button
+              onClick={discardRecording}
+              className="p-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full transition-all hover:shadow relative focus:outline-none transform hover:scale-105 active:scale-100"
+              title="Descartar grabación"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={uploadRecording}
+              disabled={state.isUploading}
+              className="p-2 text-white bg-green-600 hover:bg-green-700 rounded-full shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all relative focus:outline-none focus:ring-1 focus:ring-offset-1 transform hover:scale-105 active:scale-100"
+              title="Enviar grabación"
+            >
+              {state.isUploading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Upload className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

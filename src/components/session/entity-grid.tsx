@@ -260,8 +260,8 @@ const EntityGrid: React.FC<EntityGridProps> = ({
         )}
       </div>
 
-      {/* Selected entity details */}
-      {selectedEntity && !condensed && (
+      {/* Selected entity details - now shown for all entity types, including symptoms, regardless of condensed view */}
+      {selectedEntity && (
         <div className="border-t dark:border-gray-700 p-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-700 dark:to-gray-800">
           <div className="flex items-center justify-between mb-2">
             <h4 className="font-medium text-sm">Detalles de {title.toLowerCase().replace(/s$/, '')}</h4>

@@ -10,9 +10,9 @@ import { useSessionData } from "@/hooks/apiHooks";
 import { useSessionStore } from "@/stores/sessionStore";
 import { ErrorMessage } from "@/components/common/error-message";
 import { SessionStatusBadge } from "@/components/common/status-badges";
-import { RecordingsList } from "@/components/session/recordings-list";
-import { PatientData } from "@/components/session/patient-info";
-import AnalysisDisplay from "@/components/session/analysis-display";
+import { RecordingsList } from "@/components/session/recordings/recordings-list";
+import { PatientData } from "@/components/session/patient/patient-info";
+import AnalysisDisplay from "@/components/session/analysis/analysis-display";
 import { PatientDisplaySkeleton, AnalysisDisplaySkeleton } from "@/components/common/loading-skeletons";
 
 import type { InsuranceInfo } from "@/types";
@@ -90,7 +90,7 @@ export default function SessionPage() {
   };
 
   const AudioRecorder = dynamic(
-    () => import("@/components/session/audio-recorder"),
+    () => import("@/components/session/recordings/audio-recorder"),
     { ssr: false }
   );
 

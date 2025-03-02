@@ -20,10 +20,10 @@ import {
 import { ErrorMessage } from "@/components/common/error-message";
 import { AnalysisDisplaySkeleton } from "@/components/common/loading-skeletons";
 import api from "@/lib/api";
-import EntityGroups from "./entity-groups";
+import EntityGroups from "../entity/entity-groups";
 import { highlightEntitiesInText } from "@/utils/highlightEntities";
 import { AttributeTag, toSentenceCase } from "@/components/common/attribute-tag";
-import ConsultationTimeline, { getConfidenceInfo } from "./consultation-timeline";
+import ConsultationTimeline, { getConfidenceInfo } from "../timeline/consultation-timeline";
 
 // Type definitions for the component
 interface EnhancedConsultationData {
@@ -596,7 +596,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                       .map((diagnosis, idx) => (
                         <div 
                           key={idx}
-                          className={`p-3 rounded-lg border ${diagnosis.confidence ? getConfidenceInfo(diagnosis.confidence).color : ""}`}
+                          className={`p-3 rounded-lg border ${diagnosis.confidence ? getConfidenceInfo(diagnosis.confidence).colorClass : ""}`}
                         >
                           <div className="flex justify-between items-center">
                             <span className="font-medium">{diagnosis.name}</span>
@@ -631,7 +631,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                       .map((symptom, idx) => (
                         <div 
                           key={idx}
-                          className={`p-3 rounded-lg border ${symptom.confidence ? getConfidenceInfo(symptom.confidence).color : ""}`}
+                          className={`p-3 rounded-lg border ${symptom.confidence ? getConfidenceInfo(symptom.confidence).colorClass : ""}`}
                         >
                           <div className="flex justify-between items-center">
                             <span className="font-medium">
@@ -723,7 +723,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                       {aiPatterns.map((pattern, idx) => (
                         <div 
                           key={idx}
-                          className={`p-3 rounded-lg border ${getConfidenceInfo(pattern.confidence).color}`}
+                          className={`p-3 rounded-lg border ${getConfidenceInfo(pattern.confidence).colorClass}`}
                         >
                           <div className="flex justify-between items-center mb-1">
                             <span className="font-medium">
@@ -1090,7 +1090,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                       aiPatterns.map((pattern, idx) => (
                         <div 
                           key={idx}
-                          className={`p-3 rounded-lg border ${getConfidenceInfo(pattern.confidence).color}`}
+                          className={`p-3 rounded-lg border ${getConfidenceInfo(pattern.confidence).colorClass}`}
                         >
                           <div className="flex justify-between items-center mb-1">
                             <span className="font-medium">

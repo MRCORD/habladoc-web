@@ -17,29 +17,15 @@ import {
   ChevronRight,
   Check
 } from 'lucide-react';
-
-interface TimelineEvent {
-  id: string | undefined;
-  event_type: string;
-  description: string;
-  details?: string;
-  timestamp: string;
-  confidence: number;
-  metadata?: {
-    status?: string;
-    occurrences?: number;
-    duration?: number;
-    supporting_evidence?: string[];
-    [key: string]: unknown;
-  };
-  relatedEvents?: TimelineEvent[];
-  formattedDate?: string;
-  formattedTime?: string;
-  relativeTime?: string;
-}
+import { TimelineEvent } from '@/contexts/timeline-context';
 
 interface TimelineEventCardProps {
-  event: TimelineEvent;
+  event: TimelineEvent & {
+    formattedDate?: string;
+    formattedTime?: string;
+    relativeTime?: string;
+    relatedEvents?: TimelineEvent[];
+  };
   isExpanded: boolean;
   onToggleExpand: () => void;
 }

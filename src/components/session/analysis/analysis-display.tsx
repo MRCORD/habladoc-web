@@ -24,6 +24,7 @@ import EntityGroups from "../entity/entity-groups";
 import { highlightEntitiesInText } from "@/utils/highlightEntities";
 import { AttributeTag, toSentenceCase } from "@/components/common/attribute-tag";
 import ConsultationTimeline, { getConfidenceInfo } from "../timeline/consultation-timeline";
+import { TimelineEvent } from '@/contexts/timeline-context';
 
 // Type definitions for the component
 interface EnhancedConsultationData {
@@ -121,16 +122,6 @@ interface Suggestion {
   type: string;
   confidence: number;
   [key: string]: unknown;
-}
-
-interface TimelineEvent {
-  event_type: string;
-  description: string;
-  timestamp: string;
-  confidence: number;
-  details?: string;
-  metadata?: Record<string, unknown>;
-  component_refs?: string[];
 }
 
 interface Timeline {
@@ -304,23 +295,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
         return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800";
       default:
         return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800";
-    }
-  };
-
-  // Format date for timeline display
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleString('es-ES', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return dateString;
     }
   };
 

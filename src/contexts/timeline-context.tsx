@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useMemo } from 'react';
 
 // Define timeline event type
 export interface TimelineEvent {
@@ -7,7 +7,7 @@ export interface TimelineEvent {
   timestamp: string;
   confidence: number;
   details?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, string | number | boolean | string[]>;
   component_refs?: string[];
   id?: string;
 }
@@ -152,8 +152,8 @@ export const TimelineProvider: React.FC<TimelineProviderProps> = ({ children, ev
   });
   
   const [expandedEvents, setExpandedEvents] = useState<Record<string, boolean>>({});
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading] = useState<boolean>(false);
+  const [error] = useState<string | null>(null);
 
   // Process raw events to add additional properties
   const processedEvents = useMemo(() => {

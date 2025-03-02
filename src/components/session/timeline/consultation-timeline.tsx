@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 
 import TimelineEventCard, { getEventIcon } from './timeline-event-card';
-import TimelineFilter from './timeline-filter';
+import TimelineFilter, { TimelineFilters } from './timeline-filter';
+import { TimelineEvent } from '@/contexts/timeline-context';
 import { 
   consolidateSimilarEvents, 
   findEventRelationships,
@@ -36,20 +37,10 @@ export const getConfidenceInfo = (confidence: number | undefined) => {
   }
 };
 
-export interface TimelineEvent {
-  id?: string;
-  event_type: string;
-  description: string;
-  timestamp: string;
-  confidence: number;
-  details?: string;
-  metadata?: {
-    status?: string;
-    supporting_evidence?: string[];
-    duration?: number;
-    [key: string]: unknown;
-  };
-  component_refs?: string[];
+interface ProcessedEvent extends TimelineEvent {
+  formattedDate: string;
+  formattedTime: string;
+  relativeTime: string;
 }
 
 interface ConsultationTimelineProps {
@@ -97,7 +88,7 @@ export default function ConsultationTimeline({ events, isCollapsed, onToggleColl
   const [filter, setFilter] = useState<string>('');
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [expandedEvents, setExpandedEvents] = useState<Record<string, boolean>>({});
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters] = useState(false); // Remove unused setter
 
   // Toggle group expansion
   const toggleGroup = (dateGroup: string) => {
@@ -133,7 +124,7 @@ export default function ConsultationTimeline({ events, isCollapsed, onToggleColl
         formattedTime: time,
         formattedDate: date,
         relativeTime
-      };
+      } as ProcessedEvent;
     });
   }, [events]);
   
@@ -180,7 +171,7 @@ export default function ConsultationTimeline({ events, isCollapsed, onToggleColl
   }, [filter]);
 
   // Handle filter change from TimelineFilter component
-  const handleFilterChange = (newFilters: any) => {
+  const handleFilterChange = (newFilters: TimelineFilters) => {
     setFilter(newFilters.searchText);
     // Additional filtering will be added when integrating with the full TimelineFilter component
   };
@@ -296,7 +287,8 @@ export default function ConsultationTimeline({ events, isCollapsed, onToggleColl
                         // Add related events if found
                         const eventWithRelations = {
                           ...event,
-                          relatedEvents: relationships[eventId] || []
+                          id: event.id || eventId,
+                          relatedEvents: relationships[eventId] || [],
                         };
                         
                         return (

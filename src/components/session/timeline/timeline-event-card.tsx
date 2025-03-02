@@ -20,7 +20,7 @@ import {
 
 interface TimelineEventCardProps {
   event: {
-    id: string;
+    id: string | undefined;  // Make id optional to match TimelineEvent
     event_type: string;
     description: string;
     details?: string;

@@ -1,16 +1,19 @@
-// src/utils/timeline-utils.ts
-// Add these functions to your existing timeline-utils.ts file
+import { TimelineEvent } from '@/contexts/timeline-context';
+
+interface TimestampGroups {
+  [key: string]: TimelineEvent[];
+}
 
 /**
  * Consolidates similar events (especially symptoms) to avoid repetition
  */
-export function consolidateSimilarEvents(events: any[]): any[] {
-  const symptomsMap: Record<string, any> = {};
-  const nonSymptoms: any[] = [];
+export function consolidateSimilarEvents(events: TimelineEvent[]): TimelineEvent[] {
+  const symptomsMap: Record<string, TimelineEvent> = {};
+  const nonSymptoms: TimelineEvent[] = [];
   const usedIds = new Set<string>();
 
   // Helper function to generate unique ID
-  const generateUniqueId = (event: any, index: number): string => {
+  const generateUniqueId = (event: TimelineEvent, index: number): string => {
     const baseId = event.id || `${event.event_type}-${event.timestamp}`;
     if (!usedIds.has(baseId)) {
       usedIds.add(baseId);
@@ -24,7 +27,7 @@ export function consolidateSimilarEvents(events: any[]): any[] {
   
   events.forEach((event, index) => {
     if (event.event_type.toLowerCase() === 'symptom' && event.details) {
-      // Create a normalized key for the symptom - remove parentheses for comparison
+      // Create a normalized key for the symptom - remove parentheses content
       const symptomKey = event.details.toLowerCase()
         .replace(/\([^)]*\)/g, '') // Remove parentheses content
         .trim();
@@ -47,7 +50,7 @@ export function consolidateSimilarEvents(events: any[]): any[] {
           confidence: Math.max(symptomsMap[symptomKey].confidence, event.confidence),
           metadata: {
             ...symptomsMap[symptomKey].metadata,
-            occurrences: (symptomsMap[symptomKey].metadata?.occurrences || 1) + 1
+            occurrences: ((symptomsMap[symptomKey].metadata?.occurrences as number) || 1) + 1
           }
         };
       }
@@ -65,8 +68,8 @@ export function consolidateSimilarEvents(events: any[]): any[] {
 /**
  * Find relationships between events (e.g., symptoms and diagnoses)
  */
-export function findEventRelationships(events: any[]): Record<string, any[]> {
-  const relationships: Record<string, any[]> = {};
+export function findEventRelationships(events: TimelineEvent[]): Record<string, TimelineEvent[]> {
+  const relationships: Record<string, TimelineEvent[]> = {};
   
   // Find symptom-diagnosis relationships
   const diagnoses = events.filter(e => e.event_type.toLowerCase() === 'diagnosis');
@@ -80,8 +83,9 @@ export function findEventRelationships(events: any[]): Record<string, any[]> {
       const relatedSymptoms = symptoms.filter(symptom => {
         if (!symptom.details) return false;
         
-        return diagnosis.metadata?.supporting_evidence?.some((evidence: string) => 
-          symptom.details?.toLowerCase().includes(evidence.toLowerCase())
+        const evidence = diagnosis.metadata?.supporting_evidence as string[];
+        return evidence?.some((evidenceItem: string) => 
+          symptom.details?.toLowerCase().includes(evidenceItem.toLowerCase())
         );
       });
       
@@ -106,8 +110,8 @@ export function findEventRelationships(events: any[]): Record<string, any[]> {
 /**
  * Group events by date
  */
-export function groupEventsByDate(events: any[]): Record<string, any[]> {
-  const groups: Record<string, any[]> = {};
+export function groupEventsByDate(events: TimelineEvent[]): TimestampGroups {
+  const groups: TimestampGroups = {};
   
   events.forEach(event => {
     // Extract date part only (YYYY-MM-DD) from timestamp for grouping
@@ -138,7 +142,7 @@ export function formatDateForDisplay(dateKey: string): string {
       month: 'long',
       year: 'numeric'
     });
-  } catch (e) {
+  } catch {
     return dateKey;
   }
 }

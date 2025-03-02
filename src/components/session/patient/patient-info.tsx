@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import {
-  UserCircle,
   ChevronDown,
   ChevronUp,
   Calendar,

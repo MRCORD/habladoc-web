@@ -1,7 +1,7 @@
 // src/app/session/[sessionId]/page.tsx - Refactored with the new design system
 "use client";
 
-import { useState, Suspense, useCallback } from "react";
+import { useState, Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Mic, Sparkles, RefreshCw } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -11,7 +11,7 @@ import { useSessionStore } from "@/stores/sessionStore";
 import { ErrorMessage } from "@/components/common/error-message";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { RecordingsList } from "@/components/session/recordings/recordings-list";
 import { PatientData } from "@/components/session/patient/patient-info";

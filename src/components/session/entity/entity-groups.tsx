@@ -10,8 +10,6 @@ import {
   Filter,
   FileText,
   Beaker,
-  ArrowDown,
-  ArrowUpDown,
   SlidersHorizontal
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';

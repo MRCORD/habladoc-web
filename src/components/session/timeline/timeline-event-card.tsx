@@ -13,8 +13,6 @@ import {
   Calendar,
   ChevronDown,
   ChevronRight,
-  Check,
-  ArrowRight,
   Bookmark
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';

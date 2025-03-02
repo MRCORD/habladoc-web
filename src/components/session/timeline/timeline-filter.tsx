@@ -7,8 +7,6 @@ import {
   Stethoscope, 
   Mic, 
   BarChart2,
-  X,
-  SlidersHorizontal,
   Pill,
   Heart,
   RefreshCw,

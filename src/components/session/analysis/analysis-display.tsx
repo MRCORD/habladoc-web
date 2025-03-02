@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { 
   ChevronDown, 
-  ChevronRight, 
   ChevronUp,
   AlertTriangle, 
   FileText, 

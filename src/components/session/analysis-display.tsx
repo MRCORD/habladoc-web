@@ -23,6 +23,7 @@ import api from "@/lib/api";
 import EntityGroups from "./entity-groups";
 import { highlightEntitiesInText } from "@/utils/highlightEntities";
 import { AttributeTag, toSentenceCase } from "@/components/common/attribute-tag";
+import ConsultationTimeline, { getConfidenceInfo } from "./consultation-timeline";
 
 // Type definitions for the component
 interface EnhancedConsultationData {
@@ -304,14 +305,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
       default:
         return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800";
     }
-  };
-
-  // Helper function to get confidence level color
-  const getConfidenceColor = (confidence: number): string => {
-    if (confidence >= 0.9) return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 border-green-200 dark:border-green-800";
-    if (confidence >= 0.7) return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800";
-    if (confidence >= 0.5) return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800";
-    return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300 border-gray-200 dark:border-gray-700";
   };
 
   // Format date for timeline display
@@ -603,7 +596,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                       .map((diagnosis, idx) => (
                         <div 
                           key={idx}
-                          className={`p-3 rounded-lg border ${diagnosis.confidence ? getConfidenceColor(diagnosis.confidence) : ""}`}
+                          className={`p-3 rounded-lg border ${diagnosis.confidence ? getConfidenceInfo(diagnosis.confidence).color : ""}`}
                         >
                           <div className="flex justify-between items-center">
                             <span className="font-medium">{diagnosis.name}</span>
@@ -638,7 +631,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                       .map((symptom, idx) => (
                         <div 
                           key={idx}
-                          className={`p-3 rounded-lg border ${symptom.confidence ? getConfidenceColor(symptom.confidence) : ""}`}
+                          className={`p-3 rounded-lg border ${symptom.confidence ? getConfidenceInfo(symptom.confidence).color : ""}`}
                         >
                           <div className="flex justify-between items-center">
                             <span className="font-medium">
@@ -730,7 +723,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                       {aiPatterns.map((pattern, idx) => (
                         <div 
                           key={idx}
-                          className={`p-3 rounded-lg border ${getConfidenceColor(pattern.confidence)}`}
+                          className={`p-3 rounded-lg border ${getConfidenceInfo(pattern.confidence).color}`}
                         >
                           <div className="flex justify-between items-center mb-1">
                             <span className="font-medium">
@@ -1097,7 +1090,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                       aiPatterns.map((pattern, idx) => (
                         <div 
                           key={idx}
-                          className={`p-3 rounded-lg border ${getConfidenceColor(pattern.confidence)}`}
+                          className={`p-3 rounded-lg border ${getConfidenceInfo(pattern.confidence).color}`}
                         >
                           <div className="flex justify-between items-center mb-1">
                             <span className="font-medium">
@@ -1129,70 +1122,11 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
 
               {/* Timeline section */}
               {aiTimeline && aiTimeline.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                      <Clock className="h-5 w-5 text-blue-500 mr-2" />
-                      Cronología de Eventos
-                    </h3>
-                    <button 
-                      onClick={() => toggleSection('Timeline')}
-                      className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
-                    >
-                      {collapsedSections.Timeline ? (
-                        <ChevronDown className="h-5 w-5" />
-                      ) : (
-                        <ChevronUp className="h-5 w-5" />
-                      )}
-                    </button>
-                  </div>
-                  
-                  {!collapsedSections.Timeline && (
-                    <div className="relative">
-                      {/* Timeline line */}
-                      <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-blue-200 dark:bg-blue-900"></div>
-                      
-                      {/* Timeline events */}
-                      <div className="space-y-4 ml-10">
-                        {aiTimeline.map((event, idx) => (
-                          <div key={idx} className="relative pb-6">
-                            {/* Timeline marker */}
-                            <div className="absolute -left-10 mt-1.5">
-                              <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white dark:border-gray-800"></div>
-                            </div>
-                            
-                            {/* Event content */}
-                            <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-                              <div className="flex justify-between mb-1">
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                  {formatDate(event.timestamp)}
-                                </span>
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                  getConfidenceColor(event.confidence).replace('border', '')}`
-                                }>
-                                  {Math.round(event.confidence * 100)}%
-                                </span>
-                              </div>
-                              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                {event.description}
-                              </p>
-                              {event.details && (
-                                <p className="text-xs text-gray-600 dark:text-gray-300 mt-1">
-                                  {event.details}
-                                </p>
-                              )}
-                              {event.event_type && (
-                                <span className="inline-block mt-2 text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-                                  {event.event_type}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <ConsultationTimeline
+                  events={aiTimeline}
+                  isCollapsed={collapsedSections.Timeline}
+                  onToggleCollapse={() => toggleSection('Timeline')}
+                />
               )}
 
               {/* Suggestions section - Show only if there are suggestions */}

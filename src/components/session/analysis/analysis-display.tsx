@@ -19,6 +19,16 @@ import {
 } from "lucide-react";
 import { ErrorMessage } from "@/components/common/error-message";
 import { AnalysisDisplaySkeleton } from "@/components/common/loading-skeletons";
+import { 
+  Card, 
+  CardHeader, 
+  CardTitle, 
+  CardContent 
+} from "@/components/ui/card";
+import { Section } from "@/components/ui/section";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import api from "@/lib/api";
 import EntityGroups from "../entity/entity-groups";
 import { highlightEntitiesInText } from "@/utils/highlightEntities";
@@ -171,6 +181,13 @@ const convertToSectionData = (section?: SoapSection): SectionData => {
   };
 };
 
+// Map risks severity to badge variants
+const severityToBadgeVariant = {
+  'high': 'danger',
+  'moderate': 'warning',
+  'low': 'info'
+} as const;
+
 export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
   const [enhancedData, setEnhancedData] = useState<EnhancedConsultationData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -284,18 +301,70 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
     }));
   };
 
-  // Helper function to get risk severity color
-  const getRiskSeverityColor = (severity: string): string => {
-    switch (severity) {
-      case 'high':
-        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 border-red-200 dark:border-red-800";
-      case 'moderate':
-        return "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 border-orange-200 dark:border-orange-800";
-      case 'low':
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800";
-      default:
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 border-blue-200 dark:border-blue-800";
-    }
+  // Enhanced risk display with categories
+  const renderEnhancedRisks = (risks: RiskItem[]) => {
+    // Categorize risks
+    const risksByCategory = risks.reduce((acc, risk) => {
+      const category = risk.category || 'clinical';
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(risk);
+      return acc;
+    }, {} as Record<string, RiskItem[]>);
+    
+    return (
+      <div className="space-y-6">
+        {Object.entries(risksByCategory).map(([category, categoryRisks]) => (
+          <div key={category} className="space-y-3">
+            <h5 className="font-medium text-neutral-900 dark:text-neutral-100 capitalize">
+              {category === 'clinical' ? 'Riesgos Clínicos' :
+               category === 'medication' ? 'Riesgos de Medicación' :
+               category === 'adherence' ? 'Riesgos de Adherencia' :
+               'Otros Riesgos'}
+            </h5>
+            
+            {categoryRisks.map((risk, idx) => (
+              <Card key={idx} variant="default" highlight={severityToBadgeVariant[risk.severity] || 'danger'}>
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="h-5 w-5 text-danger-500 dark:text-danger-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="font-medium">{risk.description}</div>
+                        <Badge 
+                          variant={severityToBadgeVariant[risk.severity] || 'danger'}
+                          size="sm"
+                        >
+                          {risk.severity === 'high' ? 'Alto' :
+                           risk.severity === 'moderate' ? 'Moderado' : 'Bajo'}
+                        </Badge>
+                      </div>
+                      
+                      {risk.recommendation && (
+                        <div className="flex items-start gap-2 p-2 bg-primary-50 dark:bg-primary-900/20 rounded text-sm mt-2">
+                          <CheckCircle className="h-4 w-4 text-primary-500 mt-0.5" />
+                          <div>{risk.recommendation}</div>
+                        </div>
+                      )}
+                      
+                      {risk.evidence && risk.evidence.length > 0 && (
+                        <div className="mt-2 text-xs text-neutral-600 dark:text-neutral-400">
+                          <strong>Evidencia:</strong>
+                          <ul className="mt-1 space-y-1 pl-4">
+                            {risk.evidence.map((ev, evIdx) => (
+                              <li key={evIdx} className="list-disc list-outside">{ev}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ))}
+      </div>
+    );
   };
 
   // Get all symptoms from various sections
@@ -351,84 +420,9 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
     return relationships;
   };
 
-  // Enhanced risk display with categories
-  const renderEnhancedRisks = (risks: RiskItem[]) => {
-    // Categorize risks
-    const risksByCategory = risks.reduce((acc, risk) => {
-      const category = risk.category || 'clinical';
-      if (!acc[category]) acc[category] = [];
-      acc[category].push(risk);
-      return acc;
-    }, {} as Record<string, RiskItem[]>);
-    
-    return (
-      <div className="space-y-6">
-        {Object.entries(risksByCategory).map(([category, categoryRisks]) => (
-          <div key={category} className="space-y-3">
-            <h5 className="font-medium text-gray-900 dark:text-gray-100 capitalize">
-              {category === 'clinical' ? 'Riesgos Clínicos' :
-               category === 'medication' ? 'Riesgos de Medicación' :
-               category === 'adherence' ? 'Riesgos de Adherencia' :
-               'Otros Riesgos'}
-            </h5>
-            
-            {categoryRisks.map((risk, idx) => (
-              <div key={idx} className={`p-4 rounded-lg border ${getRiskSeverityColor(risk.severity)}`}>
-                <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-red-500 dark:text-red-400 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="font-medium">{risk.description}</div>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        risk.severity === 'high' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' :
-                        risk.severity === 'moderate' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300' :
-                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300'
-                      }`}>
-                        {risk.severity === 'high' ? 'Alto' :
-                         risk.severity === 'moderate' ? 'Moderado' : 'Bajo'}
-                      </span>
-                    </div>
-                    
-                    {risk.recommendation && (
-                      <div className="flex items-start gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded text-sm mt-2">
-                        <CheckCircle className="h-4 w-4 text-blue-500 mt-0.5" />
-                        <div>{risk.recommendation}</div>
-                      </div>
-                    )}
-                    
-                    {risk.evidence && risk.evidence.length > 0 && (
-                      <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
-                        <strong>Evidencia:</strong>
-                        <ul className="mt-1 space-y-1 pl-4">
-                          {risk.evidence.map((ev, evIdx) => (
-                            <li key={evIdx} className="list-disc list-outside">{ev}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   if (isLoading) return <AnalysisDisplaySkeleton />;
   if (error) return <ErrorMessage message={error} />;
 
-  // Enhanced tabs for more clinical context
-  const tabs = [
-    { id: "summary", label: "Resumen", icon: <FileText className="h-4 w-4" /> },
-    { id: "subjective", label: "Subjetiva", icon: <MessageCircle className="h-4 w-4" /> },
-    { id: "objective", label: "Objetiva", icon: <Activity className="h-4 w-4" /> },
-    { id: "assessment", label: "Diagnóstica", icon: <Stethoscope className="h-4 w-4" /> },
-    { id: "plan", label: "Plan", icon: <CheckCircle className="h-4 w-4" /> },
-    { id: "insights", label: "Análisis IA", icon: <Brain className="h-4 w-4" /> }
-  ];
-  
   // Extract key data from the enhanced consultation
   const soapSubjective = enhancedData?.soap_subjective || {};
   const soapObjective = enhancedData?.soap_objective || {};
@@ -459,697 +453,745 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
   return (
     <div className="space-y-6">
       {/* Top nav tabs */}
-      <div className="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-2 border border-gray-200 dark:border-gray-700">
-        <div className="flex overflow-x-auto space-x-1">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                activeTab === tab.id
-                  ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              }`}
-            >
-              {tab.icon}
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
+      <Card variant="default" className="p-2">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="w-full">
+            <TabsTrigger value="summary" className="flex items-center gap-1.5">
+              <FileText className="h-4 w-4" />
+              <span>Resumen</span>
+            </TabsTrigger>
+            <TabsTrigger value="subjective" className="flex items-center gap-1.5">
+              <MessageCircle className="h-4 w-4" />
+              <span>Subjetiva</span>
+            </TabsTrigger>
+            <TabsTrigger value="objective" className="flex items-center gap-1.5">
+              <Activity className="h-4 w-4" />
+              <span>Objetiva</span>
+            </TabsTrigger>
+            <TabsTrigger value="assessment" className="flex items-center gap-1.5">
+              <Stethoscope className="h-4 w-4" />
+              <span>Diagnóstica</span>
+            </TabsTrigger>
+            <TabsTrigger value="plan" className="flex items-center gap-1.5">
+              <CheckCircle className="h-4 w-4" />
+              <span>Plan</span>
+            </TabsTrigger>
+            <TabsTrigger value="insights" className="flex items-center gap-1.5">
+              <Brain className="h-4 w-4" />
+              <span>Análisis IA</span>
+            </TabsTrigger>
+          </TabsList>
 
-      {!enhancedData ? (
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-8 text-center">
-          <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700 mb-4">
-            <Lightbulb className="h-6 w-6 text-gray-600 dark:text-gray-400" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            No hay análisis disponible
-          </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto mb-4">
-            El análisis de la consulta se generará automáticamente una vez que las grabaciones sean procesadas.
-          </p>
-          <div className="inline-flex items-center text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-3 py-1.5 rounded-full">
-            <Clock className="h-3.5 w-3.5 mr-1.5" />
-            Esperando procesamiento...
-          </div>
-        </div>
-      ) : (
-        <>
-          {/* SUMMARY TAB */}
-          {activeTab === "summary" && (
-            <div className="space-y-6">
-              {/* Confidence score - similar to original */}
-              {enhancedData.ai_confidence !== undefined && (
-                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-4 border-l-4 border-blue-500">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                      <BarChart2 className="h-5 w-5 text-blue-500 mr-2" />
-                      Confianza Global
-                    </h3>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-32 h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full ${
-                            enhancedData.ai_confidence >= 0.8 ? 'bg-green-500' : 
-                            enhancedData.ai_confidence >= 0.6 ? 'bg-blue-500' : 
-                            'bg-yellow-500'
-                          }`}
-                          style={{ width: `${Math.round(enhancedData.ai_confidence * 100)}%` }}
-                        ></div>
-                      </div>
-                      <span className="text-sm font-medium">
-                        {Math.round(enhancedData.ai_confidence * 100)}%
-                      </span>
-                    </div>
-                  </div>
+          {/* Wrap all TabsContent components inside Tabs */}
+          {!enhancedData ? (
+            <Card variant="default">
+              <CardContent className="p-8 text-center">
+                <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 mb-4">
+                  <Lightbulb className="h-6 w-6 text-neutral-600 dark:text-neutral-400" />
                 </div>
-              )}
-              
-              {/* High priority alerts - similar to original */}
-              {highPriorityRisks.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 border-l-4 border-red-500">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                    <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
-                    Alertas Críticas
-                  </h3>
-                  <div className="space-y-4">
-                    {highPriorityRisks.map((risk, index) => (
-                      <div 
-                        key={index}
-                        className={`p-4 rounded-lg border ${getRiskSeverityColor(risk.severity)}`}
-                      >
-                        <div className="flex items-start">
-                          <AlertTriangle className="h-5 w-5 text-red-500 mr-2 mt-0.5" />
-                          <div>
-                            <h4 className="font-medium">{risk.description}</h4>
-                            {risk.recommendation && (
-                              <p className="mt-1 text-sm font-medium">
-                                Recomendación: {risk.recommendation}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Summary cards - similar to original but enhanced */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Key diagnoses */}
-                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                    <Stethoscope className="h-5 w-5 text-blue-500 mr-2" />
-                    Diagnósticos Principales
-                  </h3>
-                  <div className="space-y-3">
-                    {soapAssessment?.components?.clinical_impression?.content?.diagnoses
-                      ?.filter(d => d.confidence && d.confidence >= 0.7)
-                      .map((diagnosis, idx) => (
-                        <div 
-                          key={idx}
-                          className={`p-3 rounded-lg border ${diagnosis.confidence ? getConfidenceInfo(diagnosis.confidence).colorClass : ""}`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium">{diagnosis.name}</span>
-                            <span className="text-xs bg-white dark:bg-gray-700 px-2 py-1 rounded-full">
-                              {Math.round((diagnosis.confidence || 0) * 100)}% confianza
-                            </span>
-                          </div>
-                          {diagnosis.location && (
-                            <div className="mt-1 text-sm">
-                              <AttributeTag label="Ubicación" value={diagnosis.location} />
-                            </div>
-                          )}
-                        </div>
-                      )) || (
-                      <p className="text-gray-500 dark:text-gray-400 italic">
-                        No hay diagnósticos principales
-                      </p>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Key symptoms */}
-                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                    <Activity className="h-5 w-5 text-red-500 mr-2" />
-                    Síntomas Clave
-                  </h3>
-                  <div className="space-y-3">
-                    {allSymptoms
-                      ?.filter(s => s.confidence && s.confidence >= 0.8)
-                      .slice(0, 5)
-                      .map((symptom, idx) => (
-                        <div 
-                          key={idx}
-                          className={`p-3 rounded-lg border ${symptom.confidence ? getConfidenceInfo(symptom.confidence).colorClass : ""}`}
-                        >
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium">
-                              {symptom.status === "active" && "● "}{symptom.name}
-                            </span>
-                            <span className="text-xs bg-white dark:bg-gray-700 px-2 py-1 rounded-full">
-                              {Math.round((symptom.confidence || 0) * 100)}% confianza
-                            </span>
-                          </div>
-                          <div className="mt-1 flex flex-wrap gap-1">
-                            {symptom.duration && (
-                              <AttributeTag label="Duración" value={symptom.duration} />
-                            )}
-                            {symptom.intensity && (
-                              <AttributeTag label="Intensidad" value={symptom.intensity} />
-                            )}
-                            {symptom.location && (
-                              <AttributeTag label="Ubicación" value={symptom.location} />
-                            )}
-                          </div>
-                        </div>
-                      )) || (
-                      <p className="text-gray-500 dark:text-gray-400 italic">
-                        No hay síntomas principales
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-              
-              {/* Clinical Relationships */}
-              {clinicalRelationships.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                    <Filter className="h-5 w-5 text-indigo-500 mr-2" />
-                    Relaciones Clínicas
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    {clinicalRelationships.map((rel, idx) => (
-                      <div key={idx} className="p-3 border border-indigo-200 dark:border-indigo-800 rounded-lg 
-                                             bg-indigo-50 dark:bg-indigo-900/20">
-                        <div className="font-medium text-gray-900 dark:text-gray-100 mb-2 flex items-center justify-between">
-                          <div>{rel.diagnosis.name}</div>
-                          <span className="text-xs bg-white dark:bg-gray-700 px-2 py-1 rounded-full">
-                            {Math.round((rel.diagnosis.confidence || 0) * 100)}% confianza
-                          </span>
-                        </div>
-                        <div className="pl-4 border-l-2 border-indigo-300 dark:border-indigo-700">
-                          <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Síntomas relacionados:</div>
-                          <div className="flex flex-wrap gap-2">
-                            {rel.symptoms.map((symptom, i) => (
-                              <span key={i} className="px-2 py-1 text-xs bg-white dark:bg-gray-800 
-                                                    rounded-md border border-gray-200 dark:border-gray-700">
-                                {symptom.name}
-                                {symptom.intensity && <span className="ml-1">({symptom.intensity})</span>}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Patterns & connections */}
-              {aiPatterns.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                      <Filter className="h-5 w-5 text-purple-500 mr-2" />
-                      Patrones y Conexiones
-                    </h3>
-                    <button 
-                      onClick={() => toggleSection('Patterns')}
-                      className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
-                    >
-                      {collapsedSections.Patterns ? (
-                        <ChevronDown className="h-5 w-5" />
-                      ) : (
-                        <ChevronRight className="h-5 w-5" />
-                      )}
-                    </button>
-                  </div>
-                  
-                  {!collapsedSections.Patterns && (
-                    <div className="space-y-3">
-                      {aiPatterns.map((pattern, idx) => (
-                        <div 
-                          key={idx}
-                          className={`p-3 rounded-lg border ${getConfidenceInfo(pattern.confidence).colorClass}`}
-                        >
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-medium">
-                              {pattern.type === 'clinical_correlation' ? 'Correlación Clínica' : 
-                              pattern.type === 'medication_effect' ? 'Efecto del Medicamento' : 
-                              pattern.type === 'symptom_progression' ? 'Progresión de Síntomas' :
-                              'Patrón Identificado'}
-                            </span>
-                            <span className="text-xs bg-white dark:bg-gray-700 px-2 py-1 rounded-full">
-                              {Math.round(pattern.confidence * 100)}% confianza
-                            </span>
-                          </div>
-                          <p className="text-sm">{pattern.description}</p>
-                          {pattern.evidence && pattern.evidence.length > 0 && (
-                            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                              <strong>Evidencia:</strong> {pattern.evidence.join(', ')}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-          
-          {/* SUBJECTIVE TAB - Enhanced with proper header hierarchy */}
-          {activeTab === "subjective" && (
-            <div className="space-y-6">
-              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
-                    <MessageCircle className="h-5 w-5 mr-2" />
-                    Evaluación subjetiva
-                  </h2>
-                  <button 
-                    onClick={() => toggleSection('Subjective')}
-                    className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
-                  >
-                    {collapsedSections.Subjective ? (
-                      <ChevronDown className="h-5 w-5" />
-                    ) : (
-                      <ChevronUp className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-                
-                {/* Summary section */}
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6 text-gray-900 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
-                  {soapSubjective.summary ? (
-                    <div>
-                      {highlightEntitiesInText(soapSubjective.summary, allEntities)}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 dark:text-gray-400 italic">
-                      No hay datos subjetivos disponibles.
-                    </p>
-                  )}
-                </div>
-              </div>
-              
-              {/* Entities section - with a single, unified header */}
-              {!collapsedSections.Subjective && (
-                <EntityGroups
-                  sectionData={subjectiveData}
-                  soapSection="subjective"
-                  showTitle={true}
-                  filter={entityFilter}
-                  setFilter={setEntityFilter}
-                />
-              )}
-            </div>
-          )}
-          
-          {/* OBJECTIVE TAB */}
-          {activeTab === "objective" && (
-            <div className="space-y-6">
-              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
-                    <Activity className="h-5 w-5 mr-2" />
-                    Evaluación objetiva
-                  </h2>
-                  <button 
-                    onClick={() => toggleSection('Objective')}
-                    className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
-                  >
-                    {collapsedSections.Objective ? (
-                      <ChevronDown className="h-5 w-5" />
-                    ) : (
-                      <ChevronUp className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-                
-                {/* Summary section */}
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6 text-gray-900 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
-                  {soapObjective.summary ? (
-                    <div>{highlightEntitiesInText(soapObjective.summary, allEntities)}</div>
-                  ) : (
-                    <p className="text-gray-500 dark:text-gray-400 italic">
-                      No hay datos objetivos disponibles.
-                    </p>
-                  )}
-                </div>
-              </div>
-              
-              {/* Entities section - with a single, unified header */}
-              {!collapsedSections.Objective && (
-                <EntityGroups
-                  sectionData={objectiveData}
-                  soapSection="objective"
-                  showTitle={true}
-                  filter={entityFilter}
-                  setFilter={setEntityFilter}
-                />
-              )}
-            </div>
-          )}
-          
-          {/* ASSESSMENT TAB */}
-          {activeTab === "assessment" && (
-            <div className="space-y-6">
-              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
-                    <Stethoscope className="h-5 w-5 mr-2" />
-                    Evaluación diagnóstica
-                  </h2>
-                  <button 
-                    onClick={() => toggleSection('Assessment')}
-                    className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
-                  >
-                    {collapsedSections.Assessment ? (
-                      <ChevronDown className="h-5 w-5" />
-                    ) : (
-                      <ChevronUp className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-                
-                {/* Summary section */}
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6 text-gray-900 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
-                  {soapAssessment.summary ? (
-                    <div>
-                      {highlightEntitiesInText(soapAssessment.summary, allEntities)}
-                    </div>
-                  ) : (
-                    <p className="text-gray-500 dark:text-gray-400 italic">
-                      No hay datos de evaluación diagnóstica disponibles.
-                    </p>
-                  )}
-                </div>
-              </div>
-              
-              {/* Entities section - with a single, unified header */}
-              {!collapsedSections.Assessment && (
+                <CardTitle className="mb-2">No hay análisis disponible</CardTitle>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto mb-4">
+                  El análisis de la consulta se generará automáticamente una vez que las grabaciones sean procesadas.
+                </p>
+                <Badge variant="default" className="inline-flex items-center">
+                  <Clock className="h-3.5 w-3.5 mr-1.5" />
+                  <span>Esperando procesamiento...</span>
+                </Badge>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              <TabsContent value="summary" className="mt-0">
                 <div className="space-y-6">
-                  <EntityGroups
-                    sectionData={assessmentData}
-                    soapSection="assessment"
-                    showTitle={true}
-                    filter={entityFilter}
-                    setFilter={setEntityFilter}
-                  />
-                
-                  {/* Clinical Relationships */}
-                  {clinicalRelationships.length > 0 && (
-                    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                        <Filter className="h-5 w-5 text-indigo-500 mr-2" />
-                        Relaciones Diagnósticas
-                      </h3>
-                      
-                      <div className="space-y-4">
-                        {clinicalRelationships.map((rel, idx) => (
-                          <div key={idx} className="p-3 border border-blue-200 dark:border-blue-800 rounded-lg 
-                                                 bg-blue-50 dark:bg-blue-900/20">
-                            <div className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                              {rel.diagnosis.name}
+                  {/* Confidence score panel */}
+                  {enhancedData.ai_confidence !== undefined && (
+                    <Card variant="default" highlight="primary">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <BarChart2 className="h-5 w-5 text-primary-500" />
+                            <CardTitle>Confianza Global</CardTitle>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-32 h-3 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+                              <div 
+                                className={`h-full ${
+                                  enhancedData.ai_confidence >= 0.8 ? 'bg-success-500' : 
+                                  enhancedData.ai_confidence >= 0.6 ? 'bg-primary-500' : 
+                                  'bg-warning-500'
+                                }`}
+                                style={{ width: `${Math.round(enhancedData.ai_confidence * 100)}%` }}
+                              ></div>
                             </div>
-                            <div className="pl-4 border-l-2 border-blue-300 dark:border-blue-700">
-                              <div className="text-sm text-gray-600 dark:text-gray-300 mb-1">Síntomas relacionados:</div>
-                              <div className="flex flex-wrap gap-2">
-                                {rel.symptoms.map((symptom, i) => (
-                                  <span key={i} className="px-2 py-1 text-xs bg-white dark:bg-gray-800 
-                                                        rounded-full border border-gray-200 dark:border-gray-700">
+                            <span className="text-sm font-medium">
+                              {Math.round(enhancedData.ai_confidence * 100)}%
+                            </span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                    
+                  {/* High priority alerts */}
+                  {highPriorityRisks.length > 0 && (
+                    <Card variant="default" highlight="danger">
+                      <CardHeader>
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle className="h-5 w-5 text-danger-500" />
+                          <CardTitle>Alertas Críticas</CardTitle>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {highPriorityRisks.map((risk, index) => (
+                          <Card 
+                            key={index}
+                            variant="bordered"
+                            highlight={severityToBadgeVariant[risk.severity]}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-start">
+                                <AlertTriangle className="h-5 w-5 text-danger-500 mr-2 mt-0.5" />
+                                <div>
+                                  <h4 className="font-medium">{risk.description}</h4>
+                                  {risk.recommendation && (
+                                    <p className="mt-1 text-sm font-medium">
+                                      Recomendación: {risk.recommendation}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
+                    
+                  {/* Summary cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Key diagnoses */}
+                    <Card variant="default">
+                      <CardHeader>
+                        <div className="flex items-center gap-2">
+                          <Stethoscope className="h-5 w-5 text-primary-500" />
+                          <CardTitle>Diagnósticos Principales</CardTitle>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {soapAssessment?.components?.clinical_impression?.content?.diagnoses
+                          ?.filter(d => d.confidence && d.confidence >= 0.7)
+                          .map((diagnosis, idx) => (
+                            <Card 
+                              key={idx}
+                              variant="flat"
+                              className={`${diagnosis.confidence ? getConfidenceInfo(diagnosis.confidence).colorClass : ""}`}
+                            >
+                              <CardContent className="p-3">
+                                <div className="flex justify-between items-center">
+                                  <span className="font-medium">{diagnosis.name}</span>
+                                  <Badge variant="default" size="sm">
+                                    {Math.round((diagnosis.confidence || 0) * 100)}% confianza
+                                  </Badge>
+                                </div>
+                                {diagnosis.location && (
+                                  <div className="mt-1 text-sm">
+                                    <AttributeTag label="Ubicación" value={diagnosis.location} />
+                                  </div>
+                                )}
+                              </CardContent>
+                            </Card>
+                          )) || (
+                          <p className="text-neutral-500 dark:text-neutral-400 italic">
+                            No hay diagnósticos principales
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                      
+                    {/* Key symptoms */}
+                    <Card variant="default">
+                      <CardHeader>
+                        <div className="flex items-center gap-2">
+                          <Activity className="h-5 w-5 text-danger-500" />
+                          <CardTitle>Síntomas Clave</CardTitle>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {allSymptoms
+                          ?.filter(s => s.confidence && s.confidence >= 0.8)
+                          .slice(0, 5)
+                          .map((symptom, idx) => (
+                            <Card 
+                              key={idx}
+                              variant="flat"
+                              className={`${symptom.confidence ? getConfidenceInfo(symptom.confidence).colorClass : ""}`}
+                            >
+                              <CardContent className="p-3">
+                                <div className="flex justify-between items-center">
+                                  <span className="font-medium">
+                                    {symptom.status === "active" && 
+                                      <span className="text-primary-500 mr-1">●</span>}
                                     {symptom.name}
                                   </span>
-                                ))}
+                                  <Badge variant="default" size="sm">
+                                    {Math.round((symptom.confidence || 0) * 100)}% confianza
+                                  </Badge>
+                                </div>
+                                <div className="mt-1 flex flex-wrap gap-1">
+                                  {symptom.duration && (
+                                    <AttributeTag label="Duración" value={symptom.duration} />
+                                  )}
+                                  {symptom.intensity && (
+                                    <AttributeTag label="Intensidad" value={symptom.intensity} />
+                                  )}
+                                  {symptom.location && (
+                                    <AttributeTag label="Ubicación" value={symptom.location} />
+                                  )}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          )) || (
+                          <p className="text-neutral-500 dark:text-neutral-400 italic">
+                            No hay síntomas principales
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                    
+                  {/* Clinical Relationships */}
+                  {clinicalRelationships.length > 0 && (
+                    <Card variant="default">
+                      <CardHeader>
+                        <div className="flex items-center gap-2">
+                          <Filter className="h-5 w-5 text-info-500" />
+                          <CardTitle>Relaciones Clínicas</CardTitle>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {clinicalRelationships.map((rel, idx) => (
+                          <Card 
+                            key={idx}
+                            variant="flat"
+                            className="bg-info-50 dark:bg-info-900/20 border-info-200 dark:border-info-800"
+                          >
+                            <CardContent className="p-3">
+                              <div className="font-medium text-neutral-900 dark:text-neutral-100 mb-2 flex items-center justify-between">
+                                <div>{rel.diagnosis.name}</div>
+                                <Badge variant="default" size="sm">
+                                  {Math.round((rel.diagnosis.confidence || 0) * 100)}% confianza
+                                </Badge>
                               </div>
-                            </div>
-                          </div>
+                              <div className="pl-4 border-l-2 border-info-300 dark:border-info-700">
+                                <div className="text-sm text-neutral-600 dark:text-neutral-300 mb-1">Síntomas relacionados:</div>
+                                <div className="flex flex-wrap gap-2">
+                                  {rel.symptoms.map((symptom, i) => (
+                                    <Badge key={i} variant="default" size="sm">
+                                      {symptom.name}
+                                      {symptom.intensity && <span className="ml-1">({symptom.intensity})</span>}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )}
+                    
+                  {/* Patterns & connections */}
+                  {aiPatterns.length > 0 && (
+                    <Section
+                      title="Patrones y Conexiones"
+                      icon={<Filter className="h-5 w-5 text-warning-500" />}
+                      isCollapsible={true}
+                      defaultCollapsed={collapsedSections.Patterns}
+                      actions={
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => toggleSection('Patterns')}
+                          className="h-8 w-8"
+                        >
+                          {collapsedSections.Patterns ? (
+                            <ChevronDown className="h-5 w-5" />
+                          ) : (
+                            <ChevronUp className="h-5 w-5" />
+                          )}
+                        </Button>
+                      }
+                    >
+                      <div className="space-y-3">
+                        {aiPatterns.map((pattern, idx) => (
+                          <Card
+                            key={idx}
+                            variant="flat"
+                            className={`${getConfidenceInfo(pattern.confidence).colorClass}`}
+                          >
+                            <CardContent className="p-3">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="font-medium">
+                                  {pattern.type === 'clinical_correlation' ? 'Correlación Clínica' : 
+                                  pattern.type === 'medication_effect' ? 'Efecto del Medicamento' : 
+                                  pattern.type === 'symptom_progression' ? 'Progresión de Síntomas' :
+                                  'Patrón Identificado'}
+                                </span>
+                                <Badge variant="default" size="sm">
+                                  {Math.round(pattern.confidence * 100)}% confianza
+                                </Badge>
+                              </div>
+                              <p className="text-sm">{pattern.description}</p>
+                              {pattern.evidence && pattern.evidence.length > 0 && (
+                                <div className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+                                  <strong>Evidencia:</strong> {pattern.evidence.join(', ')}
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
                         ))}
                       </div>
-                    </div>
+                    </Section>
                   )}
                 </div>
-              )}
-            </div>
-          )}
-          
-          {/* PLAN TAB */}
-          {activeTab === "plan" && (
-            <div className="space-y-6">
-              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center">
-                    <CheckCircle className="h-5 w-5 mr-2" />
-                    Plan de Tratamiento
-                  </h2>
-                  <button 
-                    onClick={() => toggleSection('Plan')}
-                    className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
-                  >
-                    {collapsedSections.Plan ? (
-                      <ChevronDown className="h-5 w-5" />
-                    ) : (
-                      <ChevronUp className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-                
-                {/* Summary section */}
-                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6 text-gray-900 dark:text-gray-200 border border-gray-200 dark:border-gray-600">
-                  {soapPlan?.summary ? (
-                    <div>{highlightEntitiesInText(soapPlan.summary, allEntities)}</div>
-                  ) : (
-                    <p className="text-gray-500 dark:text-gray-400 italic">
-                      No hay información del plan disponible.
-                    </p>
-                  )}
-                </div>
-              </div>
+              </TabsContent>
               
-              {/* Entities section - with a single, unified header */}
-              {!collapsedSections.Plan && (
+              <TabsContent value="subjective" className="mt-0">
                 <div className="space-y-6">
-                  <EntityGroups
-                    sectionData={planData}
-                    soapSection="plan"
-                    showTitle={true}
-                    filter={entityFilter}
-                    setFilter={setEntityFilter}
-                  />
-                  
-                  {/* Treatment Recommendations */}
-                  {soapPlan?.components?.therapeutic_plan && (
-                    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                        <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                        Recomendaciones de Tratamiento
-                      </h3>
-                      
-                      <div className="space-y-4">
-                        {Object.entries(soapPlan.components.therapeutic_plan.content || {}).map(([key, plan]) => {
-                          if (!plan || typeof plan !== 'object' || 
-                              key === 'medications' || Array.isArray(plan)) return null;
-                          
-                          return (
-                            <div key={key} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                              <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-2 capitalize">
-                                {toSentenceCase(key.replace('_', ' '))}
-                              </h5>
-                              <div className="text-sm text-gray-700 dark:text-gray-300">
-                                {JSON.stringify(plan)}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Suggested Follow-up */}
-                  {aiSuggestions && aiSuggestions.filter(s => s.type === 'follow_up').length > 0 && (
-                    <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                        <Calendar className="h-5 w-5 text-blue-500 mr-2" />
-                        Seguimiento Recomendado
-                      </h3>
-                      
-                      <div className="space-y-3">
-                        {aiSuggestions
-                          .filter(s => s.type === 'follow_up' || s.text.toLowerCase().includes('seguimiento'))
-                          .map((suggestion, idx) => (
-                            <div 
-                              key={idx}
-                              className="p-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20"
-                            >
-                              <div className="flex items-center mb-1 gap-2">
-                                <Calendar className="h-4 w-4 text-blue-500" />
-                                <span className="font-medium">Seguimiento</span>
-                              </div>
-                              <p className="text-sm">{suggestion.text}</p>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-          
-          {/* AI INSIGHTS TAB - Enhanced with better organization */}
-          {activeTab === "insights" && (
-            <div className="space-y-6">
-              {/* Risks section - Enhanced with categories */}
-              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                    <AlertTriangle className="h-5 w-5 text-red-500 mr-2" />
-                    Riesgos Identificados
-                  </h3>
-                  <button 
-                    onClick={() => toggleSection('Risks')}
-                    className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
+                  <Section
+                    title="Evaluación subjetiva"
+                    icon={<MessageCircle className="h-5 w-5" />}
+                    isCollapsible={true}
+                    defaultCollapsed={collapsedSections.Subjective}
+                    actions={
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleSection('Subjective')}
+                        className="h-8 w-8"
+                      >
+                        {collapsedSections.Subjective ? (
+                          <ChevronDown className="h-5 w-5" />
+                        ) : (
+                          <ChevronUp className="h-5 w-5" />
+                        )}
+                      </Button>
+                    }
                   >
-                    {collapsedSections.Risks ? (
-                      <ChevronDown className="h-5 w-5" />
-                    ) : (
-                      <ChevronUp className="h-5 w-5" />
-                    )}
-                  </button>
+                    <div className="bg-neutral-50 dark:bg-neutral-900 p-4 rounded-lg text-neutral-900 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700">
+                      {soapSubjective.summary ? (
+                        <div>
+                          {highlightEntitiesInText(soapSubjective.summary, allEntities)}
+                        </div>
+                      ) : (
+                        <p className="text-neutral-500 dark:text-neutral-400 italic">
+                          No hay datos subjetivos disponibles.
+                        </p>
+                      )}
+                    </div>
+                  </Section>
+                  
+                  {/* Entities section */}
+                  {!collapsedSections.Subjective && (
+                    <EntityGroups
+                      sectionData={subjectiveData}
+                      soapSection="subjective"
+                      showTitle={true}
+                      filter={entityFilter}
+                      setFilter={setEntityFilter}
+                    />
+                  )}
                 </div>
-                
-                {!collapsedSections.Risks && (
-                  <>
+              </TabsContent>
+              
+              <TabsContent value="objective" className="mt-0">
+                <div className="space-y-6">
+                  <Section
+                    title="Evaluación objetiva"
+                    icon={<Activity className="h-5 w-5" />}
+                    isCollapsible={true}
+                    defaultCollapsed={collapsedSections.Objective}
+                    actions={
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleSection('Objective')}
+                        className="h-8 w-8"
+                      >
+                        {collapsedSections.Objective ? (
+                          <ChevronDown className="h-5 w-5" />
+                        ) : (
+                          <ChevronUp className="h-5 w-5" />
+                        )}
+                      </Button>
+                    }
+                  >
+                    <div className="bg-neutral-50 dark:bg-neutral-900 p-4 rounded-lg text-neutral-900 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700">
+                      {soapObjective.summary ? (
+                        <div>{highlightEntitiesInText(soapObjective.summary, allEntities)}</div>
+                      ) : (
+                        <p className="text-neutral-500 dark:text-neutral-400 italic">
+                          No hay datos objetivos disponibles.
+                        </p>
+                      )}
+                    </div>
+                  </Section>
+                  
+                  {/* Entities section */}
+                  {!collapsedSections.Objective && (
+                    <EntityGroups
+                      sectionData={objectiveData}
+                      soapSection="objective"
+                      showTitle={true}
+                      filter={entityFilter}
+                      setFilter={setEntityFilter}
+                    />
+                  )}
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="assessment" className="mt-0">
+                <div className="space-y-6">
+                  <Section
+                    title="Evaluación diagnóstica"
+                    icon={<Stethoscope className="h-5 w-5" />}
+                    isCollapsible={true}
+                    defaultCollapsed={collapsedSections.Assessment}
+                    actions={
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleSection('Assessment')}
+                        className="h-8 w-8"
+                      >
+                        {collapsedSections.Assessment ? (
+                          <ChevronDown className="h-5 w-5" />
+                        ) : (
+                          <ChevronUp className="h-5 w-5" />
+                        )}
+                      </Button>
+                    }
+                  >
+                    <div className="bg-neutral-50 dark:bg-neutral-900 p-4 rounded-lg text-neutral-900 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700">
+                      {soapAssessment.summary ? (
+                        <div>
+                          {highlightEntitiesInText(soapAssessment.summary, allEntities)}
+                        </div>
+                      ) : (
+                        <p className="text-neutral-500 dark:text-neutral-400 italic">
+                          No hay datos de evaluación diagnóstica disponibles.
+                        </p>
+                      )}
+                    </div>
+                  </Section>
+                  
+                  {/* Entities section */}
+                  {!collapsedSections.Assessment && (
+                    <div className="space-y-6">
+                      <EntityGroups
+                        sectionData={assessmentData}
+                        soapSection="assessment"
+                        showTitle={true}
+                        filter={entityFilter}
+                        setFilter={setEntityFilter}
+                      />
+                    
+                      {/* Clinical Relationships */}
+                      {clinicalRelationships.length > 0 && (
+                        <Section
+                          title="Relaciones Diagnósticas"
+                          icon={<Filter className="h-5 w-5 text-info-500" />}
+                          variant="default"
+                        >
+                          <div className="space-y-4">
+                            {clinicalRelationships.map((rel, idx) => (
+                              <Card 
+                                key={idx}
+                                variant="flat"
+                                className="bg-info-50 dark:bg-info-900/20 border-info-200 dark:border-info-800"
+                              >
+                                <CardContent className="p-3">
+                                  <div className="font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+                                    {rel.diagnosis.name}
+                                  </div>
+                                  <div className="pl-4 border-l-2 border-info-300 dark:border-info-700">
+                                    <div className="text-sm text-neutral-600 dark:text-neutral-300 mb-1">Síntomas relacionados:</div>
+                                    <div className="flex flex-wrap gap-2">
+                                      {rel.symptoms.map((symptom, i) => (
+                                        <Badge key={i} variant="default" size="sm">
+                                          {symptom.name}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </Section>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="plan" className="mt-0">
+                <div className="space-y-6">
+                  <Section
+                    title="Plan de Tratamiento"
+                    icon={<CheckCircle className="h-5 w-5" />}
+                    isCollapsible={true}
+                    defaultCollapsed={collapsedSections.Plan}
+                    actions={
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleSection('Plan')}
+                        className="h-8 w-8"
+                      >
+                        {collapsedSections.Plan ? (
+                          <ChevronDown className="h-5 w-5" />
+                        ) : (
+                          <ChevronUp className="h-5 w-5" />
+                        )}
+                      </Button>
+                    }
+                  >
+                    <div className="bg-neutral-50 dark:bg-neutral-900 p-4 rounded-lg text-neutral-900 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700">
+                      {soapPlan?.summary ? (
+                        <div>{highlightEntitiesInText(soapPlan.summary, allEntities)}</div>
+                      ) : (
+                        <p className="text-neutral-500 dark:text-neutral-400 italic">
+                          No hay información del plan disponible.
+                        </p>
+                      )}
+                    </div>
+                  </Section>
+                  
+                  {/* Plan entities and recommendations */}
+                  {!collapsedSections.Plan && (
+                    <div className="space-y-6">
+                      <EntityGroups
+                        sectionData={planData}
+                        soapSection="plan"
+                        showTitle={true}
+                        filter={entityFilter}
+                        setFilter={setEntityFilter}
+                      />
+                      
+                      {/* Treatment Recommendations */}
+                      {soapPlan?.components?.therapeutic_plan && (
+                        <Section
+                          title="Recomendaciones de Tratamiento"
+                          icon={<CheckCircle className="h-5 w-5 text-success-500" />}
+                          variant="default"
+                        >
+                          <div className="space-y-4">
+                            {Object.entries(soapPlan.components.therapeutic_plan.content || {}).map(([key, plan]) => {
+                              if (!plan || typeof plan !== 'object' || 
+                                  key === 'medications' || Array.isArray(plan)) return null;
+                              
+                              return (
+                                <Card key={key} variant="flat">
+                                  <CardContent className="p-4">
+                                    <h5 className="font-medium text-neutral-900 dark:text-neutral-100 mb-2 capitalize">
+                                      {toSentenceCase(key.replace('_', ' '))}
+                                    </h5>
+                                    <div className="text-sm text-neutral-700 dark:text-neutral-300">
+                                      {JSON.stringify(plan)}
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              );
+                            })}
+                          </div>
+                        </Section>
+                      )}
+                      
+                      {/* Suggested Follow-up */}
+                      {aiSuggestions && aiSuggestions.filter(s => s.type === 'follow_up').length > 0 && (
+                        <Section
+                          title="Seguimiento Recomendado"
+                          icon={<Calendar className="h-5 w-5 text-primary-500" />}
+                          variant="default"
+                        >
+                          <div className="space-y-3">
+                            {aiSuggestions
+                              .filter(s => s.type === 'follow_up' || s.text.toLowerCase().includes('seguimiento'))
+                              .map((suggestion, idx) => (
+                                <Card 
+                                  key={idx}
+                                  variant="flat"
+                                  className="border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20"
+                                >
+                                  <CardContent className="p-3">
+                                    <div className="flex items-center mb-1 gap-2">
+                                      <Calendar className="h-4 w-4 text-primary-500" />
+                                      <span className="font-medium">Seguimiento</span>
+                                    </div>
+                                    <p className="text-sm">{suggestion.text}</p>
+                                  </CardContent>
+                                </Card>
+                              ))}
+                          </div>
+                        </Section>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="insights" className="mt-0">
+                <div className="space-y-6">
+                  {/* Risks section */}
+                  <Section
+                    title="Riesgos Identificados"
+                    icon={<AlertTriangle className="h-5 w-5 text-danger-500" />}
+                    isCollapsible={true}
+                    defaultCollapsed={collapsedSections.Risks}
+                    actions={
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleSection('Risks')}
+                        className="h-8 w-8"
+                      >
+                        {collapsedSections.Risks ? (
+                          <ChevronDown className="h-5 w-5" />
+                        ) : (
+                          <ChevronUp className="h-5 w-5" />
+                        )}
+                      </Button>
+                    }
+                  >
                     {aiRisks.length > 0 ? (
                       renderEnhancedRisks(aiRisks)
                     ) : (
-                      <p className="text-gray-500 dark:text-gray-400 italic">
+                      <p className="text-neutral-500 dark:text-neutral-400 italic">
                         No se han identificado riesgos.
                       </p>
                     )}
-                  </>
-                )}
-              </div>
-              
-              {/* Patterns section - Similar to original */}
-              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                    <Brain className="h-5 w-5 text-purple-500 mr-2" />
-                    Patrones Clínicos
-                  </h3>
-                  <button 
-                    onClick={() => toggleSection('Patterns')}
-                    className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
-                  >
-                    {collapsedSections.Patterns ? (
-                      <ChevronDown className="h-5 w-5" />
-                    ) : (
-                      <ChevronUp className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-                
-                {!collapsedSections.Patterns && (
-                  <div className="space-y-3">
-                    {aiPatterns.length > 0 ? (
-                      aiPatterns.map((pattern, idx) => (
-                        <div 
-                          key={idx}
-                          className={`p-3 rounded-lg border ${getConfidenceInfo(pattern.confidence).colorClass}`}
-                        >
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-medium">
-                              {pattern.type === 'clinical_correlation' ? 'Correlación Clínica' : 
-                              pattern.type === 'medication_effect' ? 'Efecto del Medicamento' : 
-                              pattern.type === 'symptom_progression' ? 'Progresión de Síntomas' :
-                              'Patrón Identificado'}
-                            </span>
-                            <span className="text-xs bg-white dark:bg-gray-700 px-2 py-1 rounded-full">
-                              {Math.round(pattern.confidence * 100)}% confianza
-                            </span>
-                          </div>
-                          <p className="text-sm">{pattern.description}</p>
-                          {pattern.evidence && pattern.evidence.length > 0 && (
-                            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                              <strong>Evidencia:</strong> {pattern.evidence.join(', ')}
-                            </div>
-                          )}
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-gray-500 dark:text-gray-400 italic">
-                        No se han identificado patrones clínicos.
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Timeline section */}
-              {aiTimeline && aiTimeline.length > 0 && (
-                <ConsultationTimeline
-                  events={aiTimeline}
-                  isCollapsed={collapsedSections.Timeline}
-                  onToggleCollapse={() => toggleSection('Timeline')}
-                />
-              )}
-
-              {/* Suggestions section - Show only if there are suggestions */}
-              {aiSuggestions && aiSuggestions.length > 0 && (
-                <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-                      <Lightbulb className="h-5 w-5 text-amber-500 mr-2" />
-                      Sugerencias
-                    </h3>
-                    <button 
-                      onClick={() => toggleSection('Suggestions')}
-                      className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
-                    >
-                      {collapsedSections.Suggestions ? (
-                        <ChevronDown className="h-5 w-5" />
-                      ) : (
-                        <ChevronUp className="h-5 w-5" />
-                      )}
-                    </button>
-                  </div>
+                  </Section>
                   
-                  {!collapsedSections.Suggestions && (
+                  {/* Patterns section */}
+                  <Section
+                    title="Patrones Clínicos"
+                    icon={<Brain className="h-5 w-5 text-warning-500" />}
+                    isCollapsible={true}
+                    defaultCollapsed={collapsedSections.Patterns}
+                    actions={
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => toggleSection('Patterns')}
+                        className="h-8 w-8"
+                      >
+                        {collapsedSections.Patterns ? (
+                          <ChevronDown className="h-5 w-5" />
+                        ) : (
+                          <ChevronUp className="h-5 w-5" />
+                        )}
+                      </Button>
+                    }
+                  >
                     <div className="space-y-3">
-                      {aiSuggestions.map((suggestion, idx) => (
-                        <div 
-                          key={idx}
-                          className={`p-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20`}
-                        >
-                          <div className="flex items-center mb-1 gap-2">
-                            <Zap className="h-4 w-4 text-amber-500" />
-                            <span className="font-medium">
-                              {suggestion.type === 'treatment' ? 'Sugerencia de Tratamiento' : 
-                               suggestion.type === 'diagnosis' ? 'Sugerencia de Diagnóstico' : 
-                               suggestion.type === 'follow_up' ? 'Sugerencia de Seguimiento' :
-                               'Sugerencia'}
-                            </span>
-                          </div>
-                          <p className="text-sm">{suggestion.text}</p>
-                        </div>
-                      ))}
+                      {aiPatterns.length > 0 ? (
+                        aiPatterns.map((pattern, idx) => (
+                          <Card
+                            key={idx}
+                            variant="flat"
+                            className={`${getConfidenceInfo(pattern.confidence).colorClass}`}
+                          >
+                            <CardContent className="p-3">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="font-medium">
+                                  {pattern.type === 'clinical_correlation' ? 'Correlación Clínica' : 
+                                  pattern.type === 'medication_effect' ? 'Efecto del Medicamento' : 
+                                  pattern.type === 'symptom_progression' ? 'Progresión de Síntomas' :
+                                  'Patrón Identificado'}
+                                </span>
+                                <Badge variant="default" size="sm">
+                                  {Math.round(pattern.confidence * 100)}% confianza
+                                </Badge>
+                              </div>
+                              <p className="text-sm">{pattern.description}</p>
+                              {pattern.evidence && pattern.evidence.length > 0 && (
+                                <div className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+                                  <strong>Evidencia:</strong> {pattern.evidence.join(', ')}
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        ))
+                      ) : (
+                        <p className="text-neutral-500 dark:text-neutral-400 italic">
+                          No se han identificado patrones clínicos.
+                        </p>
+                      )}
                     </div>
+                  </Section>
+
+                  {/* Timeline section */}
+                  {aiTimeline && aiTimeline.length > 0 && (
+                    <ConsultationTimeline
+                      events={aiTimeline}
+                      isCollapsed={collapsedSections.Timeline}
+                      onToggleCollapse={() => toggleSection('Timeline')}
+                    />
+                  )}
+
+                  {/* Suggestions section */}
+                  {aiSuggestions && aiSuggestions.length > 0 && (
+                    <Section
+                      title="Sugerencias"
+                      icon={<Lightbulb className="h-5 w-5 text-warning-500" />}
+                      isCollapsible={true}
+                      defaultCollapsed={collapsedSections.Suggestions}
+                      actions={
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => toggleSection('Suggestions')}
+                          className="h-8 w-8"
+                        >
+                          {collapsedSections.Suggestions ? (
+                            <ChevronDown className="h-5 w-5" />
+                          ) : (
+                            <ChevronUp className="h-5 w-5" />
+                          )}
+                        </Button>
+                      }
+                    >
+                      <div className="space-y-3">
+                        {aiSuggestions.map((suggestion, idx) => (
+                          <Card 
+                            key={idx}
+                            variant="flat"
+                            className="border-warning-200 dark:border-warning-800 bg-warning-50 dark:bg-warning-900/20"
+                          >
+                            <CardContent className="p-3">
+                              <div className="flex items-center mb-1 gap-2">
+                                <Zap className="h-4 w-4 text-warning-500" />
+                                <span className="font-medium">
+                                  {suggestion.type === 'treatment' ? 'Sugerencia de Tratamiento' : 
+                                  suggestion.type === 'diagnosis' ? 'Sugerencia de Diagnóstico' : 
+                                  suggestion.type === 'follow_up' ? 'Sugerencia de Seguimiento' :
+                                  'Sugerencia'}
+                                </span>
+                              </div>
+                              <p className="text-sm">{suggestion.text}</p>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </Section>
                   )}
                 </div>
-              )}
-            </div>
+              </TabsContent>
+            </>
           )}
-        </>
-      )}
+        </Tabs>
+      </Card>
     </div>
   );
 }

@@ -1,6 +1,4 @@
-// src/components/session/timeline-event-card.tsx
-// Let's improve the existing timeline event card component
-
+// src/components/session/timeline/timeline-event-card.tsx
 import React from 'react';
 import { 
   Activity, 
@@ -15,8 +13,13 @@ import {
   Calendar,
   ChevronDown,
   ChevronRight,
-  Check
+  Check,
+  ArrowRight,
+  Bookmark
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { TimelineEvent } from '@/contexts/timeline-context';
 
 interface TimelineEventCardProps {
@@ -51,7 +54,7 @@ const formatDetails = (details: string): React.ReactNode => {
     
     // Add the intensity as a styled span
     parts.push(
-      <span key={match.index} className="px-1.5 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 ml-1">
+      <span key={match.index} className="px-1.5 py-0.5 text-xs rounded-full bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 ml-1">
         {match[1]}
       </span>
     );
@@ -77,24 +80,24 @@ const toSentenceCase = (str: string): string => {
 const getEventIcon = (eventType: string) => {
   switch (eventType.toLowerCase()) {
     case 'symptom':
-      return <Activity className="h-4 w-4 text-blue-500" />;
+      return <Activity className="h-4 w-4 text-primary-500" />;
     case 'diagnosis':
-      return <Stethoscope className="h-4 w-4 text-emerald-500" />;
+      return <Stethoscope className="h-4 w-4 text-success-500" />;
     case 'recording':
       return <Mic className="h-4 w-4 text-violet-500" />;
     case 'vital_sign':
-      return <BarChart2 className="h-4 w-4 text-cyan-500" />;
+      return <BarChart2 className="h-4 w-4 text-info-500" />;
     case 'medication':
-      return <Pill className="h-4 w-4 text-purple-500" />;
+      return <Pill className="h-4 w-4 text-warning-500" />;
     case 'procedure':
-      return <Heart className="h-4 w-4 text-pink-500" />;
+      return <Heart className="h-4 w-4 text-danger-500" />;
     case 'lab_result':
       return <FileText className="h-4 w-4 text-amber-500" />;
     case 'bleeding':
     case 'hemorrhage':
       return <Droplet className="h-4 w-4 text-red-500" />;
     default:
-      return <Clock className="h-4 w-4 text-gray-500" />;
+      return <Bookmark className="h-4 w-4 text-neutral-500" />;
   }
 };
 
@@ -102,24 +105,24 @@ const getEventIcon = (eventType: string) => {
 const getEventColor = (eventType: string): string => {
   switch (eventType.toLowerCase()) {
     case 'symptom':
-      return 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20';
+      return 'border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-900/20';
     case 'diagnosis':
-      return 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20';
+      return 'border-success-200 dark:border-success-800 bg-success-50 dark:bg-success-900/20';
     case 'recording':
       return 'border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-900/20';
     case 'vital_sign':
-      return 'border-cyan-200 dark:border-cyan-800 bg-cyan-50 dark:bg-cyan-900/20';
+      return 'border-info-200 dark:border-info-800 bg-info-50 dark:bg-info-900/20';
     case 'medication':
-      return 'border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20';
+      return 'border-warning-200 dark:border-warning-800 bg-warning-50 dark:bg-warning-900/20';
     case 'procedure':
-      return 'border-pink-200 dark:border-pink-800 bg-pink-50 dark:bg-pink-900/20';
+      return 'border-danger-200 dark:border-danger-800 bg-danger-50 dark:bg-danger-900/20';
     case 'lab_result':
       return 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20';
     case 'bleeding':
     case 'hemorrhage':
       return 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20';
     default:
-      return 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-750';
+      return 'border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800';
   }
 };
 
@@ -158,65 +161,67 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
   const eventColor = getEventColor(event.event_type);
   
   return (
-    <div 
-      className={`relative border rounded-lg transition-all ${eventColor} ${isExpanded ? 'shadow-md' : ''}`}
+    <Card 
+      className={`relative border transition-all ${eventColor} ${isExpanded ? 'shadow-md' : ''}`}
     >
-      {/* Event content */}
-      <div className="p-3">
+      <CardContent className="p-3">
         <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center">
-            <span className="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100 flex items-center">
               {translateEventType(event.event_type)}{statusDisplay}
               
               {/* Show occurrence count for symptoms that appear multiple times */}
               {event.event_type.toLowerCase() === 'symptom' && 
                typeof event.metadata?.occurrences === 'number' && 
                event.metadata.occurrences > 1 && (
-                <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                <Badge variant="default" size="sm" className="ml-2">
                   reportado {event.metadata.occurrences}x
-                </span>
+                </Badge>
               )}
             </span>
             
             {relatedCount > 0 && (
-              <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300">
+              <Badge variant="primary" size="sm">
                 {relatedCount} relacionados
-              </span>
+              </Badge>
             )}
           </div>
           
           <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-xs text-neutral-500 dark:text-neutral-400">
               {event.formattedTime}
             </span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-white/70 dark:bg-black/30">
-              {Math.round(event.confidence * 100)}%
-            </span>
             
-            <button 
+            <Badge variant="default" size="sm" className="bg-white/70 dark:bg-black/30">
+              {Math.round(event.confidence * 100)}%
+            </Badge>
+            
+            <Button 
+              variant="ghost" 
+              size="icon"
               onClick={onToggleExpand}
-              className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 focus:outline-none"
+              className="h-6 w-6"
             >
               {isExpanded ? 
                 <ChevronDown className="h-4 w-4" /> : 
                 <ChevronRight className="h-4 w-4" />
               }
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Basic details (always visible) */}
         {event.details && (
-          <div className="text-sm text-gray-700 dark:text-gray-300">
+          <div className="text-sm text-neutral-700 dark:text-neutral-300">
             {formatDetails(event.details)}
           </div>
         )}
 
         {/* Expanded details */}
         {isExpanded && (
-          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-3 pt-3 border-t border-neutral-200 dark:border-neutral-700">
             {/* Timestamps */}
-            <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-2">
+            <div className="flex items-center text-xs text-neutral-500 dark:text-neutral-400 mb-2">
               <Calendar className="h-3.5 w-3.5 mr-1.5" />
               <span>{event.formattedDate}</span>
               <span className="mx-1.5">•</span>
@@ -236,21 +241,20 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
                 {/* Diagnosis status */}
                 {event.metadata.status && (
                   <div className="flex items-center">
-                    <span className="text-xs font-medium text-gray-500 dark:text-gray-400 w-20">
+                    <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400 w-20">
                       Estado:
                     </span>
-                    <span className={`inline-flex items-center text-xs px-2 py-0.5 rounded-full ${
-                      String(event.metadata.status).toLowerCase() === 'activa' ?
-                        'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
-                        'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300'
-                    }`}>
+                    <Badge 
+                      variant={String(event.metadata.status).toLowerCase() === 'activa' ? 'success' : 'default'}
+                      withDot={String(event.metadata.status).toLowerCase() === 'activa'}
+                      dotColor="success"
+                    >
                       {String(event.metadata.status).toLowerCase() === 'activa' ? (
                         <>
-                          <Check className="h-3 w-3 mr-1" />
                           Activa
                         </>
                       ) : toSentenceCase(String(event.metadata.status))}
-                    </span>
+                    </Badge>
                   </div>
                 )}
                 
@@ -259,13 +263,13 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
                  Array.isArray(event.metadata.supporting_evidence) && 
                  event.metadata.supporting_evidence.length > 0 && (
                   <div className="mt-2">
-                    <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                    <div className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
                       Evidencia de respaldo:
                     </div>
                     <div className="ml-2 space-y-1">
                       {event.metadata.supporting_evidence.map((evidence: string, i: number) => (
-                        <div key={i} className="text-xs text-gray-700 dark:text-gray-300 flex items-start">
-                          <span className="text-blue-500 mr-1.5">•</span>
+                        <div key={i} className="text-xs text-neutral-700 dark:text-neutral-300 flex items-start">
+                          <span className="text-primary-500 mr-1.5">•</span>
                           <span>{toSentenceCase(evidence)}</span>
                         </div>
                       ))}
@@ -277,8 +281,8 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
             
             {/* Recording specific details */}
             {event.event_type.toLowerCase() === 'recording' && event.metadata && (
-              <div className="mt-2 flex items-center text-xs text-gray-700 dark:text-gray-300">
-                <span className="font-medium text-gray-500 dark:text-gray-400 mr-2">
+              <div className="mt-2 flex items-center text-xs text-neutral-700 dark:text-neutral-300">
+                <span className="font-medium text-neutral-500 dark:text-neutral-400 mr-2">
                   Duración:
                 </span>
                 <span>
@@ -292,7 +296,7 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
             {/* Related events */}
             {event.relatedEvents && event.relatedEvents.length > 0 && (
               <div className="mt-3">
-                <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">
+                <div className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
                   {event.event_type.toLowerCase() === 'symptom' 
                     ? 'Diagnósticos relacionados:' 
                     : 'Síntomas relacionados:'}
@@ -303,8 +307,8 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
                       key={idx}
                       className={`text-xs px-2.5 py-1 rounded-md flex items-center
                         ${event.event_type.toLowerCase() === 'symptom'
-                          ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                          : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+                          ? 'bg-success-50 dark:bg-success-900/20 text-success-700 dark:text-success-300 border border-success-200 dark:border-success-800'
+                          : 'bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 border border-primary-200 dark:border-primary-800'
                         }`}
                     >
                       {getEventIcon(relatedEvent.event_type)}
@@ -320,10 +324,10 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
             )}
           </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
-export { getEventIcon, getEventColor };
+export { getEventIcon, getEventColor, toSentenceCase };
 export default TimelineEventCard;

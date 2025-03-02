@@ -18,20 +18,28 @@ import {
   Check
 } from 'lucide-react';
 
-interface TimelineEventCardProps {
-  event: {
-    id: string | undefined;  // Make id optional to match TimelineEvent
-    event_type: string;
-    description: string;
-    details?: string;
-    timestamp: string;
-    confidence: number;
-    metadata?: Record<string, any>;
-    relatedEvents?: any[];
-    formattedDate?: string;
-    formattedTime?: string;
-    relativeTime?: string;
+interface TimelineEvent {
+  id: string | undefined;
+  event_type: string;
+  description: string;
+  details?: string;
+  timestamp: string;
+  confidence: number;
+  metadata?: {
+    status?: string;
+    occurrences?: number;
+    duration?: number;
+    supporting_evidence?: string[];
+    [key: string]: unknown;
   };
+  relatedEvents?: TimelineEvent[];
+  formattedDate?: string;
+  formattedTime?: string;
+  relativeTime?: string;
+}
+
+interface TimelineEventCardProps {
+  event: TimelineEvent;
   isExpanded: boolean;
   onToggleExpand: () => void;
 }
@@ -157,7 +165,7 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
   onToggleExpand 
 }) => {
   const statusDisplay = event.metadata?.status 
-    ? ` - ${toSentenceCase(event.metadata.status)}` 
+    ? ` - ${toSentenceCase(String(event.metadata.status))}` 
     : '';
   
   const relatedCount = event.relatedEvents?.length || 0;
@@ -176,7 +184,7 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
               
               {/* Show occurrence count for symptoms that appear multiple times */}
               {event.event_type.toLowerCase() === 'symptom' && 
-               event.metadata?.occurrences && 
+               typeof event.metadata?.occurrences === 'number' && 
                event.metadata.occurrences > 1 && (
                 <span className="ml-2 text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                   reportado {event.metadata.occurrences}x
@@ -304,7 +312,7 @@ const TimelineEventCard: React.FC<TimelineEventCardProps> = ({
                     : 'Síntomas relacionados:'}
                 </div>
                 <div className="flex flex-wrap gap-2 mt-1">
-                  {event.relatedEvents.map((relatedEvent: any, idx: number) => (
+                  {event.relatedEvents.map((relatedEvent: TimelineEvent, idx: number) => (
                     <div 
                       key={idx}
                       className={`text-xs px-2.5 py-1 rounded-md flex items-center

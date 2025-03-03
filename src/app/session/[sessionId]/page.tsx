@@ -145,26 +145,41 @@ export default function SessionPage() {
             <PatientData patientData={patientData} />
           </Suspense>
 
-          {/* Tabs */}
+          {/* Card container */}
           <Card variant="default">
-            <CardHeader className="px-4 pt-4 pb-0 border-b-0">
-              <Tabs defaultValue="consultation" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList>
-                  <TabsTrigger value="consultation" className="flex items-center gap-2">
-                    <Mic size={16} />
-                    <span>Consulta</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="analysis" className="flex items-center gap-2">
-                    <Sparkles size={16} />
-                    <span>Análisis en Vivo</span>
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </CardHeader>
-            
             <CardContent className="px-0 py-0">
+              {/* Top nav tabs - Improved version */}
+              <div className="bg-neutral-100 dark:bg-neutral-800 p-1.5 rounded-lg shadow-sm mb-6">
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setActiveTab("consultation")}
+                    className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-md transition-all ${
+                      activeTab === "consultation"
+                        ? "bg-white dark:bg-neutral-700 text-primary-600 dark:text-primary-400 shadow-sm font-medium"
+                        : "text-neutral-600 dark:text-neutral-400 hover:bg-white/50 dark:hover:bg-neutral-700/50"
+                    }`}
+                  >
+                    <Mic size={18} />
+                    <span>Consulta</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("analysis")}
+                    className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-md transition-all ${
+                      activeTab === "analysis"
+                        ? "bg-white dark:bg-neutral-700 text-primary-600 dark:text-primary-400 shadow-sm font-medium"
+                        : "text-neutral-600 dark:text-neutral-400 hover:bg-white/50 dark:hover:bg-neutral-700/50"
+                    }`}
+                  >
+                    <Sparkles size={18} />
+                    <span>Análisis en Vivo</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Conditional content based on active tab */}
               {activeTab === "consultation" ? (
                 <div className="space-y-4">
+                  {/* Consultation content */}
                   <div className="px-6 pt-4">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-xl">Grabaciones</CardTitle>
@@ -191,6 +206,7 @@ export default function SessionPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
+                  {/* Analysis content */}
                   <div className="px-6 pt-4">
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-xl">Consulta médica mejorada</CardTitle>

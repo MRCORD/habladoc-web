@@ -1,3 +1,4 @@
+// src/components/session/entity/entity-groups.tsx
 import React, { useState } from 'react';
 import { 
   ChevronDown, 
@@ -7,8 +8,13 @@ import {
   Heart,
   Thermometer,
   Filter,
-  FileText
+  FileText,
+  Beaker,
+  SlidersHorizontal
 } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import EntityGrid, { Entity } from './entity-grid'; // Use the existing entity-grid
 
 interface VitalSign {
@@ -176,6 +182,7 @@ const EntityGroups: React.FC<EntityGroupsProps> = ({
   setFilter
 }) => {
   const [expanded, setExpanded] = useState(true);
+  const [showFilterOptions, setShowFilterOptions] = useState(false);
   
   // Ensure sectionData and components exist
   if (!sectionData?.components) return null;
@@ -339,7 +346,7 @@ const EntityGroups: React.FC<EntityGroupsProps> = ({
           type: 'lab_result'
         })),
         type: 'lab_results',
-        iconName: 'file-text'
+        iconName: 'beaker'
       });
     }
     
@@ -408,7 +415,7 @@ const EntityGroups: React.FC<EntityGroupsProps> = ({
           type: 'test'
         })),
         type: 'planned_tests',
-        iconName: 'file-text'
+        iconName: 'beaker'
       });
     }
 
@@ -483,95 +490,108 @@ const EntityGroups: React.FC<EntityGroupsProps> = ({
 
   if (entityGroups.length === 0) return null;
 
-  // Render filter controls
-  const renderFilterControls = () => {
-    if (!setFilter) return null;
-    
-    return (
-      <div className="flex items-center gap-2 ml-auto">
-        <select
-          value={filter.sortBy}
-          onChange={(e) => setFilter({ ...filter, sortBy: e.target.value })}
-          className="text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-2 py-1"
-        >
-          <option value="confidence">Por confianza</option>
-          <option value="severity">Por intensidad</option>
-          <option value="alphabetical">Alfabético</option>
-          <option value="recent">Más recientes</option>
-        </select>
-        
-        <button
-          onClick={() => setFilter({ ...filter, showActiveOnly: !filter.showActiveOnly })}
-          className={`px-2 py-1 text-sm rounded-md border ${
-            filter.showActiveOnly 
-              ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-blue-300 dark:border-blue-700' 
-              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600'
-          }`}
-        >
-          Solo activos {filter.showActiveOnly ? '✓' : ''}
-        </button>
-      </div>
-    );
-  };
-
   // Get group icon
   const getGroupIcon = (iconName?: string) => {
     switch (iconName) {
-      case 'activity': return <Activity className="h-5 w-5 text-blue-500" />;
-      case 'pill': return <Pill className="h-5 w-5 text-purple-500" />;
-      case 'heart': return <Heart className="h-5 w-5 text-emerald-500" />;
-      case 'thermometer': return <Thermometer className="h-5 w-5 text-cyan-500" />;
+      case 'activity': return <Activity className="h-5 w-5 text-primary-500" />;
+      case 'pill': return <Pill className="h-5 w-5 text-warning-500" />;
+      case 'heart': return <Heart className="h-5 w-5 text-success-500" />;
+      case 'thermometer': return <Thermometer className="h-5 w-5 text-info-500" />;
       case 'file-text': return <FileText className="h-5 w-5 text-amber-500" />;
-      default: return <Filter className="h-5 w-5 text-gray-500" />;
+      case 'beaker': return <Beaker className="h-5 w-5 text-violet-500" />;
+      default: return <Filter className="h-5 w-5 text-neutral-500" />;
     }
   };
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <Card className={`${className}`}>
       {/* Main header with filter controls */}
       {showTitle && (
-        <div className="flex items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              {getSectionTitle()}
-            </h3>
-            <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+            <CardTitle>{getSectionTitle()}</CardTitle>
+            <Badge variant="default">
               {getTotalCount()}
-            </span>
+            </Badge>
           </div>
           
-          {/* Filter controls */}
-          {renderFilterControls()}
-          
-          {/* Expand/collapse button */}
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none ml-2"
-            aria-label={expanded ? "Colapsar" : "Expandir"}
-          >
-            {expanded ? (
-              <ChevronDown className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-            ) : (
-              <ChevronRight className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+          <div className="flex items-center gap-1">
+            {/* Filter dropdown button */}
+            {setFilter && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowFilterOptions(!showFilterOptions)}
+                aria-label="Mostrar opciones de filtro"
+                className={`h-8 w-8 ${showFilterOptions ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300' : ''}`}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+              </Button>
             )}
-          </button>
-        </div>
+            
+            {/* Expand/collapse button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setExpanded(!expanded)}
+              aria-label={expanded ? "Colapsar" : "Expandir"}
+              className="h-8 w-8"
+            >
+              {expanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </CardHeader>
+      )}
+      
+      {/* Filter dropdown */}
+      {showFilterOptions && setFilter && (
+        <CardContent className="py-2 px-4 bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-700">
+          <div className="flex items-center flex-wrap gap-3">
+            {/* Show active only toggle */}
+            <Button
+              variant={filter.showActiveOnly ? "primary" : "secondary"}
+              size="sm"
+              onClick={() => setFilter({ ...filter, showActiveOnly: !filter.showActiveOnly })}
+            >
+              Solo activos {filter.showActiveOnly ? '✓' : ''}
+            </Button>
+            
+            {/* Sort options */}
+            <div className="flex items-center">
+              <label className="text-sm mr-2 text-neutral-700 dark:text-neutral-300">Ordenar:</label>
+              <select
+                value={filter.sortBy}
+                onChange={(e) => setFilter({ ...filter, sortBy: e.target.value })}
+                className="text-sm rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 px-3 py-1"
+              >
+                <option value="confidence">Por confianza</option>
+                <option value="severity">Por intensidad</option>
+                <option value="alphabetical">Alfabético</option>
+                <option value="recent">Más recientes</option>
+              </select>
+            </div>
+          </div>
+        </CardContent>
       )}
       
       {expanded && (
-        <div className="space-y-6">
+        <CardContent className="space-y-6 p-4">
           {entityGroups.map((group, idx) => (
             <div key={`${group.type}-${idx}`} className="space-y-3">
               {/* Group header - only show if there's more than one group */}
               {entityGroups.length > 1 && (
                 <div className="flex items-center gap-2">
                   {getGroupIcon(group.iconName)}
-                  <h4 className="text-md font-medium text-gray-900 dark:text-gray-100">
+                  <h4 className="text-md font-medium text-neutral-900 dark:text-neutral-100">
                     {group.title}
                   </h4>
-                  <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                  <Badge variant="default">
                     {group.entities.length}
-                  </span>
+                  </Badge>
                 </div>
               )}
               
@@ -585,20 +605,22 @@ const EntityGroups: React.FC<EntityGroupsProps> = ({
               />
             </div>
           ))}
-        </div>
+        </CardContent>
       )}
       
       {/* Empty state */}
       {entityGroups.length === 0 && expanded && (
-        <div className="text-center py-6">
-          <div className="rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700 p-6">
-            <p className="text-gray-500 dark:text-gray-400">
-              No se han identificado entidades clínicas en esta sección.
-            </p>
+        <CardContent className="p-6">
+          <div className="text-center py-6">
+            <div className="rounded-lg border-2 border-dashed border-neutral-300 dark:border-neutral-700 p-6">
+              <p className="text-neutral-500 dark:text-neutral-400">
+                No se han identificado entidades clínicas en esta sección.
+              </p>
+            </div>
           </div>
-        </div>
+        </CardContent>
       )}
-    </div>
+    </Card>
   );
 };
 

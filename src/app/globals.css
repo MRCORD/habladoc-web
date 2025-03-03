@@ -3,25 +3,153 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --input-text: #171717;
+  /* Primary color palette */
+  --color-primary-50: 239, 246, 255;
+  --color-primary-100: 219, 234, 254;
+  --color-primary-200: 191, 219, 254;
+  --color-primary-300: 147, 197, 253;
+  --color-primary-400: 96, 165, 250;
+  --color-primary-500: 59, 130, 246;
+  --color-primary-600: 37, 99, 235;
+  --color-primary-700: 29, 78, 216;
+  --color-primary-800: 30, 64, 175;
+  --color-primary-900: 30, 58, 138;
+  
+  /* Success color palette */
+  --color-success-50: 236, 253, 245;
+  --color-success-100: 209, 250, 229;
+  --color-success-200: 167, 243, 208;
+  --color-success-300: 110, 231, 183;
+  --color-success-400: 52, 211, 153;
+  --color-success-500: 16, 185, 129;
+  --color-success-600: 5, 150, 105;
+  --color-success-700: 4, 120, 87;
+  --color-success-800: 6, 95, 70;
+  --color-success-900: 6, 78, 59;
+  
+  /* Warning color palette */
+  --color-warning-50: 255, 251, 235;
+  --color-warning-100: 254, 243, 199;
+  --color-warning-200: 253, 230, 138;
+  --color-warning-300: 252, 211, 77;
+  --color-warning-400: 251, 191, 36;
+  --color-warning-500: 245, 158, 11;
+  --color-warning-600: 217, 119, 6;
+  --color-warning-700: 180, 83, 9;
+  --color-warning-800: 146, 64, 14;
+  --color-warning-900: 120, 53, 15;
+  
+  /* Danger color palette */
+  --color-danger-50: 254, 242, 242;
+  --color-danger-100: 254, 226, 226;
+  --color-danger-200: 254, 202, 202;
+  --color-danger-300: 252, 165, 165;
+  --color-danger-400: 248, 113, 113;
+  --color-danger-500: 239, 68, 68;
+  --color-danger-600: 220, 38, 38;
+  --color-danger-700: 185, 28, 28;
+  --color-danger-800: 153, 27, 27;
+  --color-danger-900: 127, 29, 29;
+  
+  /* Info color palette */
+  --color-info-50: 239, 246, 255;
+  --color-info-100: 219, 234, 254;
+  --color-info-200: 191, 219, 254;
+  --color-info-300: 147, 197, 253;
+  --color-info-400: 96, 165, 250;
+  --color-info-500: 59, 130, 246;
+  --color-info-600: 37, 99, 235;
+  --color-info-700: 29, 78, 216;
+  --color-info-800: 30, 64, 175;
+  --color-info-900: 30, 58, 138;
+  
+  /* Neutral color palette */
+  --color-neutral-50: 249, 250, 251;
+  --color-neutral-100: 243, 244, 246;
+  --color-neutral-200: 229, 231, 235;
+  --color-neutral-300: 209, 213, 219;
+  --color-neutral-400: 156, 163, 175;
+  --color-neutral-500: 107, 114, 128;
+  --color-neutral-600: 75, 85, 99;
+  --color-neutral-700: 55, 65, 81;
+  --color-neutral-800: 31, 41, 55;
+  --color-neutral-900: 17, 24, 39;
+  
+  /* Base theme colors */
+  --color-background: 255, 255, 255;
+  --color-foreground: 23, 23, 23;
+  --color-card: 255, 255, 255;
+  --color-input: 255, 255, 255;
+  --color-border: 229, 231, 235;
+  
+  /* Text colors */
+  --color-text-primary: 17, 24, 39;
+  --color-text-secondary: 75, 85, 99;
+  --color-text-tertiary: 156, 163, 175;
+  --color-text-disabled: 209, 213, 219;
+  
+  /* Semantic colors */
+  --color-text-link: 59, 130, 246;
+  --color-text-error: 239, 68, 68;
+  --color-text-success: 16, 185, 129;
+  --color-text-warning: 245, 158, 11;
+  
+  /* Shadow colors */
+  --color-shadow: 0, 0, 0;
+  --shadow-opacity-sm: 0.05;
+  --shadow-opacity-md: 0.1;
+  --shadow-opacity-lg: 0.15;
 }
 
 .dark {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-  --input-text: #ededed;
+  /* Base theme colors - dark mode */
+  --color-background: 10, 10, 10;
+  --color-foreground: 237, 237, 237;
+  --color-card: 31, 41, 55;
+  --color-input: 55, 65, 81;
+  --color-border: 55, 65, 81;
+  
+  /* Text colors - dark mode */
+  --color-text-primary: 237, 237, 237;
+  --color-text-secondary: 156, 163, 175;
+  --color-text-tertiary: 107, 114, 128;
+  --color-text-disabled: 75, 85, 99;
+  
+  /* Shadow colors - dark mode */
+  --color-shadow: 0, 0, 0;
+  --shadow-opacity-sm: 0.1;
+  --shadow-opacity-md: 0.2;
+  --shadow-opacity-lg: 0.3;
 }
 
+/* Base styles */
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: rgb(var(--color-text-primary));
+  background-color: rgb(var(--color-background));
   font-family: Arial, Helvetica, sans-serif;
 }
 
 /* Ensure all inputs use the correct text color */
 input, textarea, select {
-  @apply text-black;
-  color: var(--input-text); /* Fallback to CSS variables for dark mode */
+  color: rgb(var(--color-text-primary));
+  background-color: rgb(var(--color-input));
+}
+
+@layer utilities {
+  /* Custom utility classes for colors */
+  .text-app-primary {
+    color: rgb(var(--color-text-primary));
+  }
+  .text-app-secondary {
+    color: rgb(var(--color-text-secondary));
+  }
+  .bg-app {
+    background-color: rgb(var(--color-background));
+  }
+  .bg-card {
+    background-color: rgb(var(--color-card));
+  }
+  .border-app {
+    border-color: rgb(var(--color-border));
+  }
 }

@@ -1,3 +1,4 @@
+// src/components/session/entity/entity-grid.tsx
 import React, { useState } from 'react';
 import { 
   ChevronDown,
@@ -7,26 +8,13 @@ import {
   Heart,
   Thermometer,
   FileText,
-  Droplet
+  Droplet,
+  PlusCircle
 } from 'lucide-react';
 import { AttributeTag, toSentenceCase } from '@/components/common/attribute-tag';
-
-// Badge component with improved styling
-const Badge = ({ 
-  children, 
-  className = "" 
-}: { 
-  children: React.ReactNode; 
-  className?: string; 
-}) => {
-  return (
-    <span 
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${className}`}
-    >
-      {children}
-    </span>
-  );
-};
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 
 export type EntityType = 'symptom' | 'condition' | 'medication' | 'vital_sign' | 
                          'lab_result' | 'procedure' | 'Symptoms' | 'Vital Signs' | 
@@ -59,8 +47,60 @@ interface EntityGridProps {
   onEntityClick?: (entity: Entity) => void;
   className?: string;
   hideHeader?: boolean;
-  condensed?: boolean; // New prop for condensed view
+  condensed?: boolean;
+  emptyMessage?: string;
 }
+
+// Get entity icon based on type or title
+const getEntityIcon = (entity: Entity) => {
+  const entityType = entity.type?.toLowerCase() || '';
+  
+  if (entityType.includes('symptom') || entityType.includes('síntoma')) {
+    return <Activity className="h-3.5 w-3.5 text-primary-500" />;
+  }
+  if (entityType.includes('medication') || entityType.includes('medic')) {
+    return <Pill className="h-3.5 w-3.5 text-warning-500" />;
+  }
+  if (entityType.includes('condition') || entityType.includes('diagnós') || entityType.includes('diagnos')) {
+    return <Heart className="h-3.5 w-3.5 text-success-500" />;
+  }
+  if (entityType.includes('vital') || entityType.includes('sign')) {
+    return <Thermometer className="h-3.5 w-3.5 text-info-500" />;
+  }
+  if (entityType.includes('lab') || entityType.includes('test')) {
+    return <FileText className="h-3.5 w-3.5 text-warning-500" />;
+  }
+  if (entityType.includes('bleed') || entityType.includes('hemorr') || entityType.includes('sangr')) {
+    return <Droplet className="h-3.5 w-3.5 text-danger-500" />;
+  }
+  
+  return null;
+};
+
+// Get title icon based on title
+const getTitleIcon = (title: string) => {
+  const formattedTitle = title.toLowerCase();
+  
+  if (formattedTitle.includes('síntoma') || formattedTitle.includes('symptom')) {
+    return <Activity className="h-5 w-5 text-primary-500" />;
+  }
+  if (formattedTitle.includes('signo') || formattedTitle.includes('vital')) {
+    return <Thermometer className="h-5 w-5 text-info-500" />;
+  }
+  if (formattedTitle.includes('diagnós') || formattedTitle.includes('diagnos')) {
+    return <Heart className="h-5 w-5 text-success-500" />;
+  }
+  if (formattedTitle.includes('medic') || formattedTitle.includes('efecto')) {
+    return <Pill className="h-5 w-5 text-warning-500" />;
+  }
+  if (formattedTitle.includes('lab') || formattedTitle.includes('test')) {
+    return <FileText className="h-5 w-5 text-warning-500" />;
+  }
+  if (formattedTitle.includes('hallazgo') || formattedTitle.includes('finding')) {
+    return <Activity className="h-5 w-5 text-info-500" />;
+  }
+  return <FileText className="h-5 w-5 text-neutral-500" />;
+};
 
 const EntityGrid: React.FC<EntityGridProps> = ({ 
   entities, 
@@ -69,72 +109,20 @@ const EntityGrid: React.FC<EntityGridProps> = ({
   onEntityClick,
   className = "",
   hideHeader = false,
-  condensed = false
+  condensed = false,
+  emptyMessage = "No hay entidades disponibles"
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState<boolean>(true);
   const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
+  const [viewAll, setViewAll] = useState<boolean>(false);
 
-  // Get header color based on entity type
-  const getHeaderColor = (title: string) => {
-    const formattedTitle = title.toLowerCase();
-    
-    if (formattedTitle.includes('síntoma') || formattedTitle.includes('symptom')) {
-      return 'from-blue-50 to-white dark:from-blue-900/30 dark:to-gray-800 border-blue-100 dark:border-blue-800';
-    }
-    if (formattedTitle.includes('signo') || formattedTitle.includes('vital')) {
-      return 'from-cyan-50 to-white dark:from-cyan-900/30 dark:to-gray-800 border-cyan-100 dark:border-cyan-800';
-    }
-    if (formattedTitle.includes('diagnós') || formattedTitle.includes('diagnos')) {
-      return 'from-emerald-50 to-white dark:from-emerald-900/30 dark:to-gray-800 border-emerald-100 dark:border-emerald-800';
-    }
-    if (formattedTitle.includes('medic') || formattedTitle.includes('efecto')) {
-      return 'from-purple-50 to-white dark:from-purple-900/30 dark:to-gray-800 border-purple-100 dark:border-purple-800';
-    }
-    if (formattedTitle.includes('hallazgo') || formattedTitle.includes('finding')) {
-      return 'from-amber-50 to-white dark:from-amber-900/30 dark:to-gray-800 border-amber-100 dark:border-amber-800';
-    }
-    return 'from-gray-50 to-white dark:from-gray-700 dark:to-gray-800 border-gray-100 dark:border-gray-700';
-  };
-
-  // Get entity icon based on type or title
-  const getEntityIcon = (entity: Entity, title: string) => {
-    const entityType = entity.type?.toLowerCase() || title.toLowerCase();
-    
-    if (entityType.includes('symptom') || entityType.includes('síntoma')) {
-      return <Activity className="h-3.5 w-3.5 text-blue-500" />;
-    }
-    if (entityType.includes('medication') || entityType.includes('medic')) {
-      return <Pill className="h-3.5 w-3.5 text-purple-500" />;
-    }
-    if (entityType.includes('condition') || entityType.includes('diagnós') || entityType.includes('diagnos')) {
-      return <Heart className="h-3.5 w-3.5 text-emerald-500" />;
-    }
-    if (entityType.includes('vital') || entityType.includes('sign')) {
-      return <Thermometer className="h-3.5 w-3.5 text-cyan-500" />;
-    }
-    if (entityType.includes('lab') || entityType.includes('test')) {
-      return <FileText className="h-3.5 w-3.5 text-amber-500" />;
-    }
-    if (entityType.includes('bleed') || entityType.includes('hemorr') || entityType.includes('sangr')) {
-      return <Droplet className="h-3.5 w-3.5 text-red-500" />;
-    }
-    
-    return null;
-  };
-
-  // Get confidence color for entity
-  const getConfidenceColor = (confidence?: number) => {
-    if (!confidence) return "";
-    
-    if (confidence >= 0.9) return "bg-green-50 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800";
-    if (confidence >= 0.7) return "bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800";
-    if (confidence >= 0.5) return "bg-yellow-50 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800";
-    return "bg-gray-50 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
-  };
-
-  // All entities are displayed if expanded, otherwise just show previews
-  const displayEntities = isExpanded ? entities : entities.slice(0, 3);
-  const hasMore = entities.length > 3;
+  // All entities are displayed if expanded and viewAll is true, otherwise just show previews
+  const displayEntities = isExpanded 
+    ? (viewAll ? entities : entities.slice(0, condensed ? 12 : 6))
+    : [];
+  
+  const hasMore = entities.length > (condensed ? 12 : 6);
+  const displayCount = count !== undefined ? count : entities.length;
 
   const handleEntityClick = (entity: Entity) => {
     setSelectedEntity(selectedEntity?.name === entity.name ? null : entity);
@@ -143,40 +131,59 @@ const EntityGrid: React.FC<EntityGridProps> = ({
     }
   };
 
-  const headerColor = getHeaderColor(title);
-  const displayCount = count !== undefined ? count : entities.length;
+  // Handle "show more/less" functionality
+  const toggleViewAll = () => {
+    setViewAll(!viewAll);
+  };
+
+  if (entities.length === 0) {
+    return (
+      <Card className={`${className} border-dashed`}>
+        <CardContent className="p-6 text-center">
+          <div className="w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mx-auto mb-3">
+            {getTitleIcon(title)}
+          </div>
+          <CardTitle className="text-lg mb-2">{title}</CardTitle>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            {emptyMessage}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <div className={`border dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm ${className}`}>
+    <Card className={className}>
       {/* Header - conditionally shown */}
       {!hideHeader && (
-        <div className={`p-3 border-b dark:border-gray-700 flex justify-between items-center bg-gradient-to-r ${headerColor}`}>
+        <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
-            <Badge 
-              className="bg-white/80 dark:bg-gray-700/80 bg-opacity-60 backdrop-blur-sm text-gray-700 dark:text-gray-300 text-xs px-2 py-1 font-medium"
-            >
+            {getTitleIcon(title)}
+            <CardTitle>{title}</CardTitle>
+            <Badge variant="default">
               {displayCount}
             </Badge>
           </div>
-          {hasMore && (
-            <button
+          {entities.length > 0 && (
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors focus:outline-none"
               aria-label={isExpanded ? "Mostrar menos" : "Mostrar más"}
+              className="h-8 w-8"
             >
               {isExpanded ? (
                 <Minus className="h-4 w-4" />
               ) : (
                 <ChevronDown className="h-4 w-4" />
               )}
-            </button>
+            </Button>
           )}
-        </div>
+        </CardHeader>
       )}
 
       {/* Grid of entities */}
-      <div className="p-3">
+      <CardContent className={`${condensed ? 'p-3' : 'p-4'}`}>
         <div className={`grid ${condensed ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'}`}>
           {displayEntities.map((entity, idx) => (
             <div
@@ -185,110 +192,136 @@ const EntityGrid: React.FC<EntityGridProps> = ({
               className={`
                 group cursor-pointer rounded-lg p-2.5 transition-all duration-200 relative
                 ${selectedEntity?.name === entity.name 
-                  ? `${getConfidenceColor(entity.confidence)} shadow-sm` 
-                  : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'
+                  ? 'bg-primary-50 dark:bg-primary-900/30 border-primary-200 dark:border-primary-800 shadow-sm' 
+                  : 'bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600'
                 }
                 border
               `}
             >
               <div className="flex items-center gap-2">
-                {getEntityIcon(entity, title)}
-                <div className="relative font-medium text-gray-900 dark:text-gray-100 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors">
+                {getEntityIcon(entity)}
+                <div className="relative font-medium text-neutral-900 dark:text-neutral-100 group-hover:text-primary-700 dark:group-hover:text-primary-400 transition-colors">
                   <span className="text-sm">
-                    {entity.status === "active" && "● "}{toSentenceCase(entity.name)}
+                    {entity.status === "active" && (
+                      <span className="text-primary-500 mr-1">●</span>
+                    )}
+                    {toSentenceCase(entity.name)}
                   </span>
                 </div>
               </div>
               
-              <div className="flex flex-col mt-1.5 gap-1.5">
-                {/* Only show confidence percentage, removed all tags */}
-                {entity.confidence !== undefined && (
-                  <div className={`text-xs ${selectedEntity?.name === entity.name ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                    {Math.round(entity.confidence * 100)}% confianza
-                  </div>
-                )}
-                
-                {/* Removed the flex container with all entity tags */}
-              </div>
+              {entity.confidence !== undefined && (
+                <div className={`mt-1.5 text-xs ${selectedEntity?.name === entity.name ? 'text-primary-600 dark:text-primary-400' : 'text-neutral-500 dark:text-neutral-400'}`}>
+                  {Math.round(entity.confidence * 100)}% confianza
+                </div>
+              )}
+              
+              {/* Show the most important attribute if available */}
+              {!condensed && (entity.intensity || entity.location || entity.duration) && (
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {entity.intensity && (
+                    <Badge variant="default" size="sm">
+                      {toSentenceCase(entity.intensity)}
+                    </Badge>
+                  )}
+                  {!entity.intensity && entity.location && (
+                    <Badge variant="default" size="sm">
+                      {toSentenceCase(entity.location)}
+                    </Badge>
+                  )}
+                  {!entity.intensity && !entity.location && entity.duration && (
+                    <Badge variant="default" size="sm">
+                      {toSentenceCase(entity.duration)}
+                    </Badge>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>
 
-        {/* Show more/less button for mobile */}
-        {hasMore && !condensed && (
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="mt-3 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 md:hidden w-full text-center font-medium focus:outline-none"
+        {/* Show more/less button */}
+        {hasMore && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleViewAll}
+            className="mt-3 w-full"
           >
-            {isExpanded ? 'Ver menos' : `Ver ${entities.length - 3} más`}
-          </button>
+            {viewAll ? 'Ver menos' : `Ver ${entities.length - displayEntities.length} más`}
+            {viewAll ? <Minus className="ml-2 h-4 w-4" /> : <PlusCircle className="ml-2 h-4 w-4" />}
+          </Button>
         )}
-      </div>
+      </CardContent>
 
-      {/* Selected entity details - now shown for all entity types, including symptoms, regardless of condensed view */}
+      {/* Selected entity details */}
       {selectedEntity && (
-        <div className="border-t dark:border-gray-700 p-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-700 dark:to-gray-800">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="font-medium text-sm">Detalles de {title.toLowerCase().replace(/s$/, '')}</h4>
-            <button 
-              onClick={() => setSelectedEntity(null)}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-            >
-              <ChevronDown className="h-4 w-4" />
-            </button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {selectedEntity.quality && (
-              <AttributeTag label="Quality" value={selectedEntity.quality} />
-            )}
-            {selectedEntity.location && (
-              <AttributeTag label="Location" value={selectedEntity.location} />
-            )}
-            {selectedEntity.intensity && (
-              <AttributeTag label="Intensity" value={selectedEntity.intensity} />
-            )}
-            {selectedEntity.context && (
-              <AttributeTag label="Context" value={selectedEntity.context} />
-            )}
-            {selectedEntity.duration && (
-              <AttributeTag label="Duration" value={selectedEntity.duration} />
-            )}
-            {selectedEntity.frequency && (
-              <AttributeTag label="Frequency" value={selectedEntity.frequency} />
-            )}
-            {selectedEntity.value && selectedEntity.unit && (
-              <AttributeTag 
-                label="Measurement" 
-                value={`${selectedEntity.value} ${selectedEntity.unit}`} 
-              />
-            )}
-            {selectedEntity.progression && (
-              <AttributeTag label="Progression" value={selectedEntity.progression} />
-            )}
-            {selectedEntity.status && (
-              <AttributeTag label="Status" value={selectedEntity.status} />
-            )}
-            {selectedEntity.onset && (
-              <AttributeTag label="Onset" value={selectedEntity.onset} />
-            )}
-          </div>
-          
-          {/* Supporting evidence section */}
-          {selectedEntity.supporting_evidence && selectedEntity.supporting_evidence.length > 0 && (
-            <div className="mt-3 pt-3 border-t dark:border-gray-700">
-              <h5 className="text-xs font-medium mb-1 text-gray-700 dark:text-gray-300">Evidencia de respaldo:</h5>
-              <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                {selectedEntity.supporting_evidence.map((evidence, idx) => (
-                  <li key={idx} className="pl-3 border-l-2 border-blue-200 dark:border-blue-800">
-                    {evidence}
-                  </li>
-                ))}
-              </ul>
+        <CardFooter className="p-4 bg-gradient-to-b from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 border-t border-neutral-200 dark:border-neutral-700">
+          <div className="w-full space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-sm">Detalles de {title.toLowerCase().replace(/s$/, '')}</h4>
+              <Button 
+                variant="ghost"
+                size="icon"
+                onClick={() => setSelectedEntity(null)}
+                className="h-8 w-8"
+              >
+                <ChevronDown className="h-4 w-4" />
+              </Button>
             </div>
-          )}
-        </div>
+            <div className="flex flex-wrap gap-2">
+              {selectedEntity.quality && (
+                <AttributeTag label="Quality" value={selectedEntity.quality} />
+              )}
+              {selectedEntity.location && (
+                <AttributeTag label="Location" value={selectedEntity.location} />
+              )}
+              {selectedEntity.intensity && (
+                <AttributeTag label="Intensity" value={selectedEntity.intensity} />
+              )}
+              {selectedEntity.context && (
+                <AttributeTag label="Context" value={selectedEntity.context} />
+              )}
+              {selectedEntity.duration && (
+                <AttributeTag label="Duration" value={selectedEntity.duration} />
+              )}
+              {selectedEntity.frequency && (
+                <AttributeTag label="Frequency" value={selectedEntity.frequency} />
+              )}
+              {selectedEntity.value && selectedEntity.unit && (
+                <AttributeTag 
+                  label="Measurement" 
+                  value={`${selectedEntity.value} ${selectedEntity.unit}`} 
+                />
+              )}
+              {selectedEntity.progression && (
+                <AttributeTag label="Progression" value={selectedEntity.progression} />
+              )}
+              {selectedEntity.status && (
+                <AttributeTag label="Status" value={selectedEntity.status} />
+              )}
+              {selectedEntity.onset && (
+                <AttributeTag label="Onset" value={selectedEntity.onset} />
+              )}
+            </div>
+            
+            {/* Supporting evidence section */}
+            {selectedEntity.supporting_evidence && selectedEntity.supporting_evidence.length > 0 && (
+              <div className="mt-3 pt-3 border-t dark:border-neutral-700">
+                <h5 className="text-xs font-medium mb-1 text-neutral-700 dark:text-neutral-300">Evidencia de respaldo:</h5>
+                <ul className="text-xs text-neutral-600 dark:text-neutral-400 space-y-1">
+                  {selectedEntity.supporting_evidence.map((evidence, idx) => (
+                    <li key={idx} className="pl-3 border-l-2 border-primary-200 dark:border-primary-800">
+                      {evidence}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </CardFooter>
       )}
-    </div>
+    </Card>
   );
 };
 

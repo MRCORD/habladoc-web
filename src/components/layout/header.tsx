@@ -16,13 +16,20 @@ function classNames(...classes: string[]) {
 export function Header() {
   const { user, isLoading } = useUser();
   const { theme, setTheme } = useTheme();
+  
+  // Define our new blue color as a variable for inline styles
+  const habladocBlue = 'rgb(0, 102, 204)';
 
   return (
     <header className="bg-background shadow-sm border-b border-gray-200 dark:border-gray-800">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between items-center">
           <div className="flex-shrink-0">
-            <Link href="/" className="text-2xl font-bold text-primary">
+            <Link 
+              href="/" 
+              className="text-2xl font-bold"
+              style={{ color: habladocBlue }}
+            >
               HablaDoc
             </Link>
           </div>
@@ -32,7 +39,7 @@ export function Header() {
                 {user ? (
                   <Menu as="div" className="relative ml-3">
                     <div>
-                      <Menu.Button className="flex rounded-full bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                      <Menu.Button className="flex rounded-full bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                         {user.picture ? (
                           <Image
                             className="h-8 w-8 rounded-full"
@@ -89,7 +96,11 @@ export function Header() {
                           <div className="flex gap-2">
                             <button
                               onClick={() => setTheme("light")}
-                              className={`flex items-center justify-center h-8 w-8 rounded-md ${theme === "light" ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}`}
+                              className={`flex items-center justify-center h-8 w-8 rounded-md ${
+                                theme === 'light' 
+                                  ? 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-white' 
+                                  : 'text-gray-500 dark:text-gray-400'
+                              }`}
                               title="Modo Claro"
                             >
                               <SunIcon className="h-5 w-5" />
@@ -97,7 +108,11 @@ export function Header() {
                             
                             <button
                               onClick={() => setTheme("dark")}
-                              className={`flex items-center justify-center h-8 w-8 rounded-md ${theme === "dark" ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}`}
+                              className={`flex items-center justify-center h-8 w-8 rounded-md ${
+                                theme === 'dark'
+                                  ? 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-white'
+                                  : 'text-gray-500 dark:text-gray-400'
+                              }`}
                               title="Modo Oscuro"
                             >
                               <MoonIcon className="h-5 w-5" />
@@ -105,7 +120,11 @@ export function Header() {
                             
                             <button
                               onClick={() => setTheme("system")}
-                              className={`flex items-center justify-center h-8 w-8 rounded-md ${theme === "system" ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400" : "text-gray-500 dark:text-gray-400"}`}
+                              className={`flex items-center justify-center h-8 w-8 rounded-md ${
+                                theme === 'system'
+                                  ? 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-white'
+                                  : 'text-gray-500 dark:text-gray-400'
+                              }`}
                               title="Tema del Sistema"
                             >
                               <ComputerDesktopIcon className="h-5 w-5" />
@@ -133,13 +152,15 @@ export function Header() {
                   <div className="flex items-center space-x-4">
                     <Link
                       href="/api/auth/login"
-                      className="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+                      className="text-sm font-medium" 
+                      style={{ color: habladocBlue }}
                     >
                       Iniciar sesión
                     </Link>
                     <Link
                       href="/api/auth/signup"
-                      className="text-sm font-medium bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90"
+                      className="text-sm font-medium text-white px-4 py-2 rounded-md"
+                      style={{ backgroundColor: habladocBlue }}
                     >
                       Registrarse
                     </Link>

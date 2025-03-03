@@ -1,5 +1,5 @@
-// src/components/session/recordings-list.tsx
-import React, { useState, useCallback } from 'react';
+// src/components/session/recordings/recordings-list.tsx
+import React, { useState, useCallback, useEffect } from 'react';
 import { format, isValid } from 'date-fns';
 import { recordingsStorage } from '@/lib/recordings';
 import { 
@@ -14,8 +14,12 @@ import {
   Calendar,
   Wand2
 } from 'lucide-react';
-import { AttributeTag, toSentenceCase } from '@/components/common/attribute-tag';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Section } from '@/components/ui/section';
 import { highlightEntitiesInText } from '@/utils/highlightEntities';
+import { AttributeTag, toSentenceCase } from '@/components/common/attribute-tag';
 import type { Recording, RecordingStatus, AnalysisStatus } from '@/types';
 
 interface Transcription {
@@ -83,18 +87,18 @@ interface RecordingsListProps {
 }
 
 // Function to get status badge styling
-const getStatusBadge = (status: AnalysisStatus | RecordingStatus) => {
+const getStatusBadgeVariant = (status: AnalysisStatus | RecordingStatus) => {
   switch (status) {
     case 'completed':
-      return 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800';
+      return 'success';
     case 'processing':
-      return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800';
+      return 'primary';
     case 'failed':
-      return 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800';
+      return 'danger';
     case 'pending':
-      return 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800';
+      return 'warning';
     default:
-      return 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700';
+      return 'default';
   }
 };
 
@@ -121,7 +125,7 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
   }, [recordings]);
 
   // Reset recording URLs when recordings change to force re-fetching URLs
-  React.useEffect(() => {
+  useEffect(() => {
     setRecordingUrls({});
   }, [recordings]);
 
@@ -147,7 +151,7 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
   }, [onError]);
 
   // Fetch URLs whenever recordings change or recordingUrls is reset
-  React.useEffect(() => {
+  useEffect(() => {
     sortedRecordings.forEach(recording => {
       if (!recordingUrls[recording.id] && recording.file_path) {
         getSignedUrl(recording);
@@ -233,41 +237,41 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
       <div className="space-y-4">
         {Object.entries(groupedEntities).map(([type, entities]) => (
           <div key={type} className="space-y-2">
-            <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
+            <h5 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 flex items-center">
               {type === 'symptom' ? (
                 <>
-                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-primary-500 rounded-full mr-2"></span>
                   Síntomas
                 </>
               ) : type === 'condition' ? (
                 <>
-                  <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-success-500 rounded-full mr-2"></span>
                   Condiciones
                 </>
               ) : type === 'medication' ? (
                 <>
-                  <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-warning-500 rounded-full mr-2"></span>
                   Medicamentos
                 </>
               ) : (
                 <>
-                  <span className="w-2 h-2 bg-gray-500 rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-neutral-500 rounded-full mr-2"></span>
                   {toSentenceCase(type)}
                 </>
               )}
             </h5>
             <div className="flex flex-wrap gap-2">
               {entities.map((entity, idx) => (
-                <div
+                <Badge
                   key={idx}
-                  className="inline-flex items-center px-3 py-1 text-sm rounded-lg 
-                    bg-gray-50 text-gray-800 border border-gray-200 
-                    dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600
-                    hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer"
+                  variant={type === 'symptom' ? 'primary' : 
+                          type === 'condition' ? 'success' : 
+                          type === 'medication' ? 'warning' : 'default'}
+                  className="cursor-pointer hover:opacity-90"
                   title={`Confianza: ${Math.round(entity.confidence * 100)}%`}
                 >
                   {toSentenceCase(entity.name)}
-                </div>
+                </Badge>
               ))}
             </div>
           </div>
@@ -280,21 +284,23 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
     return (
       <div className={`space-y-6 ${className}`}>
         {[1, 2].map((index) => (
-          <div key={index} className="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 p-4 animate-pulse">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
-                <div className="space-y-2">
-                  <div className="h-4 w-32 bg-gray-200 dark:bg-gray-600 rounded"></div>
-                  <div className="h-3 w-20 bg-gray-200 dark:bg-gray-600 rounded"></div>
+          <Card key={index} className="animate-pulse">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-neutral-200 dark:bg-neutral-700 rounded-full"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 w-32 bg-neutral-200 dark:bg-neutral-700 rounded"></div>
+                    <div className="h-3 w-20 bg-neutral-200 dark:bg-neutral-700 rounded"></div>
+                  </div>
                 </div>
+                <div className="h-6 w-24 bg-neutral-200 dark:bg-neutral-700 rounded-full"></div>
               </div>
-              <div className="h-6 w-24 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
-            </div>
-            <div className="mt-2 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-              <div className="h-12 bg-gray-200 dark:bg-gray-600 rounded w-full"></div>
-            </div>
-          </div>
+              <div className="mt-2 bg-neutral-100 dark:bg-neutral-800 p-3 rounded-lg">
+                <div className="h-12 bg-neutral-200 dark:bg-neutral-700 rounded w-full"></div>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     );
@@ -303,29 +309,31 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
   return (
     <div className={`space-y-6 ${className}`}>
       {sortedRecordings.length === 0 ? (
-        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
-          <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-700">
-            <Headphones className="h-6 w-6 text-gray-600 dark:text-gray-400" />
-          </div>
-          <h3 className="mt-3 text-base font-semibold text-gray-900 dark:text-gray-100">No hay grabaciones</h3>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
-            Para comenzar, graba la consulta usando el botón de micrófono. El análisis comenzará automáticamente una vez finalices la grabación.
-          </p>
-          <div className="mt-4 inline-flex items-center text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 px-3 py-1.5 rounded-full">
-            <Clock className="h-3.5 w-3.5 mr-1.5" />
-            Las grabaciones aparecerán aquí
-          </div>
-        </div>
+        <Card className="border-dashed">
+          <CardContent className="p-6 text-center">
+            <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800">
+              <Headphones className="h-6 w-6 text-neutral-500 dark:text-neutral-400" />
+            </div>
+            <h3 className="mt-3 text-base font-semibold text-neutral-900 dark:text-neutral-100">No hay grabaciones</h3>
+            <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto">
+              Para comenzar, graba la consulta usando el botón de micrófono. El análisis comenzará automáticamente una vez finalices la grabación.
+            </p>
+            <div className="mt-4 inline-flex items-center text-xs text-neutral-500 dark:text-neutral-400 bg-neutral-100 dark:bg-neutral-800 px-3 py-1.5 rounded-full">
+              <Clock className="h-3.5 w-3.5 mr-1.5" />
+              Las grabaciones aparecerán aquí
+            </div>
+          </CardContent>
+        </Card>
       ) : (
         <>
-          <div className="flex items-center gap-2">
-            <Headphones className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-            <h3 className="font-medium text-gray-900 dark:text-gray-100">
+          <div className="flex items-center gap-2 mb-2">
+            <Headphones className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
+            <h3 className="font-medium text-neutral-900 dark:text-neutral-100">
               Grabaciones de la sesión
             </h3>
-            <span className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium px-2.5 py-0.5 rounded-full">
+            <Badge variant="default">
               {sortedRecordings.length}
-            </span>
+            </Badge>
           </div>
           
           {sortedRecordings.map((recording) => {
@@ -338,40 +346,42 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
             const allEntities = analyses.flatMap(analysis => analysis.content?.entities || []);
             
             return (
-              <div
+              <Card 
                 key={recording.id}
-                className="bg-white dark:bg-gray-800 shadow-sm rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors overflow-hidden"
+                variant="default" 
+                className="hover:border-neutral-300 dark:hover:border-neutral-600 transition-colors"
               >
                 {/* Recording Header */}
-                <div className="p-4">
+                <CardContent className="p-4">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div className="flex items-center">
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => toggleExpanded(recording.id)}
-                        className="p-1.5 mr-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
                         aria-label={isExpanded ? "Colapsar grabación" : "Expandir grabación"}
                       >
                         {isExpanded ? (
-                          <ChevronDown className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                          <ChevronDown className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
                         ) : (
-                          <ChevronRight className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                          <ChevronRight className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
                         )}
-                      </button>
+                      </Button>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                             Grabación {recordings.indexOf(recording) + 1}
                           </span>
-                          <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                          <div className="flex items-center text-xs text-neutral-500 dark:text-neutral-400">
                             <Clock className="h-3 w-3 mr-1" />
                             {formatDuration(recording.duration)}
                           </div>
-                          <div className="hidden sm:flex items-center text-xs text-gray-500 dark:text-gray-400">
+                          <div className="hidden sm:flex items-center text-xs text-neutral-500 dark:text-neutral-400">
                             <Calendar className="h-3 w-3 mr-1" />
                             {formatTime(recording.created_at)} - {formatDate(recording.created_at)}
                           </div>
                         </div>
-                        <div className="sm:hidden flex items-center text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <div className="sm:hidden flex items-center text-xs text-neutral-500 dark:text-neutral-400 mt-1">
                           <Calendar className="h-3 w-3 mr-1" />
                           {formatTime(recording.created_at)} - {formatDate(recording.created_at)}
                         </div>
@@ -379,37 +389,35 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1 text-sm font-medium rounded-full border ${getStatusBadge(recording.analysis_status)}`}>
+                      <Badge 
+                        variant={getStatusBadgeVariant(recording.analysis_status)}
+                        withDot={recording.analysis_status === 'processing'}
+                        dotColor={recording.analysis_status === 'processing' ? 'primary' : undefined}
+                      >
                         {recording.analysis_status === 'completed' ? 'Completado' : 
                          recording.analysis_status === 'processing' ? 'Procesando...' : 
                          recording.analysis_status === 'failed' ? 'Error' : 'Pendiente'}
-                        
-                        {recording.analysis_status === 'processing' && (
-                          <span className="ml-1.5 h-2 w-2 bg-blue-400 dark:bg-blue-500 rounded-full inline-block animate-pulse"></span>
-                        )}
-                      </span>
+                      </Badge>
                       
                       {recording.analysis_status === 'completed' && (
-                        <div className="bg-green-50 dark:bg-green-900/30 p-1 rounded-full">
-                          <Wand2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        <div className="bg-success-100 dark:bg-success-900/30 p-1 rounded-full">
+                          <Wand2 className="h-4 w-4 text-success-500 dark:text-success-400" />
                         </div>
                       )}
                     </div>
                   </div>
                   
                   {recordingUrls[recording.id] && (
-                    <div className="mt-3 flex items-center bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
-                      <button
+                    <div className="mt-3 flex items-center bg-neutral-50 dark:bg-neutral-800 p-3 rounded-lg border border-neutral-200 dark:border-neutral-700">
+                      <Button
+                        variant={isPlaying ? "danger" : "primary"}
+                        size="sm"
+                        className="mr-3 rounded-full h-10 w-10 p-0"
                         onClick={() => handlePlayPause(recording.id)}
-                        className={`p-2 rounded-full mr-3 ${
-                          isPlaying ? 
-                            'bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50' : 
-                            'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50'
-                        }`}
                         aria-label={isPlaying ? "Pausar" : "Reproducir"}
                       >
                         {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-                      </button>
+                      </Button>
                       
                       <audio
                         // Use a callback ref instead of a direct ref assignment
@@ -427,22 +435,23 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                       </audio>
                     </div>
                   )}
-                </div>
+                </CardContent>
 
                 {/* Expanded Content */}
                 {isExpanded && (
-                  <div className="border-t border-gray-200 dark:border-gray-700">
-                    <div className="p-6 bg-white dark:bg-gray-800">
+                  <div className="border-t border-neutral-200 dark:border-neutral-700">
+                    <CardContent className="p-6 bg-white dark:bg-neutral-800">
                       {/* Transcription Content */}
-                      <div className="mb-6">
-                        <div className="flex items-center gap-2 mb-4">
-                          <FileText className="h-5 w-5 text-blue-500 dark:text-blue-400" />
-                          <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100">Transcripción</h4>
-                        </div>
-                        
-                        <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                      <Section
+                        title="Transcripción"
+                        icon={<FileText className="h-5 w-5 text-primary-500 dark:text-primary-400" />}
+                        variant="flat"
+                        isCollapsible={false}
+                        className="mb-6"
+                      >
+                        <div className="bg-neutral-50 dark:bg-neutral-900 p-4 rounded-lg border border-neutral-200 dark:border-neutral-700">
                           {transcription ? (
-                            <div className="text-sm text-gray-900 dark:text-gray-200 whitespace-pre-wrap leading-relaxed">
+                            <div className="text-sm text-neutral-900 dark:text-neutral-200 whitespace-pre-wrap leading-relaxed">
                               {highlightEntitiesInText(
                                 transcription.content || 'No hay contenido disponible',
                                 allEntities
@@ -451,42 +460,43 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                           ) : recording.analysis_status === 'processing' ? (
                             <div className="flex items-center justify-center p-4">
                               <div className="animate-pulse flex items-center">
-                                <div className="h-4 w-4 bg-blue-400 dark:bg-blue-600 rounded-full mr-2"></div>
-                                <span className="text-sm text-gray-500 dark:text-gray-400">Procesando transcripción...</span>
+                                <div className="h-4 w-4 bg-primary-400 dark:bg-primary-600 rounded-full mr-2"></div>
+                                <span className="text-sm text-neutral-500 dark:text-neutral-400">Procesando transcripción...</span>
                               </div>
                             </div>
                           ) : recording.analysis_status === 'failed' ? (
-                            <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
+                            <div className="flex items-center gap-2 text-sm text-danger-600 dark:text-danger-400">
                               <AlertTriangle className="h-4 w-4" />
                               <span>Error al procesar la grabación</span>
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-500 dark:text-gray-400 italic">
+                            <span className="text-sm text-neutral-500 dark:text-neutral-400 italic">
                               En espera de procesamiento...
                             </span>
                           )}
                         </div>
-                      </div>
+                      </Section>
                       
                       {/* Clinical Analysis Content */}
                       {analyses.length > 0 && (
-                        <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-                          <div className="flex items-center gap-2 mb-4">
-                            <Wand2 className="h-5 w-5 text-emerald-500 dark:text-emerald-400" />
-                            <h4 className="text-lg font-medium text-gray-900 dark:text-gray-100">Análisis Clínico</h4>
-                          </div>
-                          
+                        <Section
+                          title="Análisis Clínico"
+                          icon={<Wand2 className="h-5 w-5 text-success-500 dark:text-success-400" />}
+                          variant="flat"
+                          isCollapsible={false}
+                          className="pt-6 border-t border-neutral-200 dark:border-neutral-700"
+                        >
                           {analyses.map((analysis, index) => (
                             <div key={index} className="space-y-6">
                               {analysis.content?.entities && analysis.content.entities.length > 0 && (
-                                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                                <div className="bg-neutral-50 dark:bg-neutral-900 p-4 rounded-lg border border-neutral-200 dark:border-neutral-700">
                                   {renderEntities(analysis.content.entities)}
                                 </div>
                               )}
                               
                               {analysis.content?.relationships && analysis.content.relationships.length > 0 && (
                                 <div className="space-y-3">
-                                  <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  <h5 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                     Relaciones Clínicas
                                   </h5>
                                   
@@ -494,28 +504,28 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                                     {analysis.content.relationships.map((rel, idx) => (
                                       <div 
                                         key={idx}
-                                        className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
+                                        className="p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-700"
                                       >
                                         <div className="flex items-baseline justify-between mb-1">
                                           <div className="flex items-center gap-2">
-                                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                                            <span className="font-medium text-neutral-900 dark:text-neutral-100">
                                               {toSentenceCase(rel.source)}
                                             </span>
                                             <AttributeTag
                                               label="Relationship"
                                               value={rel.type}
                                             />
-                                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                                            <span className="font-medium text-neutral-900 dark:text-neutral-100">
                                               {toSentenceCase(rel.target)}
                                             </span>
                                           </div>
-                                          <span className="text-xs px-2 py-0.5 bg-white dark:bg-gray-800 rounded-full text-gray-600 dark:text-gray-400">
+                                          <Badge variant="default" size="sm">
                                             {Math.round(rel.confidence * 100)}%
-                                          </span>
+                                          </Badge>
                                         </div>
                                         
                                         {rel.evidence && (
-                                          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 p-2 rounded-md border border-gray-200 dark:border-gray-700">
+                                          <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 p-2 rounded-md border border-neutral-200 dark:border-neutral-700">
                                             {rel.evidence}
                                           </p>
                                         )}
@@ -531,8 +541,8 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                                               <AttributeTag
                                                 key={key}
                                                 label={key === 'clinical_significance' ? 'Context' :
-                                                       key === 'temporality' ? 'Duration' :
-                                                       toSentenceCase(key)}
+                                                      key === 'temporality' ? 'Duration' :
+                                                      toSentenceCase(key)}
                                                 value={value as string}
                                               />
                                             ))}
@@ -544,12 +554,12 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                               )}
                             </div>
                           ))}
-                        </div>
+                        </Section>
                       )}
-                    </div>
+                    </CardContent>
                   </div>
                 )}
-              </div>
+              </Card>
             );
           })}
         </>

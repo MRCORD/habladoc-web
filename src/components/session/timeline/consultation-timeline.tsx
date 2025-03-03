@@ -1,5 +1,4 @@
-// src/components/session/consultation-timeline.tsx
-
+// src/components/session/timeline/consultation-timeline.tsx
 import React, { useState, useMemo } from 'react';
 import { 
   Calendar, 
@@ -9,7 +8,12 @@ import {
   CalendarDays,
   Search,
   X,
+  Filter,
+  ArrowDownUp
 } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 import TimelineEventCard, { getEventIcon } from './timeline-event-card';
 import TimelineFilter, { TimelineFilters } from './timeline-filter';
@@ -23,17 +27,17 @@ import {
 
 // Helper function to get confidence display info - add export
 export const getConfidenceInfo = (confidence: number | undefined) => {
-  if (typeof confidence !== 'number') return { text: 'Desconocido', colorClass: 'text-gray-500' };
+  if (typeof confidence !== 'number') return { text: 'Desconocido', colorClass: 'text-neutral-500' };
   
   const percentage = Math.round(confidence * 100);
   if (percentage >= 90) {
-    return { text: 'Muy alta', colorClass: 'text-green-600 dark:text-green-400' };
+    return { text: 'Muy alta', colorClass: 'text-success-600 dark:text-success-400' };
   } else if (percentage >= 75) {
-    return { text: 'Alta', colorClass: 'text-emerald-600 dark:text-emerald-400' };
+    return { text: 'Alta', colorClass: 'text-primary-600 dark:text-primary-400' };
   } else if (percentage >= 60) {
-    return { text: 'Moderada', colorClass: 'text-yellow-600 dark:text-yellow-400' };
+    return { text: 'Moderada', colorClass: 'text-warning-600 dark:text-warning-400' };
   } else {
-    return { text: 'Baja', colorClass: 'text-red-600 dark:text-red-400' };
+    return { text: 'Baja', colorClass: 'text-danger-600 dark:text-danger-400' };
   }
 };
 
@@ -47,48 +51,22 @@ interface ConsultationTimelineProps {
   events: TimelineEvent[];
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  className?: string;
 }
 
-// Helper function to format datetime values
-const getFormattedDateTime = (timestamp: string) => {
-  try {
-    const date = new Date(timestamp);
-    return {
-      time: date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
-      date: date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-      relativeTime: getRelativeTimeString(date)
-    };
-  } catch (error) {
-    console.error("Error formatting date:", error);
-    return { time: "", date: "", relativeTime: "" };
-  }
-};
-
-// Get relative time string (e.g., "2 minutes ago")
-const getRelativeTimeString = (date: Date): string => {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffSec = Math.round(diffMs / 1000);
-  const diffMin = Math.round(diffSec / 60);
-  const diffHr = Math.round(diffMin / 60);
-  const diffDays = Math.round(diffHr / 24);
-
-  if (diffSec < 60) return 'Justo ahora';
-  if (diffMin < 60) return `Hace ${diffMin} ${diffMin === 1 ? 'minuto' : 'minutos'}`;
-  if (diffHr < 24) return `Hace ${diffHr} ${diffHr === 1 ? 'hora' : 'horas'}`;
-  if (diffDays === 1) return 'Ayer';
-  if (diffDays < 7) return `Hace ${diffDays} días`;
-  
-  return '';
-};
-
 // Main component
-export default function ConsultationTimeline({ events, isCollapsed, onToggleCollapse }: ConsultationTimelineProps) {
-  // State for filtering and expanding groups
+export default function ConsultationTimeline({ 
+  events, 
+  isCollapsed, 
+  onToggleCollapse,
+  className = ""
+}: ConsultationTimelineProps) {
+  // State for filtering, sorting, and expanding groups
   const [filter, setFilter] = useState<string>('');
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [expandedEvents, setExpandedEvents] = useState<Record<string, boolean>>({});
-  const [showFilters] = useState(false); // Remove unused setter
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Toggle group expansion
   const toggleGroup = (dateGroup: string) => {
@@ -104,6 +82,11 @@ export default function ConsultationTimeline({ events, isCollapsed, onToggleColl
       ...prev,
       [eventId]: !prev[eventId]
     }));
+  };
+
+  // Toggle sort order
+  const toggleSortOrder = () => {
+    setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc');
   };
 
   // Process and consolidate events
@@ -138,10 +121,23 @@ export default function ConsultationTimeline({ events, isCollapsed, onToggleColl
       : processedEvents;
   }, [processedEvents, filter]);
   
-  // Group events by date
+  // Group events by date and sort according to sortOrder
   const groupedEvents = useMemo(() => {
-    return groupEventsByDate(filteredEvents);
-  }, [filteredEvents]);
+    const grouped = groupEventsByDate(filteredEvents);
+    
+    // Convert to array to easily sort
+    let sortedEntries = Object.entries(grouped);
+    
+    // Sort by date
+    sortedEntries = sortedEntries.sort(([dateA], [dateB]) => {
+      return sortOrder === 'desc' 
+        ? dateB.localeCompare(dateA) // newest first for desc
+        : dateA.localeCompare(dateB); // oldest first for asc
+    });
+    
+    // Convert back to object
+    return Object.fromEntries(sortedEntries);
+  }, [filteredEvents, sortOrder]);
   
   // Find relationships between events
   const relationships = useMemo(() => {
@@ -179,49 +175,73 @@ export default function ConsultationTimeline({ events, isCollapsed, onToggleColl
   if (!events || events.length === 0) return null;
 
   return (
-    <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-750">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center">
-            <Calendar className="h-5 w-5 text-blue-500 mr-2" />
-            Cronología Clínica
-            <span className="ml-2 text-sm px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+    <Card className={className}>
+      <CardHeader className="bg-neutral-50 dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary-500" />
+            <CardTitle>Cronología Clínica</CardTitle>
+            <Badge variant="default">
               {events.length}
-            </span>
-          </h3>
-          <button 
-            onClick={onToggleCollapse}
-            className="text-sm text-blue-600 hover:text-blue-800 focus:outline-none"
-          >
-            {isCollapsed ? (
-              <ChevronDown className="h-5 w-5" />
-            ) : (
-              <ChevronUp className="h-5 w-5" />
-            )}
-          </button>
+            </Badge>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowFilters(!showFilters)}
+              aria-label="Mostrar filtros"
+              className={`h-8 w-8 ${showFilters ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300' : ''}`}
+            >
+              <Filter className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSortOrder}
+              aria-label={sortOrder === 'desc' ? "Ordenar ascendente" : "Ordenar descendente"}
+              className="h-8 w-8"
+            >
+              <ArrowDownUp className="h-4 w-4" />
+            </Button>
+            <Button 
+              variant="ghost"
+              size="icon"
+              onClick={onToggleCollapse}
+              className="h-8 w-8"
+            >
+              {isCollapsed ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronUp className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
         </div>
         
         {!isCollapsed && (
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Buscar en la cronología..."
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              className="w-full pl-9 pr-9 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-            {filter && (
-              <button 
-                onClick={() => setFilter('')}
-                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
+          <div className="relative mt-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-neutral-400" />
+              <input
+                type="text"
+                placeholder="Buscar en la cronología..."
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                className="w-full pl-9 pr-9 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+              {filter && (
+                <button 
+                  onClick={() => setFilter('')}
+                  className="absolute right-3 top-2.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
           </div>
         )}
-      </div>
+      </CardHeader>
       
       {/* Show filters panel if requested */}
       {!isCollapsed && showFilters && (
@@ -233,12 +253,12 @@ export default function ConsultationTimeline({ events, isCollapsed, onToggleColl
       )}
       
       {!isCollapsed && (
-        <div className="p-4">
+        <CardContent className="p-4">
           {Object.keys(groupedEvents).length === 0 ? (
             <div className="text-center py-10">
-              <CalendarDays className="h-12 w-12 mx-auto text-gray-300 dark:text-gray-600" />
-              <h4 className="mt-2 text-gray-900 dark:text-gray-100 font-medium">No hay eventos que mostrar</h4>
-              <p className="mt-1 text-gray-500 dark:text-gray-400">
+              <CalendarDays className="h-12 w-12 mx-auto text-neutral-300 dark:text-neutral-600" />
+              <h4 className="mt-2 text-neutral-900 dark:text-neutral-100 font-medium">No hay eventos que mostrar</h4>
+              <p className="mt-1 text-neutral-500 dark:text-neutral-400">
                 {filter ? 'Intenta con otra búsqueda' : 'No hay eventos registrados en esta cronología'}
               </p>
             </div>
@@ -248,25 +268,29 @@ export default function ConsultationTimeline({ events, isCollapsed, onToggleColl
                 <div key={dateGroup} className="relative">
                   {/* Date header */}
                   <div 
-                    className="flex items-center mb-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-750 p-1.5 rounded-md"
+                    className="flex items-center mb-4 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-750 p-1.5 rounded-md"
                     onClick={() => toggleGroup(dateGroup)}
                   >
-                    <button className="mr-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                    <Button 
+                      variant="ghost"
+                      size="icon"
+                      className="mr-2 h-8 w-8 text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+                    >
                       {expandedGroups[dateGroup] === false ? (
-                        <ChevronDown className="h-5 w-5" />
+                        <ChevronDown className="h-4 w-4" />
                       ) : (
-                        <ChevronUp className="h-5 w-5" />
+                        <ChevronUp className="h-4 w-4" />
                       )}
-                    </button>
+                    </Button>
                     <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-3">
-                        <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <div className="h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center mr-3">
+                        <Calendar className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                       </div>
                       <div>
-                        <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                        <h4 className="font-medium text-neutral-900 dark:text-neutral-100">
                           {formatDateForDisplay(dateGroup)}
                         </h4>
-                        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center text-xs text-neutral-500 dark:text-neutral-400">
                           <Clock className="h-3.5 w-3.5 mr-1" />
                           {dateEvents.length} eventos
                         </div>
@@ -278,7 +302,7 @@ export default function ConsultationTimeline({ events, isCollapsed, onToggleColl
                   {expandedGroups[dateGroup] !== false && (
                     <div className="ml-6 pl-6 relative space-y-4">
                       {/* Vertical timeline line */}
-                      <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-700"></div>
+                      <div className="absolute left-0 top-0 bottom-0 w-px bg-neutral-200 dark:bg-neutral-700"></div>
                       
                       {dateEvents.map((event) => {
                         const eventId = event.id?.toString() || "";
@@ -294,7 +318,7 @@ export default function ConsultationTimeline({ events, isCollapsed, onToggleColl
                         return (
                           <div key={eventId} className="relative">
                             {/* Timeline dot */}
-                            <div className="absolute -left-3 mt-1 w-6 h-6 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center border-2 border-blue-500 dark:border-blue-400 z-10">
+                            <div className="absolute -left-3 mt-1.5 w-6 h-6 rounded-full bg-white dark:bg-neutral-800 flex items-center justify-center border-2 border-primary-500 dark:border-primary-400 z-10">
                               {getEventIcon(event.event_type)}
                             </div>
                             
@@ -315,8 +339,41 @@ export default function ConsultationTimeline({ events, isCollapsed, onToggleColl
               ))}
             </div>
           )}
-        </div>
+        </CardContent>
       )}
-    </div>
+    </Card>
   );
+}
+
+// Helper function to get formatted datetime values from timestamp
+function getFormattedDateTime(timestamp: string) {
+  try {
+    const date = new Date(timestamp);
+    return {
+      time: date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+      date: date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+      relativeTime: getRelativeTimeString(date)
+    };
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return { time: "", date: "", relativeTime: "" };
+  }
+}
+
+// Get relative time string (e.g., "2 minutes ago")
+function getRelativeTimeString(date: Date): string {
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSec = Math.round(diffMs / 1000);
+  const diffMin = Math.round(diffSec / 60);
+  const diffHr = Math.round(diffMin / 60);
+  const diffDays = Math.round(diffHr / 24);
+
+  if (diffSec < 60) return 'Justo ahora';
+  if (diffMin < 60) return `Hace ${diffMin} ${diffMin === 1 ? 'minuto' : 'minutos'}`;
+  if (diffHr < 24) return `Hace ${diffHr} ${diffHr === 1 ? 'hora' : 'horas'}`;
+  if (diffDays === 1) return 'Ayer';
+  if (diffDays < 7) return `Hace ${diffDays} días`;
+  
+  return '';
 }

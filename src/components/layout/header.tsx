@@ -96,7 +96,11 @@ export function Header() {
                           <div className="flex gap-2">
                             <button
                               onClick={() => setTheme("light")}
-                              className="flex items-center justify-center h-8 w-8 rounded-md text-gray-500 dark:text-gray-400"
+                              className={`flex items-center justify-center h-8 w-8 rounded-md ${
+                                theme === 'light' 
+                                  ? 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-white' 
+                                  : 'text-gray-500 dark:text-gray-400'
+                              }`}
                               title="Modo Claro"
                             >
                               <SunIcon className="h-5 w-5" />
@@ -104,7 +108,11 @@ export function Header() {
                             
                             <button
                               onClick={() => setTheme("dark")}
-                              className="flex items-center justify-center h-8 w-8 rounded-md text-gray-500 dark:text-gray-400"
+                              className={`flex items-center justify-center h-8 w-8 rounded-md ${
+                                theme === 'dark'
+                                  ? 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-white'
+                                  : 'text-gray-500 dark:text-gray-400'
+                              }`}
                               title="Modo Oscuro"
                             >
                               <MoonIcon className="h-5 w-5" />
@@ -112,7 +120,11 @@ export function Header() {
                             
                             <button
                               onClick={() => setTheme("system")}
-                              className="flex items-center justify-center h-8 w-8 rounded-md text-gray-500 dark:text-gray-400"
+                              className={`flex items-center justify-center h-8 w-8 rounded-md ${
+                                theme === 'system'
+                                  ? 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-white'
+                                  : 'text-gray-500 dark:text-gray-400'
+                              }`}
                               title="Tema del Sistema"
                             >
                               <ComputerDesktopIcon className="h-5 w-5" />

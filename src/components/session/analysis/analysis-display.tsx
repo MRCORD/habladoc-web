@@ -34,6 +34,7 @@ import { highlightEntitiesInText } from "@/utils/highlightEntities";
 import { AttributeTag, toSentenceCase } from "@/components/common/attribute-tag";
 import ConsultationTimeline, { getConfidenceInfo } from "../timeline/consultation-timeline";
 import { TimelineEvent } from '@/contexts/timeline-context';
+import DiagnosisManagement from '@/components/session/diagnosis/DiagnosisManagement';
 
 // Type definitions for the component
 interface EnhancedConsultationData {
@@ -894,6 +895,11 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
                         filter={entityFilter}
                         setFilter={setEntityFilter}
                       />
+                                      
+                    {/* Diagnosis Management Component */}
+                    <div className="mt-4">
+                      <DiagnosisManagement sessionId={sessionId} />
+                    </div>
                     
                       {/* Clinical Relationships */}
                       {clinicalRelationships.length > 0 && (

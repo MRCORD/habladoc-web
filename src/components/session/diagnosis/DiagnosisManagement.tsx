@@ -1,4 +1,4 @@
-// src/components/session/diagnosis/DiagnosisManagement.tsx - ENHANCED VERSION
+// src/components/session/diagnosis/DiagnosisManagement.tsx
 import React, { useEffect, useState } from 'react';
 import { 
   PlusCircle, 
@@ -19,7 +19,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DiagnosisCreateData, DiagnosisType, DiagnosisStatus, DiagnosisUpdateData } from '@/types/diagnosis';
-import DiagnosisDrawer from './DiagnosisDrawer';
+import DiagnosisBrowser from './DiagnosisBrowser'; // Updated import name
 import { useDiagnosisStore } from '@/stores/diagnosisStore';
 
 interface DiagnosisManagementProps {
@@ -31,7 +31,7 @@ const DiagnosisManagement: React.FC<DiagnosisManagementProps> = ({
   sessionId, 
   className = "" 
 }) => {
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [browserOpen, setBrowserOpen] = useState(false); // Updated variable name
   const [groupByType, setGroupByType] = useState(true);
   const [lastAction, setLastAction] = useState<string | null>(null);
   
@@ -60,11 +60,11 @@ const DiagnosisManagement: React.FC<DiagnosisManagementProps> = ({
     console.log('📊 Current diagnoses count:', sessionDiagnoses.length);
   }, [sessionDiagnoses.length]);
 
-  // Handle new diagnosis from the drawer
+  // Handle new diagnosis from the browser
   const handleDiagnosisSelected = (diagnosis: DiagnosisCreateData) => {
     console.log('➕ Adding new diagnosis:', diagnosis);
     addDiagnosis(sessionId, diagnosis);
-    setDrawerOpen(false);
+    setBrowserOpen(false); // Close the browser after selection
     setLastAction(`Diagnóstico añadido: ${diagnosis.title}`);
   };
 
@@ -132,7 +132,7 @@ const DiagnosisManagement: React.FC<DiagnosisManagementProps> = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setDrawerOpen(true)}
+              onClick={() => setBrowserOpen(true)}
               disabled={isLoading}
               className="flex items-center gap-2"
             >
@@ -184,7 +184,7 @@ const DiagnosisManagement: React.FC<DiagnosisManagementProps> = ({
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => setDrawerOpen(true)}
+                onClick={() => setBrowserOpen(true)}
                 className="mx-auto"
               >
                 <PlusCircle className="h-4 w-4 mr-2" />
@@ -274,18 +274,18 @@ const DiagnosisManagement: React.FC<DiagnosisManagementProps> = ({
         </CardContent>
       </Card>
       
-      {/* Diagnosis Drawer (opens when adding a new diagnosis) */}
-      <DiagnosisDrawer
+      {/* Diagnosis Browser (opens when adding a new diagnosis) */}
+      <DiagnosisBrowser
         sessionId={sessionId}
-        isOpen={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        isOpen={browserOpen}
+        onClose={() => setBrowserOpen(false)}
         onDiagnosisSelected={handleDiagnosisSelected}
       />
     </div>
   );
 };
 
-// Simple diagnosis card component (simplified from DiagnosisResultCard)
+// Simple diagnosis card component
 interface DiagnosisCardProps {
   diagnosis: {
     id: string;

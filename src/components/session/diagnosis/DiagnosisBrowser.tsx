@@ -1,5 +1,5 @@
 // src/components/session/diagnosis/DiagnosisBrowser.tsx
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { X, Info } from 'lucide-react';
 
@@ -32,7 +32,8 @@ const lightModeStyles = `
   /* Main window/container */
   :root .ctw-eb-window {
     border-radius: 0.375rem !important;
-    overflow: hidden !important;
+    overflow: auto !important;
+    height: 100% !important;
   }
   
   /* Results area styling */
@@ -40,6 +41,7 @@ const lightModeStyles = `
   :root .ctw-eb-window .ctw-result-content,
   :root .ctw-eb-window .ctw-searching .ctw-result-container {
     background-color: #f8fafc !important;
+    overflow: auto !important;
   }
   
   /* Tree/hierarchy styling */
@@ -47,6 +49,8 @@ const lightModeStyles = `
   :root .ctw-eb-window .ctw-tree {
     background-color: #ffffff !important;
     border-right: 1px solid #e2e8f0 !important;
+    overflow: auto !important;
+    max-height: none !important;
   }
   
   :root .ctw-eb-window .ctw-tree-node,
@@ -160,9 +164,29 @@ const lightModeStyles = `
   :root .ctw-eb-window * {
     box-shadow: none !important;
   }
+  
+  /* Fix for scrolling to the bottom */
+  :root .ctw-eb-window .ctw-result-container {
+    padding-bottom: 60px !important;
+  }
+  
+  :root .ctw-eb-window .ctw-tree {
+    padding-bottom: 60px !important;
+  }
+  
+  /* Fix internal browser height */
+  :root .ctw-eb-window .ctw-content {
+    height: 100% !important;
+    max-height: none !important;
+  }
+  
+  :root .ctw-eb-window .ctw-browser-content {
+    height: 100% !important;
+    max-height: none !important;
+  }
 `;
 
-// Dark mode styles - same as before
+// Dark mode styles - same structure but with dark colors
 const darkModeStyles = `
   /* Global container styling */
   :root .ctw-eb-window,
@@ -175,7 +199,8 @@ const darkModeStyles = `
   /* Main window/container */
   :root .ctw-eb-window {
     border-radius: 0.375rem !important;
-    overflow: hidden !important;
+    overflow: auto !important;
+    height: 100% !important;
   }
   
   /* Results area styling */
@@ -183,6 +208,7 @@ const darkModeStyles = `
   :root .ctw-eb-window .ctw-result-content,
   :root .ctw-eb-window .ctw-searching .ctw-result-container {
     background-color: #1e293b !important; /* Slightly lighter navy */
+    overflow: auto !important;
   }
   
   /* Tree/hierarchy styling */
@@ -190,6 +216,8 @@ const darkModeStyles = `
   :root .ctw-eb-window .ctw-tree {
     background-color: #0f172a !important; /* Dark navy */
     border-right: 1px solid #334155 !important;
+    overflow: auto !important;
+    max-height: none !important;
   }
   
   :root .ctw-eb-window .ctw-tree-node,
@@ -303,6 +331,26 @@ const darkModeStyles = `
   :root .ctw-eb-window * {
     box-shadow: none !important;
   }
+  
+  /* Fix for scrolling to the bottom */
+  :root .ctw-eb-window .ctw-result-container {
+    padding-bottom: 60px !important;
+  }
+  
+  :root .ctw-eb-window .ctw-tree {
+    padding-bottom: 60px !important;
+  }
+  
+  /* Fix internal browser height */
+  :root .ctw-eb-window .ctw-content {
+    height: 100% !important;
+    max-height: none !important;
+  }
+  
+  :root .ctw-eb-window .ctw-browser-content {
+    height: 100% !important;
+    max-height: none !important;
+  }
 `;
 
 const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({ 
@@ -316,7 +364,8 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
   const styleElRef = useRef<HTMLStyleElement | null>(null);
   
   // Get the current theme from the theme provider
-  const { isDarkMode } = useTheme();
+  const { theme, isDarkMode } = useTheme();
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>(isDarkMode ? 'dark' : 'light');
 
   // Effect to manage body scroll
   useEffect(() => {
@@ -330,11 +379,22 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
     };
   }, [isOpen]);
   
+  // Update current theme when isDarkMode changes
+  useEffect(() => {
+    setCurrentTheme(isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
+  
   // Apply custom styles based on the current theme
   useEffect(() => {
     if (isOpen) {
       // Use the appropriate styles based on the current theme
-      const styles = isDarkMode ? darkModeStyles : lightModeStyles;
+      const styles = currentTheme === 'dark' ? darkModeStyles : lightModeStyles;
+      
+      // Remove existing style element if it exists
+      if (styleElRef.current) {
+        styleElRef.current.remove();
+        styleElRef.current = null;
+      }
       
       // Inject custom styles for the current theme mode
       const styleEl = document.createElement('style');
@@ -342,15 +402,16 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
       styleEl.innerHTML = styles;
       document.head.appendChild(styleEl);
       styleElRef.current = styleEl;
-      
-      return () => {
-        // Clean up styles when component unmounts
-        if (styleElRef.current) {
-          styleElRef.current.remove();
-        }
-      };
     }
-  }, [isOpen, isDarkMode]);
+    
+    return () => {
+      // Clean up styles when component unmounts or theme changes
+      if (styleElRef.current) {
+        styleElRef.current.remove();
+        styleElRef.current = null;
+      }
+    };
+  }, [isOpen, currentTheme]);
   
   // Configure ECT when component mounts
   useEffect(() => {
@@ -367,7 +428,7 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
       browserSearchAvailable: true,
       browserAdvancedSearchAvailable: true,
       enableSelectButton: "all", // Enable select button for all entities
-      height: "800px", // Updated height to 800px
+      // No fixed height - let the container determine sizing
       sourceApp: "HablaDoc",
       autoBind: false
     };
@@ -439,52 +500,65 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
 
   if (!isOpen) return null;
   
-  // Use theme-aware classes for the container
-  const containerBgClass = isDarkMode ? 'bg-[#0f172a]' : 'bg-white';
-  const borderClass = isDarkMode ? 'border-[#334155]' : 'border-gray-200';
-  const textClass = isDarkMode ? 'text-white' : 'text-gray-900';
-  const helpBgClass = isDarkMode ? 'bg-[#1e3a8a]/20 text-blue-300 border-[#2563eb]/30' : 'bg-blue-50 text-blue-700 border-blue-100';
-
   return (
-    <div className={`fixed inset-0 z-[60] ${containerBgClass}`}>
-      {/* Modal wrapper with isolated scroll */}
-      <div className="h-full flex flex-col">
-        {/* Header - now sticky within the modal */}
-        <div className={`px-6 py-4 border-b ${borderClass} flex items-center justify-between bg-inherit`}>
-          <h2 className={`text-xl font-medium ${textClass}`}>
-            Codificación de Diagnósticos ICD-11
-          </h2>
-          <Button 
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className={`rounded-full ${textClass} hover:bg-opacity-10`}
-          >
-            <X className="h-6 w-6" />
-          </Button>
-        </div>
-        
-        {/* Scrollable content container */}
-        <div className="flex-1 p-6 overflow-y-auto">
-          {/* Help text */}
-          <div className={`flex items-center p-4 mb-4 ${helpBgClass} rounded-md text-sm border`}>
-            <Info className="h-4 w-4 mr-2 flex-shrink-0" />
-            <span>
-              Navegue por la clasificación ICD-11 y seleccione un diagnóstico haciendo clic en el botón "Select" que aparece junto a cada entidad.
-            </span>
+    <>
+      {/* Full viewport dark transparent backdrop with higher z-index */}
+      <div 
+        className="fixed inset-0 z-[80] bg-black/60" 
+        onClick={onClose}
+      />
+      
+      {/* Modal dialog - sized with margins on all sides, with higher z-index to be above backdrop */}
+      <div 
+        className={`fixed z-[90] top-20 bottom-16 left-20 right-20 ${isDarkMode ? 'bg-gray-900' : 'bg-white'} rounded-lg shadow-xl overflow-hidden`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="h-full w-full flex flex-col">
+          {/* Header - now sticky within the modal */}
+          <div className={`px-6 py-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} flex items-center justify-between bg-inherit`}>
+            <h2 className={`text-xl font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+              Codificación de Diagnósticos ICD-11
+            </h2>
+            <Button 
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className={`rounded-full ${isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'} hover:bg-opacity-10`}
+            >
+              <X className="h-6 w-6" />
+            </Button>
           </div>
           
-          {/* Embedded Browser Container */}
-          <div 
-            className={`ctw-eb-window border ${borderClass} rounded-md overflow-hidden`}
-            data-ctw-ino={instanceNo.current}
-            style={{ height: "800px" }}
-          >
-            {/* The Embedded Browser will be rendered here by the ECT library */}
+          {/* Expanded content container to fill remaining space */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Help text */}
+            <div className={`flex items-center p-4 mx-6 mt-6 rounded-md text-sm border ${
+              isDarkMode 
+                ? 'bg-blue-900/30 text-blue-300 border-blue-800' 
+                : 'bg-blue-50 text-blue-700 border-blue-100'
+            }`}>
+              <Info className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span>
+                Navegue por la clasificación ICD-11 y seleccione un diagnóstico haciendo clic en el botón "Select" que aparece junto a cada entidad.
+              </span>
+            </div>
+            
+            {/* Embedded Browser Container with explicit overflow settings */}
+            <div className="mx-6 mt-4 mb-6 flex-1 overflow-hidden flex flex-col">
+              <div 
+                className={`ctw-eb-window border rounded-md flex-1 overflow-auto ${
+                  isDarkMode ? 'border-gray-700' : 'border-gray-200'
+                }`}
+                data-ctw-ino={instanceNo.current}
+                style={{ height: "100%" }}
+              >
+                {/* The Embedded Browser will be rendered here by the ECT library */}
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

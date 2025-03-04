@@ -10,6 +10,7 @@ import '@whoicd/icd11ect/style.css';
 
 import { Button } from '@/components/ui/button';
 import { ICDSelectedEntity, DiagnosisCreateData, DiagnosisType, DiagnosisStatus } from '@/types/diagnosis';
+import { useTheme } from '@/components/theme/theme-provider';
 
 interface DiagnosisBrowserProps {
   sessionId: string;
@@ -18,9 +19,151 @@ interface DiagnosisBrowserProps {
   onDiagnosisSelected: (diagnosis: DiagnosisCreateData) => void;
 }
 
-// Custom styling to override ECT styles for dark mode
-// Using :root.dark to ensure higher specificity
-const customStyles = `
+// Custom styling to override ECT styles for light and dark modes
+const lightModeStyles = `
+  /* Global container styling */
+  :root .ctw-eb-window,
+  :root .ctw-eb-window * {
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    border-color: #e2e8f0 !important;
+  }
+  
+  /* Main window/container */
+  :root .ctw-eb-window {
+    border-radius: 0.375rem !important;
+    overflow: hidden !important;
+  }
+  
+  /* Results area styling */
+  :root .ctw-eb-window .ctw-browser-content,
+  :root .ctw-eb-window .ctw-result-content,
+  :root .ctw-eb-window .ctw-searching .ctw-result-container {
+    background-color: #f8fafc !important;
+  }
+  
+  /* Tree/hierarchy styling */
+  :root .ctw-eb-window .ctw-eb-hierarchy-container,
+  :root .ctw-eb-window .ctw-tree {
+    background-color: #ffffff !important;
+    border-right: 1px solid #e2e8f0 !important;
+  }
+  
+  :root .ctw-eb-window .ctw-tree-node,
+  :root .ctw-eb-window .ctw-tree-node-content {
+    background-color: transparent !important;
+    border-color: #e2e8f0 !important;
+  }
+  
+  :root .ctw-eb-window .ctw-tree-node-expanded > .ctw-tree-node-content {
+    background-color: #f1f5f9 !important;
+  }
+  
+  /* Links styling */
+  :root .ctw-eb-window a,
+  :root .ctw-eb-window a:visited {
+    color: #3b82f6 !important; /* Blue for links */
+  }
+  
+  :root .ctw-eb-window a:hover {
+    color: #2563eb !important; /* Darker blue on hover */
+    text-decoration: underline !important;
+  }
+  
+  /* Search result items */
+  :root .ctw-eb-window .ctw-result-item {
+    border-color: #e2e8f0 !important;
+    border-width: 0 0 1px 0 !important;
+    padding: 8px 4px !important;
+  }
+  
+  :root .ctw-eb-window .ctw-result-item:hover {
+    background-color: #f1f5f9 !important;
+  }
+  
+  /* Search highlight */
+  :root .ctw-eb-window .ctw-highlight,
+  :root .ctw-eb-window .ctw-browser-content .ctw-highlight,
+  :root .ctw-eb-window .ctw-result-icd11-title .ctw-highlight {
+    color: #f97316 !important; /* Orange */
+    background-color: transparent !important;
+    font-weight: normal !important;
+  }
+  
+  /* Buttons */
+  :root .ctw-eb-window button,
+  :root .ctw-eb-window .ctw-button,
+  :root .ctw-eb-window .ctw-result-actions button {
+    background-color: #2563eb !important; /* Blue */
+    color: white !important;
+    border-color: #1d4ed8 !important;
+    border-radius: 0.25rem !important;
+    box-shadow: none !important;
+  }
+  
+  :root .ctw-eb-window button:hover,
+  :root .ctw-eb-window .ctw-button:hover,
+  :root .ctw-eb-window .ctw-result-actions button:hover {
+    background-color: #1d4ed8 !important; /* Darker blue on hover */
+  }
+  
+  /* Form inputs */
+  :root .ctw-eb-window input,
+  :root .ctw-eb-window .ctw-input,
+  :root .ctw-eb-window select,
+  :root .ctw-eb-window .ctw-select {
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+    border-color: #e2e8f0 !important;
+    border-radius: 0.25rem !important;
+  }
+  
+  :root .ctw-eb-window ::placeholder {
+    color: #94a3b8 !important;
+  }
+  
+  /* Message boxes (e.g., incomplete results) */
+  :root .ctw-eb-window .ctw-message-box {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    color: #f97316 !important; /* Orange */
+    padding: 8px !important;
+  }
+  
+  /* Advanced search toggle button */
+  :root .ctw-eb-window .ctw-advanced-search-btn {
+    color: #f59e0b !important; /* Amber */
+  }
+  
+  /* Entity titles */
+  :root .ctw-eb-window .ctw-entity-title {
+    background-color: #f8fafc !important;
+    color: #1e293b !important;
+    padding: 8px !important;
+  }
+  
+  /* Typography improvements */
+  :root .ctw-eb-window *,
+  :root .ctw-eb-window button,
+  :root .ctw-eb-window input,
+  :root .ctw-eb-window select {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif !important;
+  }
+  
+  /* Selected tab styling */
+  :root .ctw-eb-window .ctw-tab-selected {
+    background-color: #2563eb !important;
+    color: white !important;
+  }
+  
+  /* Clear any box shadows */
+  :root .ctw-eb-window * {
+    box-shadow: none !important;
+  }
+`;
+
+// Dark mode styles - same as before
+const darkModeStyles = `
   /* Global container styling */
   :root .ctw-eb-window,
   :root .ctw-eb-window * {
@@ -172,16 +315,19 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
   const instanceNo = useRef(uuidv4());
   const styleElRef = useRef<HTMLStyleElement | null>(null);
   
-  // Apply custom styles
+  // Get the current theme from the theme provider
+  const { isDarkMode } = useTheme();
+  
+  // Apply custom styles based on the current theme
   useEffect(() => {
     if (isOpen) {
-      // Ensure dark class is added to root
-      document.documentElement.classList.add('dark');
+      // Use the appropriate styles based on the current theme
+      const styles = isDarkMode ? darkModeStyles : lightModeStyles;
       
-      // Inject custom styles for dark mode
+      // Inject custom styles for the current theme mode
       const styleEl = document.createElement('style');
       styleEl.id = 'ect-custom-styles';
-      styleEl.innerHTML = customStyles;
+      styleEl.innerHTML = styles;
       document.head.appendChild(styleEl);
       styleElRef.current = styleEl;
       
@@ -192,7 +338,7 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
         }
       };
     }
-  }, [isOpen]);
+  }, [isOpen, isDarkMode]);
   
   // Configure ECT when component mounts
   useEffect(() => {
@@ -209,7 +355,7 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
       browserSearchAvailable: true,
       browserAdvancedSearchAvailable: true,
       enableSelectButton: "all", // Enable select button for all entities
-      height: "75vh", // Set a height for the browser
+      height: "800px", // Updated height to 800px
       sourceApp: "HablaDoc",
       autoBind: false
     };
@@ -280,19 +426,25 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
   }, [isOpen, onDiagnosisSelected]);
 
   if (!isOpen) return null;
+  
+  // Use theme-aware classes for the container
+  const containerBgClass = isDarkMode ? 'bg-[#0f172a]' : 'bg-white';
+  const borderClass = isDarkMode ? 'border-[#334155]' : 'border-gray-200';
+  const textClass = isDarkMode ? 'text-white' : 'text-gray-900';
+  const helpBgClass = isDarkMode ? 'bg-[#1e3a8a]/20 text-blue-300 border-[#2563eb]/30' : 'bg-blue-50 text-blue-700 border-blue-100';
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden bg-[#0f172a] flex flex-col">
+    <div className={`fixed inset-0 z-50 overflow-hidden ${containerBgClass} flex flex-col`}>
       {/* Header */}
-      <div className="px-6 py-4 border-b border-[#334155] flex items-center justify-between sticky top-0 z-10">
-        <h2 className="text-xl font-medium text-white">
+      <div className={`px-6 py-4 border-b ${borderClass} flex items-center justify-between sticky top-0 z-10`}>
+        <h2 className={`text-xl font-medium ${textClass}`}>
           Codificación de Diagnósticos ICD-11
         </h2>
         <Button 
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="rounded-full text-white hover:bg-[#1e293b]"
+          className={`rounded-full ${textClass} hover:bg-opacity-10`}
         >
           <X className="h-6 w-6" />
         </Button>
@@ -301,7 +453,7 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
       {/* Content */}
       <div className="flex-1 p-6 overflow-auto">
         {/* Help text */}
-        <div className="flex items-center p-4 mb-4 bg-[#1e3a8a]/20 text-blue-300 rounded-md text-sm border border-[#2563eb]/30">
+        <div className={`flex items-center p-4 mb-4 ${helpBgClass} rounded-md text-sm border`}>
           <Info className="h-4 w-4 mr-2 flex-shrink-0" />
           <span>
             Navegue por la clasificación ICD-11 y seleccione un diagnóstico haciendo clic en el botón "Select" que aparece junto a cada entidad.
@@ -310,9 +462,9 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
         
         {/* Embedded Browser Container */}
         <div 
-          className="ctw-eb-window border border-[#334155] rounded-md overflow-hidden" 
+          className={`ctw-eb-window border ${borderClass} rounded-md overflow-hidden`} 
           data-ctw-ino={instanceNo.current}
-          style={{ height: "calc(75vh - 100px)" }}
+          style={{ height: "800px" }}
         >
           {/* The Embedded Browser will be rendered here by the ECT library */}
         </div>

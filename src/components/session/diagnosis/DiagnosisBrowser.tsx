@@ -379,6 +379,41 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
     };
   }, [isOpen]);
   
+  // Apply backdrop style to html element (to ensure it covers everything)
+  useEffect(() => {
+    if (isOpen) {
+      // Add a custom style to the document root element for full page coverage
+      document.documentElement.style.position = 'relative';
+      document.documentElement.style.overflow = 'hidden';
+      
+      // Create a backdrop style for the entire window
+      const backdropStyle = document.createElement('style');
+      backdropStyle.id = 'modal-backdrop-style';
+      backdropStyle.innerHTML = `
+        body::before {
+          content: '';
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          width: 100vw;
+          height: 100vh;
+          background-color: rgba(0, 0, 0, 0.6);
+          z-index: 9000;
+        }
+      `;
+      document.head.appendChild(backdropStyle);
+      
+      return () => {
+        // Clean up
+        document.documentElement.style.position = '';
+        document.documentElement.style.overflow = '';
+        document.getElementById('modal-backdrop-style')?.remove();
+      };
+    }
+  }, [isOpen]);
+  
   // Update current theme when isDarkMode changes
   useEffect(() => {
     setCurrentTheme(isDarkMode ? 'dark' : 'light');
@@ -501,64 +536,56 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
   if (!isOpen) return null;
   
   return (
-    <>
-      {/* Full viewport dark transparent backdrop with higher z-index */}
-      <div 
-        className="fixed inset-0 z-[80] bg-black/60" 
-        onClick={onClose}
-      />
-      
-      {/* Modal dialog - sized with margins on all sides, with higher z-index to be above backdrop */}
-      <div 
-        className={`fixed z-[90] top-20 bottom-16 left-20 right-20 ${isDarkMode ? 'bg-gray-900' : 'bg-white'} rounded-lg shadow-xl overflow-hidden`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="h-full w-full flex flex-col">
-          {/* Header - now sticky within the modal */}
-          <div className={`px-6 py-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} flex items-center justify-between bg-inherit`}>
-            <h2 className={`text-xl font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              Codificación de Diagnósticos ICD-11
-            </h2>
-            <Button 
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className={`rounded-full ${isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'} hover:bg-opacity-10`}
-            >
-              <X className="h-6 w-6" />
-            </Button>
+    // Modal dialog - positioned on top of the backdrop added to document.body
+    <div 
+      className={`fixed z-[9001] top-10 bottom-10 left-20 right-20 ${isDarkMode ? 'bg-gray-900' : 'bg-white'} rounded-lg shadow-xl overflow-hidden`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="h-full w-full flex flex-col">
+        {/* Header - now sticky within the modal */}
+        <div className={`px-6 py-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} flex items-center justify-between bg-inherit`}>
+          <h2 className={`text-xl font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+            Codificación de Diagnósticos ICD-11
+          </h2>
+          <Button 
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className={`rounded-full ${isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'} hover:bg-opacity-10`}
+          >
+            <X className="h-6 w-6" />
+          </Button>
+        </div>
+        
+        {/* Expanded content container to fill remaining space */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Help text */}
+          <div className={`flex items-center p-4 mx-6 mt-6 rounded-md text-sm border ${
+            isDarkMode 
+              ? 'bg-blue-900/30 text-blue-300 border-blue-800' 
+              : 'bg-blue-50 text-blue-700 border-blue-100'
+          }`}>
+            <Info className="h-4 w-4 mr-2 flex-shrink-0" />
+            <span>
+              Navegue por la clasificación ICD-11 y seleccione un diagnóstico haciendo clic en el botón "Select" que aparece junto a cada entidad.
+            </span>
           </div>
           
-          {/* Expanded content container to fill remaining space */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            {/* Help text */}
-            <div className={`flex items-center p-4 mx-6 mt-6 rounded-md text-sm border ${
-              isDarkMode 
-                ? 'bg-blue-900/30 text-blue-300 border-blue-800' 
-                : 'bg-blue-50 text-blue-700 border-blue-100'
-            }`}>
-              <Info className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span>
-                Navegue por la clasificación ICD-11 y seleccione un diagnóstico haciendo clic en el botón "Select" que aparece junto a cada entidad.
-              </span>
-            </div>
-            
-            {/* Embedded Browser Container with explicit overflow settings */}
-            <div className="mx-6 mt-4 mb-6 flex-1 overflow-hidden flex flex-col">
-              <div 
-                className={`ctw-eb-window border rounded-md flex-1 overflow-auto ${
-                  isDarkMode ? 'border-gray-700' : 'border-gray-200'
-                }`}
-                data-ctw-ino={instanceNo.current}
-                style={{ height: "100%" }}
-              >
-                {/* The Embedded Browser will be rendered here by the ECT library */}
-              </div>
+          {/* Embedded Browser Container with explicit overflow settings */}
+          <div className="mx-6 mt-4 mb-6 flex-1 overflow-hidden flex flex-col">
+            <div 
+              className={`ctw-eb-window border rounded-md flex-1 overflow-auto ${
+                isDarkMode ? 'border-gray-700' : 'border-gray-200'
+              }`}
+              data-ctw-ino={instanceNo.current}
+              style={{ height: "100%" }}
+            >
+              {/* The Embedded Browser will be rendered here by the ECT library */}
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

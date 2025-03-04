@@ -166,7 +166,7 @@ const SOAP_COMPONENT_MAPPING: Record<string, SOAPSectionType> = {
 const SECTION_TITLES: Record<string, string> = {
   subjective: 'Información Subjetiva',
   objective: 'Datos Objetivos',
-  assessment: 'Evaluación Diagnóstica',
+  assessment: 'Información Diagnóstica',
   plan: 'Plan de Tratamiento'
 };
 
@@ -357,7 +357,7 @@ const EntityGroups: React.FC<EntityGroupsProps> = ({
         content.diagnoses.length > 0) {
       
       groups.push({
-        title: 'Diagnósticos',
+        title: 'Posibles Diagnósticos',
         entities: content.diagnoses.map((diagnosis) => ({
           ...diagnosis,
           name: diagnosis.name,

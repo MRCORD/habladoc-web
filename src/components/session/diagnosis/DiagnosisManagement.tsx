@@ -68,13 +68,6 @@ const DiagnosisManagement: React.FC<DiagnosisManagementProps> = ({
     setLastAction(`Diagnóstico añadido: ${diagnosis.title}`);
   };
 
-  // Handle diagnosis update
-  const handleUpdateDiagnosis = (id: string, data: DiagnosisUpdateData) => {
-    console.log('🔄 Updating diagnosis:', id, data);
-    updateDiagnosis(id, data);
-    setLastAction(`Diagnóstico actualizado: ${data.type || data.status || 'propiedad'}`);
-  };
-
   // Handle diagnosis deletion
   const handleDeleteDiagnosis = (id: string) => {
     console.log('❌ Removing diagnosis:', id);
@@ -276,7 +269,6 @@ const DiagnosisManagement: React.FC<DiagnosisManagementProps> = ({
       
       {/* Diagnosis Browser (opens when adding a new diagnosis) */}
       <DiagnosisBrowser
-        sessionId={sessionId}
         isOpen={browserOpen}
         onClose={() => setBrowserOpen(false)}
         onDiagnosisSelected={handleDiagnosisSelected}

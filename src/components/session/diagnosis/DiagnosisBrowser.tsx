@@ -13,7 +13,6 @@ import { ICDSelectedEntity, DiagnosisCreateData, DiagnosisType, DiagnosisStatus 
 import { useTheme } from '@/components/theme/theme-provider';
 
 interface DiagnosisBrowserProps {
-  sessionId: string;
   isOpen: boolean;
   onClose: () => void;
   onDiagnosisSelected: (diagnosis: DiagnosisCreateData) => void;
@@ -354,7 +353,6 @@ const darkModeStyles = `
 `;
 
 const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({ 
-  sessionId, 
   isOpen,
   onClose,
   onDiagnosisSelected
@@ -364,7 +362,7 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
   const styleElRef = useRef<HTMLStyleElement | null>(null);
   
   // Get the current theme from the theme provider
-  const { theme, isDarkMode } = useTheme();
+  const { isDarkMode } = useTheme();
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>(isDarkMode ? 'dark' : 'light');
 
   // Effect to manage body scroll
@@ -450,6 +448,8 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
   
   // Configure ECT when component mounts
   useEffect(() => {
+    const instanceId = instanceNo.current; // Capture the current value
+    
     if (!isOpen) return;
 
     console.log('Initializing ICD-11 Embedded Browser...');
@@ -507,7 +507,7 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
         console.log('ICD-11 Browser fully loaded!');
       },
       // Called when an error occurs
-      errorFunction: (error: any) => {
+      errorFunction: (error: Error | string) => {
         console.error('ECT Error:', error);
       }
     };
@@ -519,17 +519,15 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
     
     // Bind the component after configuration
     setTimeout(() => {
-      console.log(`Binding ECT Embedded Browser instance: ${instanceNo.current}`);
-      ECT.Handler.bind(instanceNo.current);
+      console.log(`Binding ECT Embedded Browser instance: ${instanceId}`);
+      ECT.Handler.bind(instanceId);
     }, 100);
     
     // Clean up when component unmounts
     return () => {
-      if (instanceNo.current) {
-        console.log(`Cleaning up ECT Embedded Browser instance: ${instanceNo.current}`);
-        // Clean up the ECT instance
-        ECT.Handler.clear(instanceNo.current);
-      }
+      console.log(`Cleaning up ECT Embedded Browser instance: ${instanceId}`);
+      // Clean up the ECT instance
+      ECT.Handler.clear(instanceId);
     };
   }, [isOpen, onDiagnosisSelected]);
 
@@ -567,7 +565,7 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
           }`}>
             <Info className="h-4 w-4 mr-2 flex-shrink-0" />
             <span>
-              Navegue por la clasificación ICD-11 y seleccione un diagnóstico haciendo clic en el botón "Select" que aparece junto a cada entidad.
+              Navegue por la clasificación ICD-11 y seleccione un diagnóstico haciendo clic en el botón &quot;Select&quot; que aparece junto a cada entidad.
             </span>
           </div>
           

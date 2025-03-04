@@ -4,11 +4,8 @@ import React, { useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { 
   Search, 
-  RefreshCw, 
   Check, 
-  AlertTriangle, 
   ArrowLeft,
-  Info
 } from 'lucide-react';
 
 // Import directly like in the sample
@@ -16,18 +13,15 @@ import * as ECT from '@whoicd/icd11ect';
 // Import the CSS directly - make sure this is accessible
 import '@whoicd/icd11ect/style.css';
 
-import { Button } from '@/components/ui/button';
 import { ICDSelectedEntity, DiagnosisCreateData, DiagnosisType, DiagnosisStatus } from '@/types/diagnosis';
 
 interface DiagnosisDrawerProps {
-  sessionId: string;
   isOpen: boolean;
   onClose: () => void;
   onDiagnosisSelected: (diagnosis: DiagnosisCreateData) => void;
 }
 
 const DiagnosisDrawer: React.FC<DiagnosisDrawerProps> = ({ 
-  sessionId, 
   isOpen,
   onClose,
   onDiagnosisSelected
@@ -39,8 +33,9 @@ const DiagnosisDrawer: React.FC<DiagnosisDrawerProps> = ({
   // Configure ECT when component mounts
   useEffect(() => {
     if (!isOpen) return;
-
+    
     console.log('Initializing ICD-11 ECT component...');
+    const currentInstanceId = instanceNo.current; // Store ref value
     
     // Configure the ECT as in the example
     const settings = {
@@ -69,9 +64,9 @@ const DiagnosisDrawer: React.FC<DiagnosisDrawerProps> = ({
         onDiagnosisSelected(diagnosis);
         
         // Clear the search input and results
-        ECT.Handler.clear(instanceNo.current);
+        ECT.Handler.clear(currentInstanceId);
       },
-      errorFunction: (error: any) => {
+      errorFunction: (error: Error | string) => {
         console.error('ECT Error:', error);
       }
     };
@@ -81,8 +76,8 @@ const DiagnosisDrawer: React.FC<DiagnosisDrawerProps> = ({
     
     // Bind the component after configuration
     setTimeout(() => {
-      console.log(`Binding ECT instance: ${instanceNo.current}`);
-      ECT.Handler.bind(instanceNo.current);
+      console.log(`Binding ECT instance: ${currentInstanceId}`);
+      ECT.Handler.bind(currentInstanceId);
     }, 100);
     
     // Focus the input when everything is ready
@@ -92,10 +87,8 @@ const DiagnosisDrawer: React.FC<DiagnosisDrawerProps> = ({
     
     // Clean up when component unmounts
     return () => {
-      if (instanceNo.current) {
-        console.log(`Cleaning up ECT instance: ${instanceNo.current}`);
-        ECT.Handler.clear(instanceNo.current);
-      }
+      console.log(`Cleaning up ECT instance: ${currentInstanceId}`);
+      ECT.Handler.clear(currentInstanceId);
     };
   }, [isOpen, onDiagnosisSelected]);
 

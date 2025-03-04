@@ -434,7 +434,7 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
   const helpBgClass = isDarkMode ? 'bg-[#1e3a8a]/20 text-blue-300 border-[#2563eb]/30' : 'bg-blue-50 text-blue-700 border-blue-100';
 
   return (
-    <div className={`fixed inset-0 z-50 overflow-hidden ${containerBgClass} flex flex-col`}>
+    <div className={`fixed inset-0 z-[60] overflow-hidden ${containerBgClass} flex flex-col`}>
       {/* Header */}
       <div className={`px-6 py-4 border-b ${borderClass} flex items-center justify-between sticky top-0 z-10`}>
         <h2 className={`text-xl font-medium ${textClass}`}>
@@ -462,7 +462,7 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
         
         {/* Embedded Browser Container */}
         <div 
-          className={`ctw-eb-window border ${borderClass} rounded-md overflow-hidden`} 
+          className={`ctw-eb-window border ${borderClass} rounded-md overflow-hidden mb-16`}
           data-ctw-ino={instanceNo.current}
           style={{ height: "800px" }}
         >

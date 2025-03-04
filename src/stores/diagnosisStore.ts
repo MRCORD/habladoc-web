@@ -103,7 +103,7 @@ export const useDiagnosisStore = create<DiagnosisState>()(
           set({ isLoading: true, error: null });
           
           try {
-            const { currentSessionId, diagnosesMap } = get();
+            const { currentSessionId } = get();
             if (!currentSessionId) {
               throw new Error('No active session');
             }
@@ -144,7 +144,7 @@ export const useDiagnosisStore = create<DiagnosisState>()(
           set({ isLoading: true, error: null });
           
           try {
-            const { currentSessionId, diagnosesMap } = get();
+            const { currentSessionId } = get();
             if (!currentSessionId) {
               throw new Error('No active session');
             }

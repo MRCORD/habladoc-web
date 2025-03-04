@@ -18,7 +18,7 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { DiagnosisCreateData, DiagnosisType, DiagnosisStatus, DiagnosisUpdateData } from '@/types/diagnosis';
+import { DiagnosisCreateData, DiagnosisType, DiagnosisStatus } from '@/types/diagnosis';
 import DiagnosisBrowser from './DiagnosisBrowser'; // Updated import name
 import { useDiagnosisStore } from '@/stores/diagnosisStore';
 

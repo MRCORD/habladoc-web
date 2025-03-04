@@ -317,6 +317,18 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
   
   // Get the current theme from the theme provider
   const { isDarkMode } = useTheme();
+
+  // Effect to manage body scroll
+  useEffect(() => {
+    if (isOpen) {
+      // Disable body scroll
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      // Re-enable body scroll on cleanup
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
   
   // Apply custom styles based on the current theme
   useEffect(() => {
@@ -434,39 +446,42 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
   const helpBgClass = isDarkMode ? 'bg-[#1e3a8a]/20 text-blue-300 border-[#2563eb]/30' : 'bg-blue-50 text-blue-700 border-blue-100';
 
   return (
-    <div className={`fixed inset-0 z-[60] overflow-hidden ${containerBgClass} flex flex-col`}>
-      {/* Header */}
-      <div className={`px-6 py-4 border-b ${borderClass} flex items-center justify-between sticky top-0 z-10`}>
-        <h2 className={`text-xl font-medium ${textClass}`}>
-          Codificación de Diagnósticos ICD-11
-        </h2>
-        <Button 
-          variant="ghost"
-          size="icon"
-          onClick={onClose}
-          className={`rounded-full ${textClass} hover:bg-opacity-10`}
-        >
-          <X className="h-6 w-6" />
-        </Button>
-      </div>
-      
-      {/* Content */}
-      <div className="flex-1 p-6 overflow-auto">
-        {/* Help text */}
-        <div className={`flex items-center p-4 mb-4 ${helpBgClass} rounded-md text-sm border`}>
-          <Info className="h-4 w-4 mr-2 flex-shrink-0" />
-          <span>
-            Navegue por la clasificación ICD-11 y seleccione un diagnóstico haciendo clic en el botón "Select" que aparece junto a cada entidad.
-          </span>
+    <div className={`fixed inset-0 z-[60] ${containerBgClass}`}>
+      {/* Modal wrapper with isolated scroll */}
+      <div className="h-full flex flex-col">
+        {/* Header - now sticky within the modal */}
+        <div className={`px-6 py-4 border-b ${borderClass} flex items-center justify-between bg-inherit`}>
+          <h2 className={`text-xl font-medium ${textClass}`}>
+            Codificación de Diagnósticos ICD-11
+          </h2>
+          <Button 
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className={`rounded-full ${textClass} hover:bg-opacity-10`}
+          >
+            <X className="h-6 w-6" />
+          </Button>
         </div>
         
-        {/* Embedded Browser Container */}
-        <div 
-          className={`ctw-eb-window border ${borderClass} rounded-md overflow-hidden mb-16`}
-          data-ctw-ino={instanceNo.current}
-          style={{ height: "800px" }}
-        >
-          {/* The Embedded Browser will be rendered here by the ECT library */}
+        {/* Scrollable content container */}
+        <div className="flex-1 p-6 overflow-y-auto">
+          {/* Help text */}
+          <div className={`flex items-center p-4 mb-4 ${helpBgClass} rounded-md text-sm border`}>
+            <Info className="h-4 w-4 mr-2 flex-shrink-0" />
+            <span>
+              Navegue por la clasificación ICD-11 y seleccione un diagnóstico haciendo clic en el botón "Select" que aparece junto a cada entidad.
+            </span>
+          </div>
+          
+          {/* Embedded Browser Container */}
+          <div 
+            className={`ctw-eb-window border ${borderClass} rounded-md overflow-hidden`}
+            data-ctw-ino={instanceNo.current}
+            style={{ height: "800px" }}
+          >
+            {/* The Embedded Browser will be rendered here by the ECT library */}
+          </div>
         </div>
       </div>
     </div>

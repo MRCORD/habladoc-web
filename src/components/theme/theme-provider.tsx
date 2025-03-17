@@ -30,17 +30,28 @@ export function ThemeProvider({
   storageKey = 'habladoc-theme',
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
-
-  // Initialize theme from localStorage
-  useEffect(() => {
-    const savedTheme = localStorage.getItem(storageKey) as Theme | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
+  // Read from localStorage synchronously during initialization
+  const getInitialTheme = (): Theme => {
+    // For SSR or when localStorage is not available
+    if (typeof window === 'undefined') return defaultTheme;
+    
+    try {
+      const savedTheme = window.localStorage.getItem(storageKey) as Theme | null;
+      // Only return valid theme values
+      if (savedTheme && ['dark', 'light', 'system'].includes(savedTheme)) {
+        return savedTheme;
+      }
+    } catch (error) {
+      // In case of any localStorage errors (e.g., privacy mode)
+      console.warn('Failed to read theme from localStorage:', error);
     }
-  }, [storageKey]);
-
+    
+    return defaultTheme;
+  };
+  
+  const [theme, setTheme] = useState<Theme>(getInitialTheme());
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  
   // Update document classes and track dark mode state
   useEffect(() => {
     const root = window.document.documentElement;
@@ -72,15 +83,21 @@ export function ThemeProvider({
     
     root.classList.add(resolvedTheme);
     setIsDarkMode(resolvedTheme === 'dark');
-    localStorage.setItem(storageKey, theme);
+    
+    // Save theme to localStorage when it changes
+    try {
+      localStorage.setItem(storageKey, theme);
+    } catch (error) {
+      console.warn('Failed to save theme to localStorage:', error);
+    }
   }, [theme, storageKey]);
-
+  
   const value = {
     theme,
     setTheme,
     isDarkMode,
   };
-
+  
   return (
     <ThemeProviderContext.Provider {...props} value={value}>
       {children}

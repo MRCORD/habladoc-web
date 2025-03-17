@@ -362,7 +362,7 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
   const styleElRef = useRef<HTMLStyleElement | null>(null);
   
   // Get the current theme from the theme provider
-  const { isDarkMode } = useTheme();
+  const { theme, isDarkMode } = useTheme(); // Use the full theme object
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>(isDarkMode ? 'dark' : 'light');
 
   // Effect to manage body scroll
@@ -412,30 +412,35 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
     }
   }, [isOpen]);
   
-  // Update current theme when isDarkMode changes
+  // Update current theme when isDarkMode or theme changes
   useEffect(() => {
-    setCurrentTheme(isDarkMode ? 'dark' : 'light');
-  }, [isDarkMode]);
+    // Determine the actual theme mode - this is how we force the theme to be up to date
+    const newTheme = isDarkMode ? 'dark' : 'light';
+    if (currentTheme !== newTheme) {
+      console.log(`Theme changed from ${currentTheme} to ${newTheme}`);
+      setCurrentTheme(newTheme);
+    }
+  }, [isDarkMode, theme, currentTheme]); // Add theme to dependencies to ensure updates
   
   // Apply custom styles based on the current theme
   useEffect(() => {
-    if (isOpen) {
-      // Use the appropriate styles based on the current theme
-      const styles = currentTheme === 'dark' ? darkModeStyles : lightModeStyles;
-      
-      // Remove existing style element if it exists
-      if (styleElRef.current) {
-        styleElRef.current.remove();
-        styleElRef.current = null;
-      }
-      
-      // Inject custom styles for the current theme mode
-      const styleEl = document.createElement('style');
-      styleEl.id = 'ect-custom-styles';
-      styleEl.innerHTML = styles;
-      document.head.appendChild(styleEl);
-      styleElRef.current = styleEl;
+    console.log('Applying styles for theme:', currentTheme);
+    
+    // Use the appropriate styles based on the current theme
+    const styles = currentTheme === 'dark' ? darkModeStyles : lightModeStyles;
+    
+    // Remove existing style element if it exists
+    if (styleElRef.current) {
+      styleElRef.current.remove();
+      styleElRef.current = null;
     }
+    
+    // Inject custom styles for the current theme mode
+    const styleEl = document.createElement('style');
+    styleEl.id = 'ect-custom-styles';
+    styleEl.innerHTML = styles;
+    document.head.appendChild(styleEl);
+    styleElRef.current = styleEl;
     
     return () => {
       // Clean up styles when component unmounts or theme changes
@@ -444,7 +449,7 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
         styleElRef.current = null;
       }
     };
-  }, [isOpen, currentTheme]);
+  }, [currentTheme]); // Now this will trigger whenever currentTheme changes
   
   // Configure ECT when component mounts
   useEffect(() => {
@@ -521,6 +526,17 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
     setTimeout(() => {
       console.log(`Binding ECT Embedded Browser instance: ${instanceId}`);
       ECT.Handler.bind(instanceId);
+      
+      // Force theme application after binding
+      const styles = currentTheme === 'dark' ? darkModeStyles : lightModeStyles;
+      if (styleElRef.current) {
+        styleElRef.current.remove();
+      }
+      const styleEl = document.createElement('style');
+      styleEl.id = 'ect-custom-styles';
+      styleEl.innerHTML = styles;
+      document.head.appendChild(styleEl);
+      styleElRef.current = styleEl;
     }, 100);
     
     // Clean up when component unmounts
@@ -529,34 +545,45 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
       // Clean up the ECT instance
       ECT.Handler.clear(instanceId);
     };
-  }, [isOpen, onDiagnosisSelected]);
+  }, [isOpen, onDiagnosisSelected, currentTheme]); // Added currentTheme dependency
 
   if (!isOpen) return null;
   
   return (
     // Modal dialog - positioned on top of the backdrop added to document.body
     <div 
-      className={`fixed z-[9001] top-10 bottom-10 left-20 right-20 ${isDarkMode ? 'bg-gray-900' : 'bg-white'} rounded-lg shadow-xl overflow-hidden`}
+      className={`fixed z-[9001] top-10 bottom-10 left-20 right-20 ${
+        isDarkMode ? 'bg-neutral-900' : 'bg-white'
+      } rounded-lg shadow-xl overflow-hidden`}
       onClick={(e) => e.stopPropagation()}
+      data-theme={currentTheme} // Add theme attribute to help with styling
     >
       <div className="h-full w-full flex flex-col">
         {/* Header - now sticky within the modal */}
-        <div className={`px-6 py-4 border-b ${isDarkMode ? 'border-gray-700' : 'border-gray-200'} flex items-center justify-between bg-inherit`}>
-          <h2 className={`text-xl font-medium ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+        <div className={`px-6 py-4 border-b ${
+          isDarkMode ? 'border-neutral-700 bg-neutral-900' : 'border-neutral-200 bg-white'
+        } flex items-center justify-between`}>
+          <h2 className={`text-xl font-medium ${
+            isDarkMode ? 'text-neutral-100' : 'text-neutral-900'
+          }`}>
             Codificación de Diagnósticos ICD-11
           </h2>
           <Button 
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className={`rounded-full ${isDarkMode ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-100'} hover:bg-opacity-10`}
+            className={`rounded-full ${
+              isDarkMode ? 'text-neutral-300 hover:bg-neutral-800' : 'text-neutral-700 hover:bg-neutral-100'
+            }`}
           >
             <X className="h-6 w-6" />
           </Button>
         </div>
         
-        {/* Expanded content container to fill remaining space */}
-        <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Expanded content container */}
+        <div className={`flex-1 flex flex-col overflow-hidden ${
+          isDarkMode ? 'bg-neutral-900' : 'bg-white'
+        }`}>
           {/* Help text */}
           <div className={`flex items-center p-4 mx-6 mt-6 rounded-md text-sm border ${
             isDarkMode 
@@ -569,14 +596,15 @@ const DiagnosisBrowser: React.FC<DiagnosisBrowserProps> = ({
             </span>
           </div>
           
-          {/* Embedded Browser Container with explicit overflow settings */}
+          {/* Embedded Browser Container */}
           <div className="mx-6 mt-4 mb-6 flex-1 overflow-hidden flex flex-col">
             <div 
               className={`ctw-eb-window border rounded-md flex-1 overflow-auto ${
-                isDarkMode ? 'border-gray-700' : 'border-gray-200'
+                isDarkMode ? 'border-neutral-700' : 'border-neutral-200'
               }`}
               data-ctw-ino={instanceNo.current}
               style={{ height: "100%" }}
+              data-theme={currentTheme} // Add theme attribute to this element as well
             >
               {/* The Embedded Browser will be rendered here by the ECT library */}
             </div>

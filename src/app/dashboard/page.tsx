@@ -161,7 +161,7 @@ export default function Dashboard() {
           <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">Sesiones Recientes</h2>
           <button
             onClick={() => router.push('/dashboard/new-session')}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary hover:bg-primary/90"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-600 dark:hover:bg-primary-700"
           >
             <Mic className="h-4 w-4 mr-2" />
             Nueva Sesión

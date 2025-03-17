@@ -9,11 +9,11 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-[rgb(0,102,204)] text-white hover:bg-[rgb(0,86,179)] active:bg-[rgb(0,71,153)] focus-visible:ring-[rgb(0,102,204)]",
+        primary: "bg-primary-600 text-white hover:bg-primary-700 dark:bg-primary-600 dark:hover:bg-primary-700 active:bg-primary-800 dark:active:bg-primary-800 focus-visible:ring-primary-500",
         secondary: "bg-neutral-100 text-neutral-900 hover:bg-neutral-200 active:bg-neutral-300 focus-visible:ring-neutral-500 dark:bg-neutral-700 dark:text-neutral-100 dark:hover:bg-neutral-600",
-        outline: "border border-[rgb(0,102,204)] text-[rgb(0,102,204)] hover:bg-[rgba(0,102,204,0.1)] active:bg-[rgba(0,102,204,0.2)] focus-visible:ring-[rgb(0,102,204)] dark:border-[rgb(51,147,230)] dark:text-[rgb(122,186,255)] dark:hover:bg-[rgba(0,102,204,0.2)]",
+        outline: "border border-primary-600 text-primary-600 hover:bg-primary-50 active:bg-primary-100 focus-visible:ring-primary-500 dark:border-primary-400 dark:text-primary-400 dark:hover:bg-primary-950/20",
         ghost: "bg-transparent text-neutral-700 hover:bg-neutral-100 active:bg-neutral-200 focus-visible:ring-neutral-500 dark:text-neutral-300 dark:hover:bg-neutral-800",
-        link: "bg-transparent text-[rgb(0,102,204)] hover:underline focus-visible:ring-[rgb(0,102,204)]",
+        link: "bg-transparent text-primary-600 hover:underline focus-visible:ring-primary-500 dark:text-primary-400",
         danger: "bg-danger-500 text-white hover:bg-danger-600 active:bg-danger-700 focus-visible:ring-danger-500",
         success: "bg-success-500 text-white hover:bg-success-600 active:bg-success-700 focus-visible:ring-success-500",
         warning: "bg-warning-500 text-white hover:bg-warning-600 active:bg-warning-700 focus-visible:ring-warning-500",

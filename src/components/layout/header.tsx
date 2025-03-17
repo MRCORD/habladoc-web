@@ -8,6 +8,7 @@ import { Menu, Transition } from '@headlessui/react';
 import { UserIcon } from '@heroicons/react/24/outline';
 import { MoonIcon, SunIcon, ComputerDesktopIcon } from '@heroicons/react/24/solid';
 import { useTheme } from '@/components/theme/theme-provider';
+import { Button } from '@/components/ui/button';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -39,7 +40,11 @@ export function Header() {
                 {user ? (
                   <Menu as="div" className="relative ml-3">
                     <div>
-                      <Menu.Button className="flex rounded-full bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                      <Menu.Button as={Button}
+                        variant="ghost"
+                        size="icon"
+                        className="flex rounded-full focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                      >
                         {user.picture ? (
                           <Image
                             className="h-8 w-8 rounded-full"
@@ -49,7 +54,7 @@ export function Header() {
                             height={32}
                           />
                         ) : (
-                          <UserIcon className="h-8 w-8 rounded-full p-1 border border-gray-300 dark:border-gray-600" />
+                          <UserIcon className="h-8 w-8 rounded-full p-1" />
                         )}
                       </Menu.Button>
                     </div>
@@ -65,28 +70,28 @@ export function Header() {
                       <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white dark:bg-gray-800 py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                         <Menu.Item>
                           {({ active }) => (
-                            <Link
-                              href="/dashboard"
-                              className={classNames(
-                                active ? 'bg-gray-100 dark:bg-gray-700' : '',
-                                'block px-4 py-2 text-sm text-gray-700 dark:text-gray-300'
-                              )}
+                            <Button
+                              variant="ghost"
+                              asChild
+                              className="w-full justify-start"
                             >
-                              Dashboard
-                            </Link>
+                              <Link href="/dashboard">
+                                Dashboard
+                              </Link>
+                            </Button>
                           )}
                         </Menu.Item>
                         <Menu.Item>
                           {({ active }) => (
-                            <Link
-                              href="/profile"
-                              className={classNames(
-                                active ? 'bg-gray-100 dark:bg-gray-700' : '',
-                                'block px-4 py-2 text-sm text-gray-700 dark:text-gray-300'
-                              )}
+                            <Button
+                              variant="ghost"
+                              asChild
+                              className="w-full justify-start"
                             >
-                              Perfil
-                            </Link>
+                              <Link href="/profile">
+                                Perfil
+                              </Link>
+                            </Button>
                           )}
                         </Menu.Item>
 
@@ -94,55 +99,49 @@ export function Header() {
                         <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700">
                           <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Tema</p>
                           <div className="flex gap-2">
-                            <button
+                            <Button
+                              variant={theme === 'light' ? 'secondary' : 'ghost'}
+                              size="icon"
                               onClick={() => setTheme("light")}
-                              className={`flex items-center justify-center h-8 w-8 rounded-md ${
-                                theme === 'light' 
-                                  ? 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-white' 
-                                  : 'text-gray-500 dark:text-gray-400'
-                              }`}
+                              className="h-8 w-8"
                               title="Modo Claro"
                             >
                               <SunIcon className="h-5 w-5" />
-                            </button>
+                            </Button>
                             
-                            <button
+                            <Button
+                              variant={theme === 'dark' ? 'secondary' : 'ghost'}
+                              size="icon"
                               onClick={() => setTheme("dark")}
-                              className={`flex items-center justify-center h-8 w-8 rounded-md ${
-                                theme === 'dark'
-                                  ? 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-white'
-                                  : 'text-gray-500 dark:text-gray-400'
-                              }`}
+                              className="h-8 w-8"
                               title="Modo Oscuro"
                             >
                               <MoonIcon className="h-5 w-5" />
-                            </button>
+                            </Button>
                             
-                            <button
+                            <Button
+                              variant={theme === 'system' ? 'secondary' : 'ghost'}
+                              size="icon"
                               onClick={() => setTheme("system")}
-                              className={`flex items-center justify-center h-8 w-8 rounded-md ${
-                                theme === 'system'
-                                  ? 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-white'
-                                  : 'text-gray-500 dark:text-gray-400'
-                              }`}
+                              className="h-8 w-8"
                               title="Tema del Sistema"
                             >
                               <ComputerDesktopIcon className="h-5 w-5" />
-                            </button>
+                            </Button>
                           </div>
                         </div>
                         
                         <Menu.Item>
                           {({ active }) => (
-                            <Link
-                              href="/api/auth/logout"
-                              className={classNames(
-                                active ? 'bg-gray-100 dark:bg-gray-700' : '',
-                                'block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 border-t border-gray-200 dark:border-gray-700'
-                              )}
+                            <Button
+                              variant="ghost"
+                              asChild
+                              className="w-full justify-start border-t border-gray-200 dark:border-gray-700"
                             >
-                              Cerrar sesión
-                            </Link>
+                              <Link href="/api/auth/logout">
+                                Cerrar sesión
+                              </Link>
+                            </Button>
                           )}
                         </Menu.Item>
                       </Menu.Items>
@@ -150,20 +149,22 @@ export function Header() {
                   </Menu>
                 ) : (
                   <div className="flex items-center space-x-4">
-                    <Link
-                      href="/api/auth/login"
-                      className="text-sm font-medium" 
-                      style={{ color: habladocBlue }}
+                    <Button
+                      variant="ghost"
+                      asChild
                     >
-                      Iniciar sesión
-                    </Link>
-                    <Link
-                      href="/api/auth/signup"
-                      className="text-sm font-medium text-white px-4 py-2 rounded-md"
-                      style={{ backgroundColor: habladocBlue }}
+                      <Link href="/api/auth/login">
+                        Iniciar sesión
+                      </Link>
+                    </Button>
+                    <Button
+                      variant="primary"
+                      asChild
                     >
-                      Registrarse
-                    </Link>
+                      <Link href="/api/auth/signup">
+                        Registrarse
+                      </Link>
+                    </Button>
                   </div>
                 )}
               </>

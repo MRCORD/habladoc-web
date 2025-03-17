@@ -1,12 +1,14 @@
 // src/components/session/diagnosis/DiagnosisDrawer.tsx
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { 
   Search, 
   Check, 
   ArrowLeft,
+  X
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // Import directly like in the sample
 import * as ECT from '@whoicd/icd11ect';
@@ -26,6 +28,7 @@ const DiagnosisDrawer: React.FC<DiagnosisDrawerProps> = ({
   onClose,
   onDiagnosisSelected
 }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   // Create a stable instance ID
   const instanceNo = useRef(uuidv4());
   const inputRef = useRef<HTMLInputElement>(null);
@@ -92,6 +95,19 @@ const DiagnosisDrawer: React.FC<DiagnosisDrawerProps> = ({
     };
   }, [isOpen, onDiagnosisSelected]);
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    try {
+      // The ICD component handles the diagnosis selection through its callback
+      // This submit handler is just for UX feedback
+      await new Promise(resolve => setTimeout(resolve, 500));
+      onClose();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -111,21 +127,31 @@ const DiagnosisDrawer: React.FC<DiagnosisDrawerProps> = ({
             {/* Header */}
             <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between bg-white dark:bg-neutral-800 sticky top-0 z-10">
               <div className="flex items-center space-x-3">
-                <button 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={onClose}
-                  className="p-1 rounded-full text-neutral-400 hover:text-neutral-500 dark:text-neutral-500 dark:hover:text-neutral-400"
+                  className="h-8 w-8"
                 >
-                  <ArrowLeft className="h-5 w-5" />
-                </button>
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
                 <h2 className="text-lg font-medium text-neutral-900 dark:text-neutral-100">
-                  Codificación de Diagnósticos ICD-11
+                  Diagnósticos
                 </h2>
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="h-8 w-8"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
             
             {/* Content */}
             <div className="flex-1 p-6">
-              <div className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="mb-4">
                   <p className="text-sm text-neutral-700 dark:text-neutral-300 mb-4">
                     Busque diagnósticos utilizando términos en español:
@@ -162,7 +188,22 @@ const DiagnosisDrawer: React.FC<DiagnosisDrawerProps> = ({
                     Seleccione un diagnóstico de la lista para agregarlo a la sesión
                   </span>
                 </div>
-              </div>
+                <div className="flex justify-end gap-4">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={onClose}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Guardando...' : 'Guardar'}
+                  </Button>
+                </div>
+              </form>
             </div>
           </div>
         </div>

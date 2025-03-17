@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { usePatientStore } from '@/stores/patientStore';
 import { ErrorMessage } from '@/components/common/error-message';
 import { CreatePatientFormSkeleton } from '@/components/common/loading-skeletons';
+import { Button } from '@/components/ui/button';
 import type { User, PatientProfile } from '@/types';
 import { UserRole } from '@/types';
 
@@ -149,20 +150,18 @@ export function CreatePatientForm({ documentNumber, onCancel }: CreatePatientFor
         </div>
 
         <div className="flex justify-end space-x-3">
-          <button
-            type="button"
+          <Button
+            variant="ghost"
             onClick={onCancel}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
           >
             Cancelar
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
             disabled={isLoading}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90"
           >
             {isLoading ? <CreatePatientFormSkeleton /> : 'Crear Paciente'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

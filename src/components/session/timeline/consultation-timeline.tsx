@@ -231,12 +231,14 @@ export default function ConsultationTimeline({
                 className="w-full pl-9 pr-9 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-md bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
               {filter && (
-                <button 
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => setFilter('')}
-                  className="absolute right-3 top-2.5 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
+                  className="absolute right-3 top-2.5 h-6 w-6 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300"
                 >
                   <X className="h-4 w-4" />
-                </button>
+                </Button>
               )}
             </div>
           </div>

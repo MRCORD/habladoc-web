@@ -2,6 +2,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface SectionProps extends React.HTMLAttributes<HTMLDivElement> {
 title: string;
@@ -66,13 +67,14 @@ return (
         <div className="flex items-center space-x-2">
         {actions}
         {isCollapsible && (
-            <button
-            type="button"
-            className="text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 p-1 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-700 focus:outline-none"
-            onClick={() => setIsCollapsed(!isCollapsed)}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="h-8 w-8"
             >
-            {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
-            </button>
+              {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+            </Button>
         )}
         </div>
     </div>

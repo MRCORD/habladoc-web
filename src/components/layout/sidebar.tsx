@@ -4,6 +4,7 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { HomeIcon, UserIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import { Button } from '@/components/ui/button';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
@@ -15,28 +16,25 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-col w-64 bg-gray-50 border-r">
+    <div className="flex flex-col w-64 bg-gray-50 border-r dark:bg-neutral-800 dark:border-neutral-700">
       <nav className="flex-1 space-y-1 px-2 py-4">
         {navigation.map((item) => {
           const isActive = pathname === item.href;
           return (
-            <Link
+            <Button
               key={item.name}
-              href={item.href}
-              className={`${
-                isActive
-                  ? 'bg-gray-100 text-gray-900'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              } group flex items-center px-2 py-2 text-sm font-medium rounded-md`}
+              variant={isActive ? "secondary" : "ghost"}
+              asChild
+              className="w-full justify-start"
             >
-              <item.icon
-                className={`${
-                  isActive ? 'text-gray-500' : 'text-gray-400 group-hover:text-gray-500'
-                } mr-3 flex-shrink-0 h-6 w-6`}
-                aria-hidden="true"
-              />
-              {item.name}
-            </Link>
+              <Link href={item.href}>
+                <item.icon
+                  className="mr-3 flex-shrink-0 h-5 w-5"
+                  aria-hidden="true"
+                />
+                {item.name}
+              </Link>
+            </Button>
           );
         })}
       </nav>

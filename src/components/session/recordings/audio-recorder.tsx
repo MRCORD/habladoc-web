@@ -18,6 +18,7 @@ import type { RecordingCreateData } from "@/types";
 import { RecordingStatus } from "@/types";
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
+import { Button } from '@/components/ui/button';
 
 interface AudioRecorderProps {
   sessionId: string;
@@ -505,24 +506,24 @@ export default function AudioRecorder({
               {/* Control buttons during recording */}
               <div className="flex items-center gap-2">
                 {/* Pause/Resume */}
-                <button
+                <Button
+                  variant={state.isPaused ? "primary" : "warning"}
+                  size="icon"
                   onClick={togglePause}
-                  className={`p-2 ${
-                    state.isPaused 
-                      ? "bg-blue-500 hover:bg-blue-600" 
-                      : "bg-yellow-500 hover:bg-yellow-600"
-                  } text-white rounded-full transition-all shadow-sm hover:shadow relative focus:outline-none focus:ring-2 focus:ring-offset-1 transform hover:scale-105 active:scale-100`}
+                  className="rounded-full"
                 >
                   {state.isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
-                </button>
+                </Button>
                 
                 {/* Stop button */}
-                <button
+                <Button
+                  variant="danger"
+                  size="icon"
                   onClick={stopRecording}
-                  className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-all shadow-sm hover:shadow relative focus:outline-none focus:ring-2 focus:ring-offset-1 transform hover:scale-105 active:scale-100"
+                  className="rounded-full"
                 >
                   <Square className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
             </>
           )}

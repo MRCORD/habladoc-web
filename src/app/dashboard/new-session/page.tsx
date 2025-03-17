@@ -13,6 +13,7 @@ import { PatientDisplay } from '@/components/patient/patient-display';
 import { CreatePatientForm } from '@/components/patient/create-patient-form';
 import { NewSessionSkeleton } from '@/components/common/loading-skeletons';
 import { SessionStatus, SessionType } from '@/types';
+import { Button } from '@/components/ui/button';
 
 export default function NewSessionPage() {
   const router = useRouter();
@@ -70,13 +71,14 @@ export default function NewSessionPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <button
+        <Button
+          variant="ghost"
           onClick={() => router.back()}
-          className="flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+          className="flex items-center"
         >
           <ArrowLeft className="h-5 w-5 mr-2" />
           Volver
-        </button>
+        </Button>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-4">Nueva Sesión</h1>
       </div>
 
@@ -92,17 +94,13 @@ export default function NewSessionPage() {
               placeholder="Ingrese número de DNI"
               className="block w-full rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-primary sm:text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
             />
-            <button
+            <Button
               onClick={handleSearch}
               disabled={isPatientLoading}
-              className="inline-flex justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              isLoading={isPatientLoading}
             >
-              {isPatientLoading ? (
-                <div className="h-5 w-5 bg-white/20 rounded animate-pulse"></div>
-              ) : (
-                'Buscar'
-              )}
-            </button>
+              Buscar
+            </Button>
           </div>
 
           {patientError && <ErrorMessage message={patientError} />}

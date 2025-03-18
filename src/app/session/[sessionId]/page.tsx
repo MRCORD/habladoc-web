@@ -137,31 +137,31 @@ export default function SessionPage() {
           </Suspense>
 
           {/* Card container */}
-          <Card variant="default">
+          <Card>
             <CardContent className="px-0 py-0">
-              {/* Top nav tabs - Improved version */}
-              <div className="bg-neutral-100 dark:bg-neutral-800 p-1.5 rounded-lg shadow-sm mb-6">
+              {/* Top nav tabs */}
+              <div className="bg-neutral-100 dark:bg-neutral-800 p-2 rounded-lg shadow-sm mb-4">
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={() => setActiveTab("consultation")}
-                    className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-md transition-all ${
+                    className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-all ${
                       activeTab === "consultation"
                         ? "bg-white dark:bg-neutral-700 text-primary-600 dark:text-primary-400 shadow-sm font-medium"
                         : "text-neutral-600 dark:text-neutral-400 hover:bg-white/50 dark:hover:bg-neutral-700/50"
                     }`}
                   >
-                    <Mic size={18} />
+                    <Mic className="h-4 w-4" />
                     <span>Consulta</span>
                   </button>
                   <button
                     onClick={() => setActiveTab("analysis")}
-                    className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-md transition-all ${
+                    className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-all ${
                       activeTab === "analysis"
                         ? "bg-white dark:bg-neutral-700 text-primary-600 dark:text-primary-400 shadow-sm font-medium"
                         : "text-neutral-600 dark:text-neutral-400 hover:bg-white/50 dark:hover:bg-neutral-700/50"
                     }`}
                   >
-                    <Sparkles size={18} />
+                    <Sparkles className="h-4 w-4" />
                     <span>Análisis en Vivo</span>
                   </button>
                 </div>

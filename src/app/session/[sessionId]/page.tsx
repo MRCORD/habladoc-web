@@ -1,10 +1,9 @@
-// src/app/session/[sessionId]/page.tsx - Refactored with the new design system
+// Modified version of src/app/session/[sessionId]/page.tsx
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Mic, Sparkles, RefreshCw } from "lucide-react";
-import dynamic from "next/dynamic";
 
 import { useSessionData } from "@/hooks/apiHooks";
 import { useSessionStore } from "@/stores/sessionStore";
@@ -16,6 +15,7 @@ import { RecordingsList } from "@/components/session/recordings/recordings-list"
 import { PatientData } from "@/components/session/patient/patient-info";
 import AnalysisDisplay from "@/components/session/analysis/analysis-display";
 import { PatientDisplaySkeleton, AnalysisDisplaySkeleton } from "@/components/common/loading-skeletons";
+import PersistentAudioRecorder from "@/components/session/recordings/persistent-audio-recorder";
 
 import type { InsuranceInfo } from "@/types";
 
@@ -44,11 +44,8 @@ export default function SessionPage() {
     fetchSessionState,
   } = useSessionData(sessionId);
 
-  if (!sessionId) {
-    return <ErrorMessage message="Invalid session parameters" />;
-  }
-
-  const handleRecordingComplete = async () => {
+  // Use useCallback to stabilize this function reference
+  const handleRecordingComplete = useCallback(async () => {
     setIsRefreshing(true);
     try {
       // First fetch recordings to get the new recording
@@ -58,7 +55,7 @@ export default function SessionPage() {
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [sessionId]);
 
   // Single refresh handler that can be called from any component
   const handleRefresh = async () => {
@@ -96,11 +93,6 @@ export default function SessionPage() {
     insurance_info: insuranceInfo,
     metadata: nullToUndefined(sessionData.patient.metadata),
   };
-
-  const AudioRecorder = dynamic(
-    () => import("@/components/session/recordings/audio-recorder"),
-    { ssr: false }
-  );
 
   // Calculate the height of the audio recorder - approximately 80px for standard, 160px with preview
   const audioRecorderHeight = 120;
@@ -236,8 +228,8 @@ export default function SessionPage() {
         </div>
       </div>
 
-      {/* Fixed bottom audio recorder */}
-      <AudioRecorder
+      {/* Fixed bottom audio recorder - now using the persistent component */}
+      <PersistentAudioRecorder
         sessionId={sessionId}
         doctorId={sessionData.doctor_id}
         onRecordingComplete={handleRecordingComplete}

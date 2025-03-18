@@ -1,4 +1,4 @@
-// src/components/session/recordings/audio-recorder.tsx
+// Modified version of src/components/session/recordings/audio-recorder.tsx
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
@@ -63,6 +63,7 @@ const RECORD_MIME_TYPE = 'audio/webm'; // Format for recording
 const STORAGE_MIME_TYPE = 'audio/mpeg'; // Format for storage
 const FILE_EXTENSION = 'mp3'; // Storage file extension
 
+// Create FFmpeg instance once
 const ffmpeg = typeof window !== 'undefined' ? new FFmpeg() : null;
 
 // Add type definition for WebKit AudioContext
@@ -70,12 +71,21 @@ interface WebKitAudioContext extends AudioContext {
   createMediaStreamSource(stream: MediaStream): MediaStreamAudioSourceNode;
 }
 
-export default function AudioRecorder({
+// Using React.memo to prevent unnecessary re-renders
+const AudioRecorder: React.FC<AudioRecorderProps> = React.memo(({ 
   sessionId,
   doctorId,
   onRecordingComplete,
   className = ""
-}: AudioRecorderProps) {
+}: AudioRecorderProps) => {
+  // Create a ref for the onRecordingComplete callback
+  const onRecordingCompleteRef = useRef(onRecordingComplete);
+  
+  // Update the ref when the callback changes
+  useEffect(() => {
+    onRecordingCompleteRef.current = onRecordingComplete;
+  }, [onRecordingComplete]);
+
   // State
   const [state, setState] = useState<RecordingState>(DEFAULT_STATE);
   const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
@@ -99,10 +109,11 @@ export default function AudioRecorder({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Load FFmpeg only once with useEffect
   useEffect(() => {
     const loadFFmpeg = async () => {
       try {
-        if (!ffmpeg) return; // Ensure we're in browser environment
+        if (!ffmpeg || ffmpegLoaded) return; // Skip if already loaded
         
         setFfmpegLoading(true);
         const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.2/dist/umd';
@@ -122,12 +133,17 @@ export default function AudioRecorder({
       }
     };
     
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !ffmpegLoaded) {
       loadFFmpeg();
     }
-  }, []);
+    
+    // This component is being unmounted
+    return () => {
+      console.log('AudioRecorder component is unmounting');
+    };
+  }, [ffmpegLoaded]);
 
-  // Refs
+  // Refs - keep stable across renders
   const recordRtcRef = useRef<RecordRTCType | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const durationIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -136,8 +152,18 @@ export default function AudioRecorder({
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const dataArrayRef = useRef<Uint8Array | null>(null);
+  
+  // Create a session ID ref to prevent issues with stale captures in closures
+  const sessionIdRef = useRef(sessionId);
+  const doctorIdRef = useRef(doctorId);
+  
+  // Update refs when props change
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+    doctorIdRef.current = doctorId;
+  }, [sessionId, doctorId]);
 
-  // Cleanup function
+  // Cleanup function - use useCallback to stabilize the reference
   const cleanup = useCallback(() => {
     if (durationIntervalRef.current) {
       clearInterval(durationIntervalRef.current);
@@ -170,8 +196,8 @@ export default function AudioRecorder({
     return () => cleanup();
   }, [cleanup]);
 
-  // Set up audio analysis for volume indicators
-  const setupAudioAnalysis = (stream: MediaStream) => {
+  // Set up audio analysis for volume indicators - stablized with useCallback
+  const setupAudioAnalysis = useCallback((stream: MediaStream) => {
     try {
       // Create audio context with proper typing
       const AudioContext = window.AudioContext || (window as { webkitAudioContext?: new () => WebKitAudioContext }).webkitAudioContext;
@@ -215,10 +241,10 @@ export default function AudioRecorder({
       console.error('Error setting up audio analysis:', error);
       setShowVolumeIndicator(false);
     }
-  };
+  }, []);
 
-  // Start recording
-  const startRecording = async () => {
+  // Start recording - stabilized with useCallback
+  const startRecording = useCallback(async () => {
     try {
       cleanup();
       setState({ ...DEFAULT_STATE });
@@ -262,10 +288,10 @@ export default function AudioRecorder({
         error: "No se pudo acceder al micrófono"
       }));
     }
-  };
+  }, [cleanup, setupAudioAnalysis]);
 
-  // Convert WebM to MP3
-  const convertToMp3 = async (webmBlob: Blob) => {
+  // Convert WebM to MP3 - stabilized with useCallback
+  const convertToMp3 = useCallback(async (webmBlob: Blob) => {
     if (!ffmpeg || !ffmpegLoaded) {
       throw new Error('FFmpeg not loaded');
     }
@@ -291,10 +317,10 @@ export default function AudioRecorder({
     await ffmpeg.deleteFile('recording.mp3');
 
     return { mp3Blob, mp3Url };
-  };
+  }, [ffmpegLoaded]);
 
-  // Stop recording
-  const stopRecording = () => {
+  // Stop recording - stabilized with useCallback
+  const stopRecording = useCallback(() => {
     if (!recordRtcRef.current) return;
 
     // Stop volume analysis
@@ -322,10 +348,10 @@ export default function AudioRecorder({
     });
 
     cleanup();
-  };
+  }, [cleanup, convertToMp3]);
 
-  // Pause/Resume recording
-  const togglePause = () => {
+  // Pause/Resume recording - stabilized with useCallback
+  const togglePause = useCallback(() => {
     if (!recordRtcRef.current || !state.isRecording) return;
 
     if (state.isPaused) {
@@ -354,20 +380,23 @@ export default function AudioRecorder({
     }
 
     setState(prev => ({ ...prev, isPaused: !prev.isPaused }));
-  };
+  }, [state.isRecording, state.isPaused, state.duration]);
 
-  // Discard recording
-  const discardRecording = () => {
+  // Discard recording - stabilized with useCallback
+  const discardRecording = useCallback(() => {
     cleanup();
     setState(DEFAULT_STATE);
     recordRtcRef.current = null;
-  };
+  }, [cleanup]);
 
-  // Upload recording
-  const uploadRecording = async () => {
+  // Upload recording - stabilized with useCallback
+  const uploadRecording = useCallback(async () => {
     if (!state.audioUrl || state.isUploading) return;
     setState(prev => ({ ...prev, isUploading: true, error: null }));
 
+    // Use refs to get the current session and doctor IDs
+    const currentSessionId = sessionIdRef.current;
+    const currentDoctorId = doctorIdRef.current;
     let uploadedFilePath = '';
 
     try {
@@ -375,14 +404,14 @@ export default function AudioRecorder({
       const blob = await response.blob();
 
       // Upload to storage
-      const uploadResult = await recordingsStorage.upload(blob, doctorId, sessionId);
+      const uploadResult = await recordingsStorage.upload(blob, currentDoctorId, currentSessionId);
       if (uploadResult.error) throw uploadResult.error;
 
       uploadedFilePath = uploadResult.path;
 
       // Create recording record
       const recordingData: RecordingCreateData = {
-        session_id: sessionId,
+        session_id: currentSessionId,
         duration: state.duration,
         file_path: uploadedFilePath,
         file_size: uploadResult.size,
@@ -410,9 +439,9 @@ export default function AudioRecorder({
       // Wait a moment to ensure the processing has started
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      // Reset state and notify parent to refresh recordings
+      // Reset state and notify parent to refresh recordings using the ref
       setState(DEFAULT_STATE);
-      onRecordingComplete();
+      onRecordingCompleteRef.current();
 
     } catch (err) {
       console.error('Upload process error:', err);
@@ -432,7 +461,7 @@ export default function AudioRecorder({
         isUploading: false
       }));
     }
-  };
+  }, [state.audioUrl, state.isUploading, state.duration]);
 
   // Format timer display
   const formattedDuration = () => {
@@ -440,6 +469,14 @@ export default function AudioRecorder({
     const seconds = (state.duration % 60).toString().padStart(2, "0");
     return `${minutes}:${seconds}`;
   };
+
+  // Add console logs to track component lifecycle
+  useEffect(() => {
+    console.log('AudioRecorder mounted or updated with sessionId:', sessionId);
+    return () => {
+      console.log('AudioRecorder unmounting with sessionId:', sessionId);
+    };
+  }, [sessionId]);
 
   return (
     <div className={`fixed bottom-6 left-0 right-0 z-[55] flex justify-center items-center ${className}`}>
@@ -593,4 +630,7 @@ export default function AudioRecorder({
       )}
     </div>
   );
-}
+});
+
+AudioRecorder.displayName = 'AudioRecorder';
+export default AudioRecorder;

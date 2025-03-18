@@ -47,10 +47,10 @@ export const SubjectiveTab: React.FC<AnalysisTabProps> = ({
   const allEntities = getAllEntities();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <Section
         title="Evaluación subjetiva"
-        icon={<MessageCircle className="h-5 w-5" />}
+        icon={<MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />}
         isCollapsible={true}
         defaultCollapsed={collapsedSections.Subjective}
         actions={
@@ -58,23 +58,23 @@ export const SubjectiveTab: React.FC<AnalysisTabProps> = ({
             variant="ghost"
             size="icon"
             onClick={() => toggleSection('Subjective')}
-            className="h-8 w-8"
+            className="h-7 w-7 sm:h-8 sm:w-8"
           >
             {collapsedSections.Subjective ? (
-              <ChevronDown className="h-5 w-5" />
+              <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5" />
             ) : (
-              <ChevronUp className="h-5 w-5" />
+              <ChevronUp className="h-4 w-4 sm:h-5 sm:w-5" />
             )}
           </Button>
         }
       >
-        <div className="bg-neutral-50 dark:bg-neutral-900 p-4 rounded-lg text-neutral-900 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700">
+        <div className="bg-neutral-50 dark:bg-neutral-900 p-3 sm:p-4 rounded-lg text-neutral-900 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700">
           {soapSubjective.summary ? (
-            <div>
+            <div className="text-sm sm:text-base">
               {highlightEntitiesInText(soapSubjective.summary, allEntities)}
             </div>
           ) : (
-            <p className="text-neutral-500 dark:text-neutral-400 italic">
+            <p className="text-sm sm:text-base text-neutral-500 dark:text-neutral-400 italic">
               No hay datos subjetivos disponibles.
             </p>
           )}
@@ -83,13 +83,15 @@ export const SubjectiveTab: React.FC<AnalysisTabProps> = ({
       
       {/* Entities section */}
       {!collapsedSections.Subjective && (
-        <EntityGroups
-          sectionData={subjectiveData}
-          soapSection="subjective"
-          showTitle={true}
-          filter={entityFilter}
-          setFilter={setEntityFilter}
-        />
+        <div className="mt-2 sm:mt-4">
+          <EntityGroups
+            sectionData={subjectiveData}
+            soapSection="subjective"
+            showTitle={true}
+            filter={entityFilter}
+            setFilter={setEntityFilter}
+          />
+        </div>
       )}
     </div>
   );

@@ -59,10 +59,10 @@ export const ObjectiveTab: React.FC<AnalysisTabProps> = ({
   const allEntities = getAllEntities();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <Section
         title="Evaluación objetiva"
-        icon={<Activity className="h-5 w-5" />}
+        icon={<Activity className="h-4 w-4 md:h-5 md:w-5" />}
         isCollapsible={true}
         defaultCollapsed={collapsedSections.Objective}
         actions={
@@ -70,21 +70,21 @@ export const ObjectiveTab: React.FC<AnalysisTabProps> = ({
             variant="ghost"
             size="icon"
             onClick={() => toggleSection('Objective')}
-            className="h-8 w-8"
+            className="h-7 w-7 md:h-8 md:w-8"
           >
             {collapsedSections.Objective ? (
-              <ChevronDown className="h-5 w-5" />
+              <ChevronDown className="h-4 w-4 md:h-5 md:w-5" />
             ) : (
-              <ChevronUp className="h-5 w-5" />
+              <ChevronUp className="h-4 w-4 md:h-5 md:w-5" />
             )}
           </Button>
         }
       >
-        <div className="bg-neutral-50 dark:bg-neutral-900 p-4 rounded-lg text-neutral-900 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700">
+        <div className="bg-neutral-50 dark:bg-neutral-900 p-3 md:p-4 rounded-lg text-neutral-900 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700">
           {soapObjective.summary ? (
-            <div>{highlightEntitiesInText(soapObjective.summary, allEntities)}</div>
+            <div className="text-sm md:text-base">{highlightEntitiesInText(soapObjective.summary, allEntities)}</div>
           ) : (
-            <p className="text-neutral-500 dark:text-neutral-400 italic">
+            <p className="text-sm md:text-base text-neutral-500 dark:text-neutral-400 italic">
               No hay datos objetivos disponibles.
             </p>
           )}
@@ -93,13 +93,15 @@ export const ObjectiveTab: React.FC<AnalysisTabProps> = ({
       
       {/* Entities section */}
       {!collapsedSections.Objective && (
-        <EntityGroups
-          sectionData={objectiveData}
-          soapSection="objective"
-          showTitle={true}
-          filter={entityFilter}
-          setFilter={setEntityFilter}
-        />
+        <div className="mt-2 md:mt-4">
+          <EntityGroups
+            sectionData={objectiveData}
+            soapSection="objective"
+            showTitle={true}
+            filter={entityFilter}
+            setFilter={setEntityFilter}
+          />
+        </div>
       )}
     </div>
   );

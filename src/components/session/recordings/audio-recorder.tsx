@@ -1,3 +1,4 @@
+// src/components/session/recordings/audio-recorder.tsx
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
@@ -80,6 +81,23 @@ export default function AudioRecorder({
   const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
   const [ffmpegLoading, setFfmpegLoading] = useState(false);
   const [showVolumeIndicator, setShowVolumeIndicator] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if we're on a mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    // Initial check
+    checkMobile();
+    
+    // Add event listener
+    window.addEventListener('resize', checkMobile);
+    
+    // Cleanup
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const loadFFmpeg = async () => {
@@ -424,7 +442,7 @@ export default function AudioRecorder({
   };
 
   return (
-    <div className={`fixed bottom-6 left-0 right-0 z-[55] flex justify-center items-center ${className}`}>
+    <div className={`fixed ${isMobile ? 'bottom-24' : 'bottom-6'} left-0 right-0 z-[55] flex justify-center items-center ${className}`}>
       {/* Glowing background effect */}
       <div className="absolute h-14 w-14 bg-red-500/30 dark:bg-red-500/20 rounded-full blur-xl animate-pulse"></div>
       
@@ -530,12 +548,14 @@ export default function AudioRecorder({
         </div>
       ) : (
         // Preview & Upload UI - More noticeable
-        <div className="bg-white/95 dark:bg-gray-800/95 shadow-xl rounded-full py-3 px-6 border border-gray-200 dark:border-gray-700 backdrop-blur-sm flex items-center gap-4 max-w-2xl">
-          <div className="flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-green-500"></div>
-            <span className="text-sm font-medium text-green-600 dark:text-green-400">Grabación lista</span>
-          </div>
-          <div className="w-72 sm:w-96">
+        <div className="bg-white/95 dark:bg-gray-800/95 shadow-xl rounded-full py-3 px-6 border border-gray-200 dark:border-gray-700 backdrop-blur-sm flex items-center gap-4 max-w-md sm:max-w-xl">
+          {!isMobile && (
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-green-500"></div>
+              <span className="text-sm font-medium text-green-600 dark:text-green-400">Grabación lista</span>
+            </div>
+          )}
+          <div className={`${isMobile ? 'w-48' : 'w-72'}`}>
             <audio
               src={state.audioUrl}
               controls

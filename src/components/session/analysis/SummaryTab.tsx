@@ -4,9 +4,7 @@ import {
   AlertTriangle, 
   Stethoscope, 
   Activity, 
-  Filter, 
-  ChevronDown, 
-  ChevronUp
+  Filter
 } from "lucide-react";
 import { 
   Card, 
@@ -16,7 +14,6 @@ import {
 } from "@/components/ui/card";
 import { Section } from "@/components/ui/section";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { AttributeTag } from "@/components/common/attribute-tag";
 import { getConfidenceInfo } from "../timeline/consultation-timeline";
 import { 
@@ -25,9 +22,7 @@ import {
 } from "./analysis-types";
 
 export const SummaryTab: React.FC<AnalysisTabProps> = ({ 
-  enhancedData, 
-  collapsedSections,
-  toggleSection
+  enhancedData
 }) => {
   // Extract key data from the enhanced consultation
   const soapAssessment = enhancedData?.soap_assessment || {};
@@ -300,22 +295,6 @@ export const SummaryTab: React.FC<AnalysisTabProps> = ({
         <Section
           title="Patrones y Conexiones"
           icon={<Filter className="h-5 w-5 text-warning-500" />}
-          isCollapsible={true}
-          defaultCollapsed={collapsedSections.Patterns}
-          actions={
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => toggleSection('Patterns')}
-              className="h-8 w-8"
-            >
-              {collapsedSections.Patterns ? (
-                <ChevronDown className="h-5 w-5" />
-              ) : (
-                <ChevronUp className="h-5 w-5" />
-              )}
-            </Button>
-          }
         >
           <div className="space-y-3">
             {aiPatterns.map((pattern, idx) => (

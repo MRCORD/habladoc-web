@@ -1,6 +1,5 @@
 import React from "react";
-import { MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { MessageCircle } from "lucide-react";
 import { Section } from "@/components/ui/section";
 import EntityGroups from "../entity/entity-groups";
 import { highlightEntitiesInText } from "@/utils/highlightEntities";
@@ -8,8 +7,6 @@ import { AnalysisTabProps, convertToSectionData } from "./analysis-types";
 
 export const SubjectiveTab: React.FC<AnalysisTabProps> = ({
   enhancedData,
-  collapsedSections,
-  toggleSection,
   entityFilter,
   setEntityFilter
 }) => {
@@ -51,22 +48,6 @@ export const SubjectiveTab: React.FC<AnalysisTabProps> = ({
       <Section
         title="Evaluación subjetiva"
         icon={<MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />}
-        isCollapsible={true}
-        defaultCollapsed={collapsedSections.Subjective}
-        actions={
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => toggleSection('Subjective')}
-            className="h-7 w-7 sm:h-8 sm:w-8"
-          >
-            {collapsedSections.Subjective ? (
-              <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5" />
-            ) : (
-              <ChevronUp className="h-4 w-4 sm:h-5 sm:w-5" />
-            )}
-          </Button>
-        }
       >
         <div className="bg-neutral-50 dark:bg-neutral-900 p-3 sm:p-4 rounded-lg text-neutral-900 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700">
           {soapSubjective.summary ? (
@@ -82,17 +63,15 @@ export const SubjectiveTab: React.FC<AnalysisTabProps> = ({
       </Section>
       
       {/* Entities section */}
-      {!collapsedSections.Subjective && (
-        <div className="mt-2 sm:mt-4">
-          <EntityGroups
-            sectionData={subjectiveData}
-            soapSection="subjective"
-            showTitle={true}
-            filter={entityFilter}
-            setFilter={setEntityFilter}
-          />
-        </div>
-      )}
+      <div className="mt-2 sm:mt-4">
+        <EntityGroups
+          sectionData={subjectiveData}
+          soapSection="subjective"
+          showTitle={true}
+          filter={entityFilter}
+          setFilter={setEntityFilter}
+        />
+      </div>
     </div>
   );
 };

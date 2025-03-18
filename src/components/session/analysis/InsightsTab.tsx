@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { 
   AlertTriangle,
   Brain, 
@@ -33,9 +33,7 @@ export const InsightsTab: React.FC<AnalysisTabProps> = ({
   const aiPatterns = enhancedData?.ai_patterns || [];
   const aiTimeline = enhancedData?.ai_timeline?.events || [];
   const aiSuggestions = enhancedData?.ai_suggestions || [];
-
-  // Add timeline collapse state
-  const [isTimelineCollapsed, setIsTimelineCollapsed] = React.useState(false);
+  const [timelineCollapsed, setTimelineCollapsed] = useState(false);
 
   // Enhanced risk display with categories
   const renderEnhancedRisks = (risks: RiskItem[]) => {
@@ -191,10 +189,10 @@ export const InsightsTab: React.FC<AnalysisTabProps> = ({
 
       {/* Timeline section */}
       {processedTimelineEvents.length > 0 && (
-        <ConsultationTimeline
-          events={processedTimelineEvents}
-          isCollapsed={isTimelineCollapsed}
-          onToggleCollapse={() => setIsTimelineCollapsed(prev => !prev)}
+        <ConsultationTimeline 
+          events={processedTimelineEvents} 
+          isCollapsed={timelineCollapsed}
+          onToggleCollapse={() => setTimelineCollapsed(!timelineCollapsed)}
         />
       )}
 

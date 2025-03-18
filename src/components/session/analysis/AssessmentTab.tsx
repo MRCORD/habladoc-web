@@ -1,6 +1,5 @@
 import React from "react";
-import { Stethoscope, ChevronDown, ChevronUp, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Stethoscope, Filter } from "lucide-react";
 import { Section } from "@/components/ui/section";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,8 +11,6 @@ import { AnalysisTabProps, convertToSectionData, Entity } from "./analysis-types
 export const AssessmentTab: React.FC<AnalysisTabProps> = ({
   enhancedData,
   sessionId,
-  collapsedSections,
-  toggleSection,
   entityFilter,
   setEntityFilter
 }) => {
@@ -113,22 +110,7 @@ export const AssessmentTab: React.FC<AnalysisTabProps> = ({
       <Section
         title="Evaluación diagnóstica"
         icon={<Stethoscope className="h-5 w-5" />}
-        isCollapsible={true}
-        defaultCollapsed={collapsedSections.Assessment}
-        actions={
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => toggleSection('Assessment')}
-            className="h-8 w-8"
-          >
-            {collapsedSections.Assessment ? (
-              <ChevronDown className="h-5 w-5" />
-            ) : (
-              <ChevronUp className="h-5 w-5" />
-            )}
-          </Button>
-        }
+        variant="default"
       >
         <div className="bg-neutral-50 dark:bg-neutral-900 p-3 sm:p-4 rounded-lg text-neutral-900 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700">
           {soapAssessment.summary ? (
@@ -144,57 +126,55 @@ export const AssessmentTab: React.FC<AnalysisTabProps> = ({
       </Section>
       
       {/* Entities section and diagnosis management */}
-      {!collapsedSections.Assessment && (
-        <div className="space-y-4 sm:space-y-6">
-          <EntityGroups
-            sectionData={assessmentData}
-            soapSection="assessment"
-            showTitle={true}
-            filter={entityFilter}
-            setFilter={setEntityFilter}
-          />
-                          
-          {/* Diagnosis Management Component */}
-          <div className="mt-3 sm:mt-4">
-            <DiagnosisManagement sessionId={sessionId} />
-          </div>
-        
-          {/* Clinical Relationships */}
-          {clinicalRelationships.length > 0 && (
-            <Section
-              title="Relaciones Diagnósticas"
-              icon={<Filter className="h-5 w-5 text-info-500" />}
-              variant="default"
-            >
-              <div className="space-y-3 sm:space-y-4">
-                {clinicalRelationships.map((rel, idx) => (
-                  <Card 
-                    key={idx}
-                    variant="flat"
-                    className="bg-info-50 dark:bg-info-900/20 border-info-200 dark:border-info-800"
-                  >
-                    <CardContent className="p-3 sm:p-4">
-                      <div className="font-medium text-sm sm:text-base text-neutral-900 dark:text-neutral-100 mb-2">
-                        {rel.diagnosis.name}
-                      </div>
-                      <div className="pl-3 sm:pl-4 border-l-2 border-info-300 dark:border-info-700">
-                        <div className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 mb-1">Síntomas relacionados:</div>
-                        <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                          {rel.symptoms.map((symptom, i) => (
-                            <Badge key={i} variant="default" size="sm">
-                              {symptom.name}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </Section>
-          )}
+      <div className="space-y-4 sm:space-y-6">
+        <EntityGroups
+          sectionData={assessmentData}
+          soapSection="assessment"
+          showTitle={true}
+          filter={entityFilter}
+          setFilter={setEntityFilter}
+        />
+                      
+        {/* Diagnosis Management Component */}
+        <div className="mt-3 sm:mt-4">
+          <DiagnosisManagement sessionId={sessionId} />
         </div>
-      )}
+      
+        {/* Clinical Relationships */}
+        {clinicalRelationships.length > 0 && (
+          <Section
+            title="Relaciones Diagnósticas"
+            icon={<Filter className="h-5 w-5 text-info-500" />}
+            variant="default"
+          >
+            <div className="space-y-3 sm:space-y-4">
+              {clinicalRelationships.map((rel, idx) => (
+                <Card 
+                  key={idx}
+                  variant="flat"
+                  className="bg-info-50 dark:bg-info-900/20 border-info-200 dark:border-info-800"
+                >
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="font-medium text-sm sm:text-base text-neutral-900 dark:text-neutral-100 mb-2">
+                      {rel.diagnosis.name}
+                    </div>
+                    <div className="pl-3 sm:pl-4 border-l-2 border-info-300 dark:border-info-700">
+                      <div className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 mb-1">Síntomas relacionados:</div>
+                      <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                        {rel.symptoms.map((symptom, i) => (
+                          <Badge key={i} variant="default" size="sm">
+                            {symptom.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </Section>
+        )}
+      </div>
     </div>
   );
 };

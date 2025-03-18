@@ -151,8 +151,6 @@ export const convertToSectionData = (section?: SoapSection): SectionData => {
 export interface AnalysisTabProps {
   enhancedData: EnhancedConsultationData;
   sessionId: string;
-  collapsedSections: Record<string, boolean>;
-  toggleSection: (section: string) => void;
   entityFilter: {
     showActiveOnly: boolean;
     sortBy: string;

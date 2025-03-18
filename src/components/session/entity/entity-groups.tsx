@@ -1,5 +1,5 @@
 // src/components/session/entity/entity-groups.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -99,6 +99,8 @@ interface EntityGroupsProps {
   className?: string;
   filter?: FilterOptions;
   setFilter?: (filter: FilterOptions) => void;
+  initialExpanded?: boolean;
+  disableCollapsible?: boolean;
 }
 
 // Entity Group Item interface
@@ -108,8 +110,6 @@ interface EntityGroupItem {
   type: string;
   iconName?: string;
 }
-
-// Type for medications, tests, and recommendations
 interface MedicationItem {
   name: string;
   dosage?: string;
@@ -181,7 +181,6 @@ const EntityGroups: React.FC<EntityGroupsProps> = ({
   },
   setFilter
 }) => {
-  const [expanded, setExpanded] = useState(true);
   const [showFilterOptions, setShowFilterOptions] = useState(false);
   
   // Ensure sectionData and components exist
@@ -528,21 +527,6 @@ const EntityGroups: React.FC<EntityGroupsProps> = ({
                 <SlidersHorizontal className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
             )}
-            
-            {/* Expand/collapse button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setExpanded(!expanded)}
-              aria-label={expanded ? "Colapsar" : "Expandir"}
-              className="h-7 w-7 sm:h-8 sm:w-8"
-            >
-              {expanded ? (
-                <ChevronDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              ) : (
-                <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              )}
-            </Button>
           </div>
         </CardHeader>
       )}
@@ -583,38 +567,36 @@ const EntityGroups: React.FC<EntityGroupsProps> = ({
         </CardContent>
       )}
       
-      {expanded && (
-        <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-4">
-          {entityGroups.map((group, idx) => (
-            <div key={`${group.type}-${idx}`} className="space-y-2 sm:space-y-3">
-              {/* Group header - only show if there's more than one group */}
-              {entityGroups.length > 1 && (
-                <div className="flex items-center gap-1.5 sm:gap-2">
-                  {getGroupIcon(group.iconName)}
-                  <h4 className="text-sm sm:text-base font-medium text-neutral-900 dark:text-neutral-100">
-                    {group.title}
-                  </h4>
-                  <Badge variant="default" className="text-xs sm:text-sm">
-                    {group.entities.length}
-                  </Badge>
-                </div>
-              )}
-              
-              {/* Entity grid with filtered entities */}
-              <EntityGrid
-                title={group.title}
-                entities={filterEntities(group.entities)}
-                count={group.entities.length}
-                hideHeader={entityGroups.length > 1}
-                condensed={group.entities.length > 8}
-              />
-            </div>
-          ))}
-        </CardContent>
-      )}
+      <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-4">
+        {entityGroups.map((group, idx) => (
+          <div key={`${group.type}-${idx}`} className="space-y-2 sm:space-y-3">
+            {/* Group header - only show if there's more than one group */}
+            {entityGroups.length > 1 && (
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                {getGroupIcon(group.iconName)}
+                <h4 className="text-sm sm:text-base font-medium text-neutral-900 dark:text-neutral-100">
+                  {group.title}
+                </h4>
+                <Badge variant="default" className="text-xs sm:text-sm">
+                  {group.entities.length}
+                </Badge>
+              </div>
+            )}
+            
+            {/* Entity grid with filtered entities */}
+            <EntityGrid
+              title={group.title}
+              entities={filterEntities(group.entities)}
+              count={group.entities.length}
+              hideHeader={entityGroups.length > 1}
+              condensed={group.entities.length > 8}
+            />
+          </div>
+        ))}
+      </CardContent>
       
       {/* Empty state */}
-      {entityGroups.length === 0 && expanded && (
+      {entityGroups.length === 0 && (
         <CardContent className="p-4 sm:p-6">
           <div className="text-center py-4 sm:py-6">
             <div className="rounded-lg border-2 border-dashed border-neutral-300 dark:border-neutral-700 p-4 sm:p-6">

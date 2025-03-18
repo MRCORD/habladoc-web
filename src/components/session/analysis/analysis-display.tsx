@@ -36,16 +36,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<string>("summary");
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
-    Subjective: false,
-    Objective: false,
-    Assessment: false,
-    Plan: false,
-    Risks: false,
-    Patterns: false,
-    Timeline: false,
-    Suggestions: false
-  });
   const [entityFilter, setEntityFilter] = useState({
     showActiveOnly: false,
     sortBy: "confidence"
@@ -116,13 +106,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
     fetchEnhancedConsultation();
   }, [fetchEnhancedConsultation]);
 
-  const toggleSection = (section: string) => {
-    setCollapsedSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
-
   if (isLoading) return <AnalysisDisplaySkeleton />;
   if (error) return <ErrorMessage message={error} />;
 
@@ -178,8 +161,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
             <SummaryTab 
               enhancedData={enhancedData} 
               sessionId={sessionId}
-              collapsedSections={collapsedSections}
-              toggleSection={toggleSection}
               entityFilter={entityFilter}
               setEntityFilter={setEntityFilter}
             />
@@ -189,8 +170,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
             <SubjectiveTab 
               enhancedData={enhancedData} 
               sessionId={sessionId}
-              collapsedSections={collapsedSections}
-              toggleSection={toggleSection}
               entityFilter={entityFilter}
               setEntityFilter={setEntityFilter}
             />
@@ -200,8 +179,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
             <ObjectiveTab 
               enhancedData={enhancedData} 
               sessionId={sessionId}
-              collapsedSections={collapsedSections}
-              toggleSection={toggleSection}
               entityFilter={entityFilter}
               setEntityFilter={setEntityFilter}
             />
@@ -211,8 +188,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
             <AssessmentTab 
               enhancedData={enhancedData} 
               sessionId={sessionId}
-              collapsedSections={collapsedSections}
-              toggleSection={toggleSection}
               entityFilter={entityFilter}
               setEntityFilter={setEntityFilter}
             />
@@ -222,8 +197,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
             <PlanTab 
               enhancedData={enhancedData} 
               sessionId={sessionId}
-              collapsedSections={collapsedSections}
-              toggleSection={toggleSection}
               entityFilter={entityFilter}
               setEntityFilter={setEntityFilter}
             />
@@ -233,8 +206,6 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
             <InsightsTab 
               enhancedData={enhancedData} 
               sessionId={sessionId}
-              collapsedSections={collapsedSections}
-              toggleSection={toggleSection}
               entityFilter={entityFilter}
               setEntityFilter={setEntityFilter}
             />

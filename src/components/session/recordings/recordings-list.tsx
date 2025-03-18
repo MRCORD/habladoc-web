@@ -307,10 +307,10 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
   }
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-6 w-full ${className}`}>
       {sortedRecordings.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="p-6 text-center">
+        <Card className="border-dashed w-full">
+          <CardContent className="p-4 sm:p-6 text-center">
             <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800">
               <Headphones className="h-6 w-6 text-neutral-500 dark:text-neutral-400" />
             </div>
@@ -326,16 +326,6 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
         </Card>
       ) : (
         <>
-          <div className="flex items-center gap-2 mb-2">
-            <Headphones className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
-            <h3 className="font-medium text-neutral-900 dark:text-neutral-100">
-              Grabaciones de la sesión
-            </h3>
-            <Badge variant="default">
-              {sortedRecordings.length}
-            </Badge>
-          </div>
-          
           {sortedRecordings.map((recording) => {
             const isExpanded = expandedRecordings[recording.id];
             const transcription = getTranscriptionForRecording(recording.id);
@@ -412,27 +402,28 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                       <Button
                         variant={isPlaying ? "danger" : "primary"}
                         size="sm"
-                        className="mr-3 rounded-full h-10 w-10 p-0"
+                        className="mr-3 rounded-full h-10 w-10 p-0 shrink-0"
                         onClick={() => handlePlayPause(recording.id)}
                         aria-label={isPlaying ? "Pausar" : "Reproducir"}
                       >
                         {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
                       </Button>
                       
-                      <audio
-                        // Use a callback ref instead of a direct ref assignment
-                        ref={(el) => { audioRefs.current[recording.id] = el; }}
-                        src={recordingUrls[recording.id]}
-                        className="w-full h-8"
-                        controls
-                        controlsList="nodownload noplaybackrate"
-                        onEnded={() => handleAudioEnd(recording.id)}
-                        onError={() => onError("Error al reproducir la grabación")}
-                        onPlay={() => setPlayingAudio(recording.id)}
-                        onPause={() => setPlayingAudio(null)}
-                      >
-                        Tu navegador no soporta el elemento de audio.
-                      </audio>
+                      <div className="w-full min-w-0">
+                        <audio
+                          ref={(el) => { audioRefs.current[recording.id] = el; }}
+                          src={recordingUrls[recording.id]}
+                          className="w-full h-8"
+                          controls
+                          controlsList="nodownload noplaybackrate"
+                          onEnded={() => handleAudioEnd(recording.id)}
+                          onError={() => onError("Error al reproducir la grabación")}
+                          onPlay={() => setPlayingAudio(recording.id)}
+                          onPause={() => setPlayingAudio(null)}
+                        >
+                          Tu navegador no soporta el elemento de audio.
+                        </audio>
+                      </div>
                     </div>
                   )}
                 </CardContent>

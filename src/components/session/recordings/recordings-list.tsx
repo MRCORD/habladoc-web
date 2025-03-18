@@ -487,7 +487,7 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                               
                               {analysis.content?.relationships && analysis.content.relationships.length > 0 && (
                                 <div className="space-y-3">
-                                  <h5 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                                  <h5 className="text-xs sm:text-sm font-medium text-neutral-700 dark:text-neutral-300">
                                     Relaciones Clínicas
                                   </h5>
                                   
@@ -497,31 +497,31 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                                         key={idx}
                                         className="p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-700"
                                       >
-                                        <div className="flex items-baseline justify-between mb-1">
-                                          <div className="flex items-center gap-2">
-                                            <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                                        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 mb-1">
+                                          <div className="flex flex-wrap items-center gap-1.5 text-[11px] sm:text-xs">
+                                            <span className="font-medium text-neutral-900 dark:text-neutral-100 break-words">
                                               {toSentenceCase(rel.source)}
                                             </span>
                                             <AttributeTag
                                               label="Relationship"
                                               value={rel.type}
                                             />
-                                            <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                                            <span className="font-medium text-neutral-900 dark:text-neutral-100 break-words">
                                               {toSentenceCase(rel.target)}
                                             </span>
                                           </div>
-                                          <Badge variant="default" size="sm">
+                                          <Badge variant="default" size="sm" className="text-[11px] shrink-0">
                                             {Math.round(rel.confidence * 100)}%
                                           </Badge>
                                         </div>
                                         
                                         {rel.evidence && (
-                                          <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 p-2 rounded-md border border-neutral-200 dark:border-neutral-700">
+                                          <p className="mt-2 text-[11px] sm:text-xs text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 p-2 rounded-md border border-neutral-200 dark:border-neutral-700 break-words">
                                             {rel.evidence}
                                           </p>
                                         )}
                                         
-                                        <div className="mt-2 flex flex-wrap gap-2">
+                                        <div className="mt-2 flex flex-wrap gap-1.5">
                                           {Object.entries(rel.metadata)
                                             .filter(([key, value]) => 
                                               value && 

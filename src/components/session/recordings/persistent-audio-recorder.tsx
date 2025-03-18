@@ -1,7 +1,5 @@
-// src/components/session/recordings/persistent-audio-recorder.tsx
 import React, { useRef, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
 
 // Dynamically import the recorder component with no SSR
 const AudioRecorderComponent = dynamic(

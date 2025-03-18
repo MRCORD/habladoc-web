@@ -3,7 +3,7 @@ import { Activity } from "lucide-react";
 import { Section } from "@/components/ui/section";
 import EntityGrid from "../entity/entity-grid";
 import { highlightEntitiesInText } from "@/utils/highlightEntities";
-import { AnalysisTabProps, convertToSectionData, Entity, VitalSign, Finding } from "./analysis-types";
+import { AnalysisTabProps, Entity, VitalSign, Finding } from "./analysis-types";
 
 export const ObjectiveTab: React.FC<AnalysisTabProps> = ({
   enhancedData,

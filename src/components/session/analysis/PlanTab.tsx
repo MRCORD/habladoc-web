@@ -25,24 +25,41 @@ export const PlanTab: React.FC<AnalysisTabProps> = ({
     const entities = [];
     
     // Add medications from treatment plan
-    if (enhancedData?.soap_plan?.components?.therapeutic_plan?.content?.medications) {
-      entities.push(...enhancedData.soap_plan.components.therapeutic_plan.content.medications);
+    const medications = enhancedData?.soap_plan?.components?.therapeutic_plan?.content?.medications;
+    if (medications && Array.isArray(medications)) {
+      entities.push(...medications);
     }
     
     // Add diagnoses for cross-highlighting
-    if (enhancedData?.soap_assessment?.components?.clinical_impression?.content?.diagnoses) {
-      entities.push(...enhancedData.soap_assessment.components.clinical_impression.content.diagnoses);
+    const diagnoses = enhancedData?.soap_assessment?.components?.clinical_impression?.content?.diagnoses;
+    if (diagnoses && Array.isArray(diagnoses)) {
+      entities.push(...diagnoses);
     }
     
     // Add symptoms for cross-highlighting
-    if (enhancedData?.soap_subjective?.components?.history_present_illness?.content?.current_symptoms) {
-      entities.push(...enhancedData.soap_subjective.components.history_present_illness.content.current_symptoms);
+    const symptoms = enhancedData?.soap_subjective?.components?.history_present_illness?.content?.current_symptoms;
+    if (symptoms && Array.isArray(symptoms)) {
+      entities.push(...symptoms);
     }
     
     return entities;
   };
 
   const allEntities = getAllEntities();
+
+  // Process therapeutic plan content safely
+  const getTherapeuticPlanContent = () => {
+    const content = soapPlan?.components?.therapeutic_plan?.content;
+    if (!content || typeof content !== 'object') {
+      return [];
+    }
+    return Object.entries(content).filter(([key, value]) => 
+      value && 
+      typeof value === 'object' && 
+      !Array.isArray(value) && 
+      key !== 'medications'
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -96,23 +113,18 @@ export const PlanTab: React.FC<AnalysisTabProps> = ({
               variant="default"
             >
               <div className="space-y-4">
-                {Object.entries(soapPlan.components.therapeutic_plan.content || {}).map(([key, plan]) => {
-                  if (!plan || typeof plan !== 'object' || 
-                      key === 'medications' || Array.isArray(plan)) return null;
-                  
-                  return (
-                    <Card key={key} variant="flat">
-                      <CardContent className="p-4">
-                        <h5 className="font-medium text-neutral-900 dark:text-neutral-100 mb-2 capitalize">
-                          {toSentenceCase(key.replace('_', ' '))}
-                        </h5>
-                        <div className="text-sm text-neutral-700 dark:text-neutral-300">
-                          {JSON.stringify(plan)}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                {getTherapeuticPlanContent().map(([key, plan]) => (
+                  <Card key={key} variant="flat">
+                    <CardContent className="p-4">
+                      <h5 className="font-medium text-neutral-900 dark:text-neutral-100 mb-2 capitalize">
+                        {toSentenceCase(key.replace('_', ' '))}
+                      </h5>
+                      <div className="text-sm text-neutral-700 dark:text-neutral-300">
+                        {JSON.stringify(plan)}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </Section>
           )}

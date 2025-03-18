@@ -19,7 +19,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import api from "@/lib/api";
-import { EnhancedConsultationData, convertToSectionData } from "./analysis-types";
+import { EnhancedConsultationData } from "./analysis-types";
 import SummaryTab from "./SummaryTab";
 import SubjectiveTab from "./SubjectiveTab";
 import ObjectiveTab from "./ObjectiveTab";

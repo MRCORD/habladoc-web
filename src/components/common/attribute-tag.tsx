@@ -188,10 +188,10 @@ export function AttributeTag({ icon: CustomIcon, label, value }: AttributeTagPro
   if (label === 'Relationship' || isEntityType) {
     return (
       <span 
-        className={`inline-flex items-center ${tagColor} ${
+        className={`inline-flex items-center touch-manipulation ${tagColor} ${
           isEntityType 
-            ? 'px-4 py-1.5 text-sm rounded-lg'
-            : 'px-2 py-1 text-xs font-medium rounded'
+            ? 'px-2.5 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm rounded-lg'
+            : 'px-2 py-1 text-[10px] sm:text-xs font-medium rounded'
         }`} 
       >
         {formattedValue}
@@ -202,10 +202,10 @@ export function AttributeTag({ icon: CustomIcon, label, value }: AttributeTagPro
   // For all other tags, show with icon and label
   return (
     <span 
-      className={`inline-flex items-center gap-1.5 ${tagColor} px-2 py-1 rounded-md text-xs`} 
+      className={`inline-flex items-center gap-1 sm:gap-1.5 ${tagColor} px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs touch-manipulation`} 
     >
-      <Icon className="h-3.5 w-3.5 flex-shrink-0" />
-      <span className="font-medium">
+      <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5 flex-shrink-0" />
+      <span className="font-medium truncate">
         {formattedLabel}: {formattedValue}
       </span>
     </span>

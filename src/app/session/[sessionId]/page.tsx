@@ -100,19 +100,20 @@ export default function SessionPage() {
   return (
     <>
       {/* Main content with bottom padding to prevent audio recorder overlap */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style={{ paddingBottom: `${audioRecorderHeight}px` }}>
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-4 sm:py-8" style={{ paddingBottom: `${audioRecorderHeight}px` }}>
         {/* Header Section */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-6 mb-4 sm:mb-6">
           <div className="flex items-center gap-3">
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={() => router.push("/dashboard")}
               aria-label="Go back to dashboard"
+              className="shrink-0"
             >
               <ArrowLeft size={20} />
             </Button>
-            <h1 className="text-2xl font-semibold text-neutral-900 dark:text-neutral-100">
+            <h1 className="text-xl sm:text-2xl font-semibold text-neutral-900 dark:text-neutral-100 truncate">
               Sesión en Progreso
             </h1>
           </div>
@@ -122,6 +123,7 @@ export default function SessionPage() {
             size="lg"
             withDot={sessionData.status === 'in_progress'}
             dotColor={sessionData.status === 'in_progress' ? 'primary' : undefined}
+            className="self-start sm:self-auto"
           >
             {sessionData.status === 'scheduled' ? 'Programada' :
              sessionData.status === 'in_progress' ? 'En Progreso' :
@@ -129,102 +131,111 @@ export default function SessionPage() {
           </Badge>
         </div>
 
-        {/* Common container for Patient Data */}
-        <div className="max-w-screen-lg mx-auto space-y-6">
-          {/* Patient Data Component */}
-          <Suspense fallback={<PatientDisplaySkeleton />}>
-            <PatientData patientData={patientData} />
-          </Suspense>
+        {/* Main Content */}
+        <div className="space-y-6">
+          {/* Patient Info Card */}
+          <div className="max-w-screen-lg mx-auto space-y-6">
+            {/* Patient Data Component */}
+            <Suspense fallback={<PatientDisplaySkeleton />}>
+              <PatientData patientData={patientData} />
+            </Suspense>
 
-          {/* Card container */}
-          <Card variant="default">
-            <CardContent className="px-0 py-0">
-              {/* Top nav tabs - Improved version */}
-              <div className="bg-neutral-100 dark:bg-neutral-800 p-1.5 rounded-lg shadow-sm mb-6">
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => setActiveTab("consultation")}
-                    className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-md transition-all ${
-                      activeTab === "consultation"
-                        ? "bg-white dark:bg-neutral-700 text-primary-600 dark:text-primary-400 shadow-sm font-medium"
-                        : "text-neutral-600 dark:text-neutral-400 hover:bg-white/50 dark:hover:bg-neutral-700/50"
-                    }`}
-                  >
-                    <Mic size={18} />
-                    <span>Consulta</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("analysis")}
-                    className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-md transition-all ${
-                      activeTab === "analysis"
-                        ? "bg-white dark:bg-neutral-700 text-primary-600 dark:text-primary-400 shadow-sm font-medium"
-                        : "text-neutral-600 dark:text-neutral-400 hover:bg-white/50 dark:hover:bg-neutral-700/50"
-                    }`}
-                  >
-                    <Sparkles size={18} />
-                    <span>Análisis en Vivo</span>
-                  </button>
+            {/* Main Tabs Card */}
+            <Card>
+              <CardContent className="p-0">
+                {/* Top nav tabs */}
+                <div className="bg-neutral-100 dark:bg-neutral-800 p-2 rounded-lg shadow-sm mb-4">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => setActiveTab("consultation")}
+                      className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-all ${
+                        activeTab === "consultation"
+                          ? "bg-white dark:bg-neutral-700 text-primary-600 dark:text-primary-400 shadow-sm font-medium"
+                          : "text-neutral-600 dark:text-neutral-400 hover:bg-white/50 dark:hover:bg-neutral-700/50"
+                      }`}
+                    >
+                      <Mic className="h-4 w-4" />
+                      <span>Consulta</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveTab("analysis")}
+                      className={`flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-all ${
+                        activeTab === "analysis"
+                          ? "bg-white dark:bg-neutral-700 text-primary-600 dark:text-primary-400 shadow-sm font-medium"
+                          : "text-neutral-600 dark:text-neutral-400 hover:bg-white/50 dark:hover:bg-neutral-700/50"
+                      }`}
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      <span>Análisis en Vivo</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Conditional content based on active tab */}
-              {activeTab === "consultation" ? (
-                <div className="space-y-4">
-                  {/* Consultation content */}
-                  <div className="px-6 pt-4">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-xl">Grabaciones</CardTitle>
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        onClick={handleRefresh}
-                        isLoading={isRefreshing}
-                      >
-                        <RefreshCw size={16} className="mr-2" />
-                        {isRefreshing ? 'Actualizando' : 'Actualizar'}
-                      </Button>
+                {/* Conditional content based on active tab */}
+                {activeTab === "consultation" ? (
+                  <div>
+                    <div className="px-4 pt-4 sm:px-6">
+                      <div className="flex items-center justify-between mb-6">
+                        <CardTitle className="text-xl">
+                          <div className="flex items-center gap-2">
+                            Grabaciones
+                            <Badge variant="default">
+                              {recordings.length}
+                            </Badge>
+                          </div>
+                        </CardTitle>
+                        <Button 
+                          variant="secondary" 
+                          size="sm" 
+                          onClick={handleRefresh}
+                          isLoading={isRefreshing}
+                        >
+                          <RefreshCw size={16} className="mr-2" />
+                          {isRefreshing ? 'Actualizando' : 'Actualizar'}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                  <CardContent className="px-6 pt-0">
-                    <RecordingsList
-                      recordings={recordings}
-                      transcriptions={transcriptions}
-                      clinicalAnalysis={clinicalAnalysis}
-                      onError={(msg) => useSessionStore.setState({ error: msg })}
-                      isLoading={isRefreshing}
-                    />
-                  </CardContent>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {/* Analysis content */}
-                  <div className="px-6 pt-4">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-xl">Consulta médica mejorada</CardTitle>
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        onClick={handleRefresh}
+                    <CardContent className="px-2 sm:px-6 pt-0">
+                      <RecordingsList
+                        recordings={recordings}
+                        transcriptions={transcriptions}
+                        clinicalAnalysis={clinicalAnalysis}
+                        onError={(msg) => useSessionStore.setState({ error: msg })}
                         isLoading={isRefreshing}
-                      >
-                        <RefreshCw size={16} className="mr-2" />
-                        {isRefreshing ? 'Actualizando' : 'Actualizar'}
-                      </Button>
-                    </div>
+                      />
+                    </CardContent>
                   </div>
-                  <CardContent className="px-6 pt-0">
-                    <Suspense fallback={<AnalysisDisplaySkeleton />}>
-                      {isRefreshing ? (
-                        <AnalysisDisplaySkeleton />
-                      ) : (
-                        <AnalysisDisplay sessionId={sessionId} />
-                      )}
-                    </Suspense>
-                  </CardContent>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {/* Analysis content */}
+                    <div className="px-6 pt-4">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-xl">Consulta médica mejorada</CardTitle>
+                        <Button 
+                          variant="secondary" 
+                          size="sm" 
+                          onClick={handleRefresh}
+                          isLoading={isRefreshing}
+                        >
+                          <RefreshCw size={16} className="mr-2" />
+                          {isRefreshing ? 'Actualizando' : 'Actualizar'}
+                        </Button>
+                      </div>
+                    </div>
+                    <CardContent className="px-6 pt-0">
+                      <Suspense fallback={<AnalysisDisplaySkeleton />}>
+                        {isRefreshing ? (
+                          <AnalysisDisplaySkeleton />
+                        ) : (
+                          <AnalysisDisplay sessionId={sessionId} />
+                        )}
+                      </Suspense>
+                    </CardContent>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 

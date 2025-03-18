@@ -12,7 +12,8 @@ import {
   AlertTriangle,
   Clock,
   Calendar,
-  Wand2
+  Wand2,
+  Link2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -253,6 +254,16 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                   <span className="w-2 h-2 bg-warning-500 rounded-full mr-2"></span>
                   Medicamentos
                 </>
+              ) : type === 'lab_result' ? (
+                <>
+                  <span className="w-2 h-2 bg-info-500 rounded-full mr-2"></span>
+                  Resultados de Laboratorio
+                </>
+              ) : type === 'procedure' ? (
+                <>
+                  <span className="w-2 h-2 bg-violet-500 rounded-full mr-2"></span>
+                  Procedimientos
+                </>
               ) : (
                 <>
                   <span className="w-2 h-2 bg-neutral-500 rounded-full mr-2"></span>
@@ -266,7 +277,9 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                   key={idx}
                   variant={type === 'symptom' ? 'primary' : 
                           type === 'condition' ? 'success' : 
-                          type === 'medication' ? 'warning' : 'default'}
+                          type === 'medication' ? 'warning' :
+                          type === 'lab_result' ? 'info' :
+                          type === 'procedure' ? 'secondary' : 'default'}
                   className="cursor-pointer hover:opacity-90"
                   title={`Confianza: ${Math.round(entity.confidence * 100)}%`}
                 >
@@ -307,10 +320,10 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
   }
 
   return (
-    <div className={`space-y-6 ${className}`}>
+    <div className={`space-y-6 w-full ${className}`}>
       {sortedRecordings.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="p-6 text-center">
+        <Card className="border-dashed w-full">
+          <CardContent className="p-4 sm:p-6 text-center">
             <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800">
               <Headphones className="h-6 w-6 text-neutral-500 dark:text-neutral-400" />
             </div>
@@ -326,16 +339,6 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
         </Card>
       ) : (
         <>
-          <div className="flex items-center gap-2 mb-2">
-            <Headphones className="h-5 w-5 text-neutral-500 dark:text-neutral-400" />
-            <h3 className="font-medium text-neutral-900 dark:text-neutral-100">
-              Grabaciones de la sesión
-            </h3>
-            <Badge variant="default">
-              {sortedRecordings.length}
-            </Badge>
-          </div>
-          
           {sortedRecordings.map((recording) => {
             const isExpanded = expandedRecordings[recording.id];
             const transcription = getTranscriptionForRecording(recording.id);
@@ -412,27 +415,28 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                       <Button
                         variant={isPlaying ? "danger" : "primary"}
                         size="sm"
-                        className="mr-3 rounded-full h-10 w-10 p-0"
+                        className="mr-3 rounded-full h-10 w-10 p-0 shrink-0"
                         onClick={() => handlePlayPause(recording.id)}
                         aria-label={isPlaying ? "Pausar" : "Reproducir"}
                       >
                         {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
                       </Button>
                       
-                      <audio
-                        // Use a callback ref instead of a direct ref assignment
-                        ref={(el) => { audioRefs.current[recording.id] = el; }}
-                        src={recordingUrls[recording.id]}
-                        className="w-full h-8"
-                        controls
-                        controlsList="nodownload noplaybackrate"
-                        onEnded={() => handleAudioEnd(recording.id)}
-                        onError={() => onError("Error al reproducir la grabación")}
-                        onPlay={() => setPlayingAudio(recording.id)}
-                        onPause={() => setPlayingAudio(null)}
-                      >
-                        Tu navegador no soporta el elemento de audio.
-                      </audio>
+                      <div className="w-full min-w-0">
+                        <audio
+                          ref={(el) => { audioRefs.current[recording.id] = el; }}
+                          src={recordingUrls[recording.id]}
+                          className="w-full h-8"
+                          controls
+                          controlsList="nodownload noplaybackrate"
+                          onEnded={() => handleAudioEnd(recording.id)}
+                          onError={() => onError("Error al reproducir la grabación")}
+                          onPlay={() => setPlayingAudio(recording.id)}
+                          onPause={() => setPlayingAudio(null)}
+                        >
+                          Tu navegador no soporta el elemento de audio.
+                        </audio>
+                      </div>
                     </div>
                   )}
                 </CardContent>
@@ -484,7 +488,7 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                           icon={<Wand2 className="h-5 w-5 text-success-500 dark:text-success-400" />}
                           variant="flat"
                           isCollapsible={false}
-                          className="pt-6 border-t border-neutral-200 dark:border-neutral-700"
+                          className="border-t border-neutral-200 dark:border-neutral-700"
                         >
                           {analyses.map((analysis, index) => (
                             <div key={index} className="space-y-6">
@@ -495,8 +499,9 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                               )}
                               
                               {analysis.content?.relationships && analysis.content.relationships.length > 0 && (
-                                <div className="space-y-3">
-                                  <h5 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                                <div className="space-y-4">
+                                  <h5 className="text-sm sm:text-base font-semibold text-neutral-700 dark:text-neutral-300 flex items-center gap-2.5 py-1">
+                                    <Link2 className="h-5 w-5 text-primary-500 dark:text-primary-400" />
                                     Relaciones Clínicas
                                   </h5>
                                   
@@ -506,31 +511,31 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                                         key={idx}
                                         className="p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-700"
                                       >
-                                        <div className="flex items-baseline justify-between mb-1">
-                                          <div className="flex items-center gap-2">
-                                            <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                                        <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 mb-1">
+                                          <div className="flex flex-wrap items-center gap-1.5 text-[11px] sm:text-sm">
+                                            <span className="font-medium text-neutral-900 dark:text-neutral-100 break-words">
                                               {toSentenceCase(rel.source)}
                                             </span>
                                             <AttributeTag
                                               label="Relationship"
                                               value={rel.type}
                                             />
-                                            <span className="font-medium text-neutral-900 dark:text-neutral-100">
+                                            <span className="font-medium text-neutral-900 dark:text-neutral-100 break-words">
                                               {toSentenceCase(rel.target)}
                                             </span>
                                           </div>
-                                          <Badge variant="default" size="sm">
+                                          <Badge variant="default" size="sm" className="hidden sm:block text-[11px] sm:text-sm shrink-0 w-fit">
                                             {Math.round(rel.confidence * 100)}%
                                           </Badge>
                                         </div>
                                         
                                         {rel.evidence && (
-                                          <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 p-2 rounded-md border border-neutral-200 dark:border-neutral-700">
+                                          <p className="mt-2 text-[11px] sm:text-sm text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 p-2 rounded-md border border-neutral-200 dark:border-neutral-700 break-words">
                                             {rel.evidence}
                                           </p>
                                         )}
                                         
-                                        <div className="mt-2 flex flex-wrap gap-2">
+                                        <div className="mt-2 flex flex-wrap gap-1.5">
                                           {Object.entries(rel.metadata)
                                             .filter(([key, value]) => 
                                               value && 

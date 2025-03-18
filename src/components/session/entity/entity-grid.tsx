@@ -102,7 +102,7 @@ const getTitleIcon = (title: string) => {
   return <FileText className="h-5 w-5 text-neutral-500" />;
 };
 
-const EntityGrid: React.FC<EntityGridProps> = ({ 
+export const EntityGrid: React.FC<EntityGridProps> = ({ 
   entities, 
   title, 
   count,
@@ -156,11 +156,11 @@ const EntityGrid: React.FC<EntityGridProps> = ({
     <Card className={className}>
       {/* Header - conditionally shown */}
       {!hideHeader && (
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div className="flex items-center gap-2">
+        <CardHeader className="flex flex-row items-center justify-between p-3 sm:p-4">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {getTitleIcon(title)}
-            <CardTitle>{title}</CardTitle>
-            <Badge variant="default">
+            <CardTitle className="text-sm sm:text-base">{title}</CardTitle>
+            <Badge variant="default" className="text-xs sm:text-sm">
               {displayCount}
             </Badge>
           </div>
@@ -170,12 +170,12 @@ const EntityGrid: React.FC<EntityGridProps> = ({
               size="icon"
               onClick={() => setIsExpanded(!isExpanded)}
               aria-label={isExpanded ? "Mostrar menos" : "Mostrar más"}
-              className="h-8 w-8"
+              className="h-7 w-7 sm:h-8 sm:w-8"
             >
               {isExpanded ? (
-                <Minus className="h-4 w-4" />
+                <Minus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               ) : (
-                <ChevronDown className="h-4 w-4" />
+                <ChevronDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               )}
             </Button>
           )}
@@ -183,14 +183,18 @@ const EntityGrid: React.FC<EntityGridProps> = ({
       )}
 
       {/* Grid of entities */}
-      <CardContent className={`${condensed ? 'p-3' : 'p-4'}`}>
-        <div className={`grid ${condensed ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3'}`}>
+      <CardContent className={`${condensed ? 'p-2 sm:p-3' : 'p-3 sm:p-4'}`}>
+        <div className={`grid gap-2 sm:gap-3 ${
+          condensed 
+            ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4' 
+            : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+        }`}>
           {displayEntities.map((entity, idx) => (
             <div
               key={`${entity.name}-${idx}`}
               onClick={() => handleEntityClick(entity)}
               className={`
-                group cursor-pointer rounded-lg p-2.5 transition-all duration-200 relative
+                group cursor-pointer rounded-lg p-2 sm:p-2.5 transition-all duration-200 relative
                 ${selectedEntity?.name === entity.name 
                   ? 'bg-primary-50 dark:bg-primary-900/30 border-primary-200 dark:border-primary-800 shadow-sm' 
                   : 'bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600'
@@ -198,44 +202,43 @@ const EntityGrid: React.FC<EntityGridProps> = ({
                 border
               `}
             >
-              <div className="flex items-center gap-2">
-                {getEntityIcon(entity)}
-                <div className="relative font-medium text-neutral-900 dark:text-neutral-100 group-hover:text-primary-700 dark:group-hover:text-primary-400 transition-colors">
-                  <span className="text-sm">
+              <div className="flex items-start gap-1.5 sm:gap-2">
+                <div className="mt-0.5">{getEntityIcon(entity)}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-xs sm:text-sm text-neutral-900 dark:text-neutral-100 group-hover:text-primary-700 dark:group-hover:text-primary-400 transition-colors">
                     {entity.status === "active" && (
                       <span className="text-primary-500 mr-1">●</span>
                     )}
                     {toSentenceCase(entity.name)}
-                  </span>
+                  </div>
+                  
+                  {entity.confidence !== undefined && (
+                    <div className="mt-1 text-[10px] sm:text-xs text-neutral-500 dark:text-neutral-400">
+                      {Math.round(entity.confidence * 100)}% confianza
+                    </div>
+                  )}
+                  
+                  {!condensed && (entity.intensity || entity.location || entity.duration) && (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {entity.intensity && (
+                        <Badge variant="default" size="sm" className="text-[10px] sm:text-xs">
+                          {toSentenceCase(entity.intensity)}
+                        </Badge>
+                      )}
+                      {!entity.intensity && entity.location && (
+                        <Badge variant="default" size="sm" className="text-[10px] sm:text-xs">
+                          {toSentenceCase(entity.location)}
+                        </Badge>
+                      )}
+                      {!entity.intensity && !entity.location && entity.duration && (
+                        <Badge variant="default" size="sm" className="text-[10px] sm:text-xs">
+                          {toSentenceCase(entity.duration)}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
-              
-              {entity.confidence !== undefined && (
-                <div className={`mt-1.5 text-xs ${selectedEntity?.name === entity.name ? 'text-primary-600 dark:text-primary-400' : 'text-neutral-500 dark:text-neutral-400'}`}>
-                  {Math.round(entity.confidence * 100)}% confianza
-                </div>
-              )}
-              
-              {/* Show the most important attribute if available */}
-              {!condensed && (entity.intensity || entity.location || entity.duration) && (
-                <div className="mt-1.5 flex flex-wrap gap-1">
-                  {entity.intensity && (
-                    <Badge variant="default" size="sm">
-                      {toSentenceCase(entity.intensity)}
-                    </Badge>
-                  )}
-                  {!entity.intensity && entity.location && (
-                    <Badge variant="default" size="sm">
-                      {toSentenceCase(entity.location)}
-                    </Badge>
-                  )}
-                  {!entity.intensity && !entity.location && entity.duration && (
-                    <Badge variant="default" size="sm">
-                      {toSentenceCase(entity.duration)}
-                    </Badge>
-                  )}
-                </div>
-              )}
             </div>
           ))}
         </div>
@@ -246,72 +249,79 @@ const EntityGrid: React.FC<EntityGridProps> = ({
             variant="ghost"
             size="sm"
             onClick={toggleViewAll}
-            className="mt-3 w-full"
+            className="mt-2 sm:mt-3 w-full text-xs sm:text-sm py-1.5 sm:py-2"
           >
             {viewAll ? 'Ver menos' : `Ver ${entities.length - displayEntities.length} más`}
-            {viewAll ? <Minus className="ml-2 h-4 w-4" /> : <PlusCircle className="ml-2 h-4 w-4" />}
+            {viewAll ? (
+              <Minus className="ml-1.5 sm:ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            ) : (
+              <PlusCircle className="ml-1.5 sm:ml-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            )}
           </Button>
         )}
       </CardContent>
 
       {/* Selected entity details */}
       {selectedEntity && (
-        <CardFooter className="p-4 bg-gradient-to-b from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 border-t border-neutral-200 dark:border-neutral-700">
-          <div className="w-full space-y-3">
+        <CardFooter className="p-3 sm:p-4 bg-gradient-to-b from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-900 border-t border-neutral-200 dark:border-neutral-700">
+          <div className="w-full space-y-2 sm:space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="font-medium text-sm">Detalles de {title.toLowerCase().replace(/s$/, '')}</h4>
+              <h4 className="font-medium text-xs sm:text-sm">Detalles de {title.toLowerCase().replace(/s$/, '')}</h4>
               <Button 
                 variant="ghost"
                 size="icon"
                 onClick={() => setSelectedEntity(null)}
-                className="h-8 w-8"
+                className="h-7 w-7 sm:h-8 sm:w-8"
               >
-                <ChevronDown className="h-4 w-4" />
+                <ChevronDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
             </div>
-            <div className="flex flex-wrap gap-2">
+            
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {selectedEntity.quality && (
-                <AttributeTag label="Quality" value={selectedEntity.quality} />
+                <AttributeTag label="Calidad" value={selectedEntity.quality} />
               )}
               {selectedEntity.location && (
-                <AttributeTag label="Location" value={selectedEntity.location} />
+                <AttributeTag label="Ubicación" value={selectedEntity.location} />
               )}
               {selectedEntity.intensity && (
-                <AttributeTag label="Intensity" value={selectedEntity.intensity} />
+                <AttributeTag label="Intensidad" value={selectedEntity.intensity} />
               )}
               {selectedEntity.context && (
-                <AttributeTag label="Context" value={selectedEntity.context} />
+                <AttributeTag label="Contexto" value={selectedEntity.context} />
               )}
               {selectedEntity.duration && (
-                <AttributeTag label="Duration" value={selectedEntity.duration} />
+                <AttributeTag label="Duración" value={selectedEntity.duration} />
               )}
               {selectedEntity.frequency && (
-                <AttributeTag label="Frequency" value={selectedEntity.frequency} />
+                <AttributeTag label="Frecuencia" value={selectedEntity.frequency} />
               )}
               {selectedEntity.value && selectedEntity.unit && (
                 <AttributeTag 
-                  label="Measurement" 
+                  label="Medición" 
                   value={`${selectedEntity.value} ${selectedEntity.unit}`} 
                 />
               )}
               {selectedEntity.progression && (
-                <AttributeTag label="Progression" value={selectedEntity.progression} />
+                <AttributeTag label="Progresión" value={selectedEntity.progression} />
               )}
               {selectedEntity.status && (
-                <AttributeTag label="Status" value={selectedEntity.status} />
+                <AttributeTag label="Estado" value={selectedEntity.status} />
               )}
               {selectedEntity.onset && (
-                <AttributeTag label="Onset" value={selectedEntity.onset} />
+                <AttributeTag label="Inicio" value={selectedEntity.onset} />
               )}
             </div>
             
             {/* Supporting evidence section */}
             {selectedEntity.supporting_evidence && selectedEntity.supporting_evidence.length > 0 && (
-              <div className="mt-3 pt-3 border-t dark:border-neutral-700">
-                <h5 className="text-xs font-medium mb-1 text-neutral-700 dark:text-neutral-300">Evidencia de respaldo:</h5>
-                <ul className="text-xs text-neutral-600 dark:text-neutral-400 space-y-1">
+              <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t dark:border-neutral-700">
+                <h5 className="text-[10px] sm:text-xs font-medium mb-1 text-neutral-700 dark:text-neutral-300">
+                  Evidencia de respaldo:
+                </h5>
+                <ul className="text-[10px] sm:text-xs text-neutral-600 dark:text-neutral-400 space-y-1">
                   {selectedEntity.supporting_evidence.map((evidence, idx) => (
-                    <li key={idx} className="pl-3 border-l-2 border-primary-200 dark:border-primary-800">
+                    <li key={idx} className="pl-2 sm:pl-3 border-l-2 border-primary-200 dark:border-primary-800">
                       {evidence}
                     </li>
                   ))}

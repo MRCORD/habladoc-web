@@ -1,8 +1,6 @@
 // src/components/session/entity/entity-groups.tsx
 import React, { useState } from 'react';
 import { 
-  ChevronDown, 
-  ChevronRight, 
   Activity,
   Pill,
   Heart,
@@ -99,6 +97,8 @@ interface EntityGroupsProps {
   className?: string;
   filter?: FilterOptions;
   setFilter?: (filter: FilterOptions) => void;
+  initialExpanded?: boolean;
+  disableCollapsible?: boolean;
 }
 
 // Entity Group Item interface
@@ -108,8 +108,6 @@ interface EntityGroupItem {
   type: string;
   iconName?: string;
 }
-
-// Type for medications, tests, and recommendations
 interface MedicationItem {
   name: string;
   dosage?: string;
@@ -181,7 +179,6 @@ const EntityGroups: React.FC<EntityGroupsProps> = ({
   },
   setFilter
 }) => {
-  const [expanded, setExpanded] = useState(true);
   const [showFilterOptions, setShowFilterOptions] = useState(false);
   
   // Ensure sectionData and components exist
@@ -507,15 +504,15 @@ const EntityGroups: React.FC<EntityGroupsProps> = ({
     <Card className={`${className}`}>
       {/* Main header with filter controls */}
       {showTitle && (
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CardTitle>{getSectionTitle()}</CardTitle>
-            <Badge variant="default">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-0 justify-between p-3 sm:p-4">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <CardTitle className="text-sm sm:text-base">{getSectionTitle()}</CardTitle>
+            <Badge variant="default" className="text-xs sm:text-sm">
               {getTotalCount()}
             </Badge>
           </div>
           
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {/* Filter dropdown button */}
             {setFilter && (
               <Button
@@ -523,50 +520,40 @@ const EntityGroups: React.FC<EntityGroupsProps> = ({
                 size="icon"
                 onClick={() => setShowFilterOptions(!showFilterOptions)}
                 aria-label="Mostrar opciones de filtro"
-                className={`h-8 w-8 ${showFilterOptions ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300' : ''}`}
+                className={`h-7 w-7 sm:h-8 sm:w-8 ${showFilterOptions ? 'bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300' : ''}`}
               >
-                <SlidersHorizontal className="h-4 w-4" />
+                <SlidersHorizontal className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </Button>
             )}
-            
-            {/* Expand/collapse button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setExpanded(!expanded)}
-              aria-label={expanded ? "Colapsar" : "Expandir"}
-              className="h-8 w-8"
-            >
-              {expanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </Button>
           </div>
         </CardHeader>
       )}
       
-      {/* Filter dropdown */}
+      {/* Filter options */}
       {showFilterOptions && setFilter && (
-        <CardContent className="py-2 px-4 bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-700">
-          <div className="flex items-center flex-wrap gap-3">
+        <CardContent className="py-2 px-3 sm:px-4 bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-700">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
             {/* Show active only toggle */}
             <Button
               variant={filter.showActiveOnly ? "primary" : "secondary"}
               size="sm"
               onClick={() => setFilter({ ...filter, showActiveOnly: !filter.showActiveOnly })}
+              className="text-xs sm:text-sm justify-center sm:justify-start w-full sm:w-auto"
             >
               Solo activos {filter.showActiveOnly ? '✓' : ''}
             </Button>
             
             {/* Sort options */}
-            <div className="flex items-center">
-              <label className="text-sm mr-2 text-neutral-700 dark:text-neutral-300">Ordenar:</label>
+            <div className="flex items-center gap-2">
+              <label className="text-xs sm:text-sm text-neutral-700 dark:text-neutral-300">
+                Ordenar:
+              </label>
               <select
                 value={filter.sortBy}
                 onChange={(e) => setFilter({ ...filter, sortBy: e.target.value })}
-                className="text-sm rounded-md border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 px-3 py-1"
+                className="text-xs sm:text-sm rounded-md border border-neutral-300 dark:border-neutral-600 
+                         bg-white dark:bg-neutral-700 px-2 sm:px-3 py-1 flex-1 sm:flex-none
+                         focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
                 <option value="confidence">Por confianza</option>
                 <option value="severity">Por intensidad</option>
@@ -578,42 +565,40 @@ const EntityGroups: React.FC<EntityGroupsProps> = ({
         </CardContent>
       )}
       
-      {expanded && (
-        <CardContent className="space-y-6 p-4">
-          {entityGroups.map((group, idx) => (
-            <div key={`${group.type}-${idx}`} className="space-y-3">
-              {/* Group header - only show if there's more than one group */}
-              {entityGroups.length > 1 && (
-                <div className="flex items-center gap-2">
-                  {getGroupIcon(group.iconName)}
-                  <h4 className="text-md font-medium text-neutral-900 dark:text-neutral-100">
-                    {group.title}
-                  </h4>
-                  <Badge variant="default">
-                    {group.entities.length}
-                  </Badge>
-                </div>
-              )}
-              
-              {/* Entity grid with filtered entities */}
-              <EntityGrid
-                title={group.title}
-                entities={filterEntities(group.entities)}
-                count={group.entities.length}
-                hideHeader={entityGroups.length > 1} // Hide header if we're showing group headers
-                condensed={group.entities.length > 8} // Use condensed view for large groups
-              />
-            </div>
-          ))}
-        </CardContent>
-      )}
+      <CardContent className="space-y-4 sm:space-y-6 p-3 sm:p-4">
+        {entityGroups.map((group, idx) => (
+          <div key={`${group.type}-${idx}`} className="space-y-2 sm:space-y-3">
+            {/* Group header - only show if there's more than one group */}
+            {entityGroups.length > 1 && (
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                {getGroupIcon(group.iconName)}
+                <h4 className="text-sm sm:text-base font-medium text-neutral-900 dark:text-neutral-100">
+                  {group.title}
+                </h4>
+                <Badge variant="default" className="text-xs sm:text-sm">
+                  {group.entities.length}
+                </Badge>
+              </div>
+            )}
+            
+            {/* Entity grid with filtered entities */}
+            <EntityGrid
+              title={group.title}
+              entities={filterEntities(group.entities)}
+              count={group.entities.length}
+              hideHeader={entityGroups.length > 1}
+              condensed={group.entities.length > 8}
+            />
+          </div>
+        ))}
+      </CardContent>
       
       {/* Empty state */}
-      {entityGroups.length === 0 && expanded && (
-        <CardContent className="p-6">
-          <div className="text-center py-6">
-            <div className="rounded-lg border-2 border-dashed border-neutral-300 dark:border-neutral-700 p-6">
-              <p className="text-neutral-500 dark:text-neutral-400">
+      {entityGroups.length === 0 && (
+        <CardContent className="p-4 sm:p-6">
+          <div className="text-center py-4 sm:py-6">
+            <div className="rounded-lg border-2 border-dashed border-neutral-300 dark:border-neutral-700 p-4 sm:p-6">
+              <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
                 No se han identificado entidades clínicas en esta sección.
               </p>
             </div>

@@ -254,6 +254,16 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                   <span className="w-2 h-2 bg-warning-500 rounded-full mr-2"></span>
                   Medicamentos
                 </>
+              ) : type === 'lab_result' ? (
+                <>
+                  <span className="w-2 h-2 bg-info-500 rounded-full mr-2"></span>
+                  Resultados de Laboratorio
+                </>
+              ) : type === 'procedure' ? (
+                <>
+                  <span className="w-2 h-2 bg-violet-500 rounded-full mr-2"></span>
+                  Procedimientos
+                </>
               ) : (
                 <>
                   <span className="w-2 h-2 bg-neutral-500 rounded-full mr-2"></span>
@@ -267,7 +277,9 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                   key={idx}
                   variant={type === 'symptom' ? 'primary' : 
                           type === 'condition' ? 'success' : 
-                          type === 'medication' ? 'warning' : 'default'}
+                          type === 'medication' ? 'warning' :
+                          type === 'lab_result' ? 'info' :
+                          type === 'procedure' ? 'secondary' : 'default'}
                   className="cursor-pointer hover:opacity-90"
                   title={`Confianza: ${Math.round(entity.confidence * 100)}%`}
                 >

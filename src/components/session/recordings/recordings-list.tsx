@@ -524,7 +524,7 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                                               {toSentenceCase(rel.target)}
                                             </span>
                                           </div>
-                                          <Badge variant="default" size="sm" className="text-[11px] sm:text-sm shrink-0">
+                                          <Badge variant="default" size="sm" className="hidden sm:block text-[11px] sm:text-sm shrink-0 w-fit">
                                             {Math.round(rel.confidence * 100)}%
                                           </Badge>
                                         </div>

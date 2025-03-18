@@ -455,29 +455,29 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
       {/* Top nav tabs */}
       <Card variant="default" className="p-2">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full">
-            <TabsTrigger value="summary" className="flex items-center gap-1.5">
-              <FileText className="h-4 w-4" />
+          <TabsList className="w-full flex-none overflow-x-auto flex-nowrap whitespace-nowrap max-w-full">
+            <TabsTrigger value="summary" className="flex-none items-center gap-1.5 min-w-[100px]">
+              <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span>Resumen</span>
             </TabsTrigger>
-            <TabsTrigger value="subjective" className="flex items-center gap-1.5">
-              <MessageCircle className="h-4 w-4" />
+            <TabsTrigger value="subjective" className="flex-none items-center gap-1.5 min-w-[100px]">
+              <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span>Subjetiva</span>
             </TabsTrigger>
-            <TabsTrigger value="objective" className="flex items-center gap-1.5">
-              <Activity className="h-4 w-4" />
+            <TabsTrigger value="objective" className="flex-none items-center gap-1.5 min-w-[100px]">
+              <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span>Objetiva</span>
             </TabsTrigger>
-            <TabsTrigger value="assessment" className="flex items-center gap-1.5">
-              <Stethoscope className="h-4 w-4" />
+            <TabsTrigger value="assessment" className="flex-none items-center gap-1.5 min-w-[100px]">
+              <Stethoscope className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span>Diagnóstica</span>
             </TabsTrigger>
-            <TabsTrigger value="plan" className="flex items-center gap-1.5">
-              <CheckCircle className="h-4 w-4" />
+            <TabsTrigger value="plan" className="flex-none items-center gap-1.5 min-w-[100px]">
+              <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span>Plan</span>
             </TabsTrigger>
-            <TabsTrigger value="insights" className="flex items-center gap-1.5">
-              <Brain className="h-4 w-4" />
+            <TabsTrigger value="insights" className="flex-none items-center gap-1.5 min-w-[100px]">
+              <Brain className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               <span>Análisis IA</span>
             </TabsTrigger>
           </TabsList>

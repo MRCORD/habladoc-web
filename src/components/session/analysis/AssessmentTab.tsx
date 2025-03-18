@@ -109,7 +109,7 @@ export const AssessmentTab: React.FC<AnalysisTabProps> = ({
   const clinicalRelationships = findClinicalRelationships(allDiagnoses, allSymptoms);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <Section
         title="Evaluación diagnóstica"
         icon={<Stethoscope className="h-5 w-5" />}
@@ -130,13 +130,13 @@ export const AssessmentTab: React.FC<AnalysisTabProps> = ({
           </Button>
         }
       >
-        <div className="bg-neutral-50 dark:bg-neutral-900 p-4 rounded-lg text-neutral-900 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700">
+        <div className="bg-neutral-50 dark:bg-neutral-900 p-3 sm:p-4 rounded-lg text-neutral-900 dark:text-neutral-200 border border-neutral-200 dark:border-neutral-700">
           {soapAssessment.summary ? (
-            <div>
+            <div className="text-sm sm:text-base">
               {highlightEntitiesInText(soapAssessment.summary, allEntities)}
             </div>
           ) : (
-            <p className="text-neutral-500 dark:text-neutral-400 italic">
+            <p className="text-sm sm:text-base text-neutral-500 dark:text-neutral-400 italic">
               No hay datos de evaluación diagnóstica disponibles.
             </p>
           )}
@@ -145,7 +145,7 @@ export const AssessmentTab: React.FC<AnalysisTabProps> = ({
       
       {/* Entities section and diagnosis management */}
       {!collapsedSections.Assessment && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <EntityGroups
             sectionData={assessmentData}
             soapSection="assessment"
@@ -155,7 +155,7 @@ export const AssessmentTab: React.FC<AnalysisTabProps> = ({
           />
                           
           {/* Diagnosis Management Component */}
-          <div className="mt-4">
+          <div className="mt-3 sm:mt-4">
             <DiagnosisManagement sessionId={sessionId} />
           </div>
         
@@ -166,20 +166,20 @@ export const AssessmentTab: React.FC<AnalysisTabProps> = ({
               icon={<Filter className="h-5 w-5 text-info-500" />}
               variant="default"
             >
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {clinicalRelationships.map((rel, idx) => (
                   <Card 
                     key={idx}
                     variant="flat"
                     className="bg-info-50 dark:bg-info-900/20 border-info-200 dark:border-info-800"
                   >
-                    <CardContent className="p-3">
-                      <div className="font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="font-medium text-sm sm:text-base text-neutral-900 dark:text-neutral-100 mb-2">
                         {rel.diagnosis.name}
                       </div>
-                      <div className="pl-4 border-l-2 border-info-300 dark:border-info-700">
-                        <div className="text-sm text-neutral-600 dark:text-neutral-300 mb-1">Síntomas relacionados:</div>
-                        <div className="flex flex-wrap gap-2">
+                      <div className="pl-3 sm:pl-4 border-l-2 border-info-300 dark:border-info-700">
+                        <div className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 mb-1">Síntomas relacionados:</div>
+                        <div className="flex flex-wrap gap-1.5 sm:gap-2">
                           {rel.symptoms.map((symptom, i) => (
                             <Badge key={i} variant="default" size="sm">
                               {symptom.name}

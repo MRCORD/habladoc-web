@@ -12,7 +12,8 @@ import {
   AlertTriangle,
   Clock,
   Calendar,
-  Wand2
+  Wand2,
+  Link2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -486,8 +487,9 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                               )}
                               
                               {analysis.content?.relationships && analysis.content.relationships.length > 0 && (
-                                <div className="space-y-3">
-                                  <h5 className="text-xs sm:text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                                <div className="space-y-4">
+                                  <h5 className="text-sm sm:text-base font-semibold text-neutral-700 dark:text-neutral-300 flex items-center gap-2.5 py-1">
+                                    <Link2 className="h-5 w-5 text-primary-500 dark:text-primary-400" />
                                     Relaciones Clínicas
                                   </h5>
                                   
@@ -498,7 +500,7 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                                         className="p-3 bg-neutral-50 dark:bg-neutral-900 rounded-lg border border-neutral-200 dark:border-neutral-700"
                                       >
                                         <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-2 mb-1">
-                                          <div className="flex flex-wrap items-center gap-1.5 text-[11px] sm:text-xs">
+                                          <div className="flex flex-wrap items-center gap-1.5 text-[11px] sm:text-sm">
                                             <span className="font-medium text-neutral-900 dark:text-neutral-100 break-words">
                                               {toSentenceCase(rel.source)}
                                             </span>
@@ -510,13 +512,13 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                                               {toSentenceCase(rel.target)}
                                             </span>
                                           </div>
-                                          <Badge variant="default" size="sm" className="text-[11px] shrink-0">
+                                          <Badge variant="default" size="sm" className="text-[11px] sm:text-sm shrink-0">
                                             {Math.round(rel.confidence * 100)}%
                                           </Badge>
                                         </div>
                                         
                                         {rel.evidence && (
-                                          <p className="mt-2 text-[11px] sm:text-xs text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 p-2 rounded-md border border-neutral-200 dark:border-neutral-700 break-words">
+                                          <p className="mt-2 text-[11px] sm:text-sm text-neutral-600 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 p-2 rounded-md border border-neutral-200 dark:border-neutral-700 break-words">
                                             {rel.evidence}
                                           </p>
                                         )}

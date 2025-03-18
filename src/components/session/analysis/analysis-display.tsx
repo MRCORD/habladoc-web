@@ -128,7 +128,7 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab}>
-      <TabsList className="w-full flex-none overflow-x-auto flex-nowrap whitespace-nowrap max-w-full">
+      <TabsList className="w-full flex-none overflow-x-auto flex-nowrap whitespace-nowrap max-w-full mb-4">
         <TabsTrigger value="summary" className="flex-none items-center gap-1.5 min-w-[100px]">
           <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           <span>Resumen</span>

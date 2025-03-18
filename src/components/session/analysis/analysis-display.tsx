@@ -127,125 +127,120 @@ export default function AnalysisDisplay({ sessionId }: AnalysisDisplayProps) {
   if (error) return <ErrorMessage message={error} />;
 
   return (
-    <div className="space-y-6">
-      {/* Top nav tabs */}
-      <Card variant="default" className="p-2">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full flex-none overflow-x-auto flex-nowrap whitespace-nowrap max-w-full">
-            <TabsTrigger value="summary" className="flex-none items-center gap-1.5 min-w-[100px]">
-              <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>Resumen</span>
-            </TabsTrigger>
-            <TabsTrigger value="subjective" className="flex-none items-center gap-1.5 min-w-[100px]">
-              <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>Subjetiva</span>
-            </TabsTrigger>
-            <TabsTrigger value="objective" className="flex-none items-center gap-1.5 min-w-[100px]">
-              <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>Objetiva</span>
-            </TabsTrigger>
-            <TabsTrigger value="assessment" className="flex-none items-center gap-1.5 min-w-[100px]">
-              <Stethoscope className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>Diagnóstica</span>
-            </TabsTrigger>
-            <TabsTrigger value="plan" className="flex-none items-center gap-1.5 min-w-[100px]">
-              <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>Plan</span>
-            </TabsTrigger>
-            <TabsTrigger value="insights" className="flex-none items-center gap-1.5 min-w-[100px]">
-              <Brain className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span>Análisis IA</span>
-            </TabsTrigger>
-          </TabsList>
+    <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <TabsList className="w-full flex-none overflow-x-auto flex-nowrap whitespace-nowrap max-w-full">
+        <TabsTrigger value="summary" className="flex-none items-center gap-1.5 min-w-[100px]">
+          <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          <span>Resumen</span>
+        </TabsTrigger>
+        <TabsTrigger value="subjective" className="flex-none items-center gap-1.5 min-w-[100px]">
+          <MessageCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          <span>Subjetiva</span>
+        </TabsTrigger>
+        <TabsTrigger value="objective" className="flex-none items-center gap-1.5 min-w-[100px]">
+          <Activity className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          <span>Objetiva</span>
+        </TabsTrigger>
+        <TabsTrigger value="assessment" className="flex-none items-center gap-1.5 min-w-[100px]">
+          <Stethoscope className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          <span>Diagnóstica</span>
+        </TabsTrigger>
+        <TabsTrigger value="plan" className="flex-none items-center gap-1.5 min-w-[100px]">
+          <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          <span>Plan</span>
+        </TabsTrigger>
+        <TabsTrigger value="insights" className="flex-none items-center gap-1.5 min-w-[100px]">
+          <Brain className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          <span>Análisis IA</span>
+        </TabsTrigger>
+      </TabsList>
 
-          {/* TabsContent for empty state or with tabs */}
-          {!enhancedData ? (
-            <Card variant="default">
-              <CardContent className="p-8 text-center">
-                <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 mb-4">
-                  <Lightbulb className="h-6 w-6 text-neutral-600 dark:text-neutral-400" />
-                </div>
-                <CardTitle className="mb-2">No hay análisis disponible</CardTitle>
-                <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto mb-4">
-                  El análisis de la consulta se generará automáticamente una vez que las grabaciones sean procesadas.
-                </p>
-                <Badge variant="default" className="inline-flex items-center">
-                  <Clock className="h-3.5 w-3.5 mr-1.5" />
-                  <span>Esperando procesamiento...</span>
-                </Badge>
-              </CardContent>
-            </Card>
-          ) : (
-            <>
-              <TabsContent value="summary" className="mt-0">
-                <SummaryTab 
-                  enhancedData={enhancedData} 
-                  sessionId={sessionId}
-                  collapsedSections={collapsedSections}
-                  toggleSection={toggleSection}
-                  entityFilter={entityFilter}
-                  setEntityFilter={setEntityFilter}
-                />
-              </TabsContent>
-              
-              <TabsContent value="subjective" className="mt-0">
-                <SubjectiveTab 
-                  enhancedData={enhancedData} 
-                  sessionId={sessionId}
-                  collapsedSections={collapsedSections}
-                  toggleSection={toggleSection}
-                  entityFilter={entityFilter}
-                  setEntityFilter={setEntityFilter}
-                />
-              </TabsContent>
-              
-              <TabsContent value="objective" className="mt-0">
-                <ObjectiveTab 
-                  enhancedData={enhancedData} 
-                  sessionId={sessionId}
-                  collapsedSections={collapsedSections}
-                  toggleSection={toggleSection}
-                  entityFilter={entityFilter}
-                  setEntityFilter={setEntityFilter}
-                />
-              </TabsContent>
-              
-              <TabsContent value="assessment" className="mt-0">
-                <AssessmentTab 
-                  enhancedData={enhancedData} 
-                  sessionId={sessionId}
-                  collapsedSections={collapsedSections}
-                  toggleSection={toggleSection}
-                  entityFilter={entityFilter}
-                  setEntityFilter={setEntityFilter}
-                />
-              </TabsContent>
-              
-              <TabsContent value="plan" className="mt-0">
-                <PlanTab 
-                  enhancedData={enhancedData} 
-                  sessionId={sessionId}
-                  collapsedSections={collapsedSections}
-                  toggleSection={toggleSection}
-                  entityFilter={entityFilter}
-                  setEntityFilter={setEntityFilter}
-                />
-              </TabsContent>
-              
-              <TabsContent value="insights" className="mt-0">
-                <InsightsTab 
-                  enhancedData={enhancedData} 
-                  sessionId={sessionId}
-                  collapsedSections={collapsedSections}
-                  toggleSection={toggleSection}
-                  entityFilter={entityFilter}
-                  setEntityFilter={setEntityFilter}
-                />
-              </TabsContent>
-            </>
-          )}
-        </Tabs>
-      </Card>
-    </div>
+      {/* TabsContent for empty state or with tabs */}
+      {!enhancedData ? (
+        <Card variant="default">
+          <CardContent className="p-8 text-center">
+            <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 mb-4">
+              <Lightbulb className="h-6 w-6 text-neutral-600 dark:text-neutral-400" />
+            </div>
+            <CardTitle className="mb-2">No hay análisis disponible</CardTitle>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto mb-4">
+              El análisis de la consulta se generará automáticamente una vez que las grabaciones sean procesadas.
+            </p>
+            <Badge variant="default" className="inline-flex items-center">
+              <Clock className="h-3.5 w-3.5 mr-1.5" />
+              <span>Esperando procesamiento...</span>
+            </Badge>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          <TabsContent value="summary" className="mt-0">
+            <SummaryTab 
+              enhancedData={enhancedData} 
+              sessionId={sessionId}
+              collapsedSections={collapsedSections}
+              toggleSection={toggleSection}
+              entityFilter={entityFilter}
+              setEntityFilter={setEntityFilter}
+            />
+          </TabsContent>
+          
+          <TabsContent value="subjective" className="mt-0">
+            <SubjectiveTab 
+              enhancedData={enhancedData} 
+              sessionId={sessionId}
+              collapsedSections={collapsedSections}
+              toggleSection={toggleSection}
+              entityFilter={entityFilter}
+              setEntityFilter={setEntityFilter}
+            />
+          </TabsContent>
+          
+          <TabsContent value="objective" className="mt-0">
+            <ObjectiveTab 
+              enhancedData={enhancedData} 
+              sessionId={sessionId}
+              collapsedSections={collapsedSections}
+              toggleSection={toggleSection}
+              entityFilter={entityFilter}
+              setEntityFilter={setEntityFilter}
+            />
+          </TabsContent>
+          
+          <TabsContent value="assessment" className="mt-0">
+            <AssessmentTab 
+              enhancedData={enhancedData} 
+              sessionId={sessionId}
+              collapsedSections={collapsedSections}
+              toggleSection={toggleSection}
+              entityFilter={entityFilter}
+              setEntityFilter={setEntityFilter}
+            />
+          </TabsContent>
+          
+          <TabsContent value="plan" className="mt-0">
+            <PlanTab 
+              enhancedData={enhancedData} 
+              sessionId={sessionId}
+              collapsedSections={collapsedSections}
+              toggleSection={toggleSection}
+              entityFilter={entityFilter}
+              setEntityFilter={setEntityFilter}
+            />
+          </TabsContent>
+          
+          <TabsContent value="insights" className="mt-0">
+            <InsightsTab 
+              enhancedData={enhancedData} 
+              sessionId={sessionId}
+              collapsedSections={collapsedSections}
+              toggleSection={toggleSection}
+              entityFilter={entityFilter}
+              setEntityFilter={setEntityFilter}
+            />
+          </TabsContent>
+        </>
+      )}
+    </Tabs>
   );
 }

@@ -8,11 +8,9 @@ import { AnalysisTabProps, convertToSectionData, Entity, VitalSign, Finding } fr
 export const ObjectiveTab: React.FC<AnalysisTabProps> = ({
   enhancedData,
   entityFilter,
-  setEntityFilter
 }) => {
   // Extract relevant data
   const soapObjective = enhancedData?.soap_objective || {};
-  const objectiveData = convertToSectionData(soapObjective);
 
   // Get all entities for highlighting
   const getAllEntities = () => {

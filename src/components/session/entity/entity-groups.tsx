@@ -1,8 +1,6 @@
 // src/components/session/entity/entity-groups.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
-  ChevronDown, 
-  ChevronRight, 
   Activity,
   Pill,
   Heart,

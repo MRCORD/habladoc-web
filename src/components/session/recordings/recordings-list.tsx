@@ -476,7 +476,7 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                           icon={<Wand2 className="h-5 w-5 text-success-500 dark:text-success-400" />}
                           variant="flat"
                           isCollapsible={false}
-                          className="pt-6 border-t border-neutral-200 dark:border-neutral-700"
+                          className="border-t border-neutral-200 dark:border-neutral-700"
                         >
                           {analyses.map((analysis, index) => (
                             <div key={index} className="space-y-6">

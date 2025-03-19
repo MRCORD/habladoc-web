@@ -2,7 +2,7 @@
 
 import React, { useEffect, Suspense, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mic, Calendar, History, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Mic, Calendar, History, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 
 import { useUserStore } from '@/stores/userStore';
 import { useInitialLoad, useTodaySessions, useHistoricalSessions } from '@/hooks/apiHooks';
@@ -343,45 +343,53 @@ export default function Dashboard() {
             <div>
               {Object.keys(groupedHistoricalSessions).length > 0 ? (
                 Object.entries(groupedHistoricalSessions).map(([dateKey, sessions]) => (
-                  <div key={dateKey} className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                  <div key={dateKey} className="border-b border-neutral-200 dark:border-neutral-700 last:border-b-0">
                     {/* Date Header */}
                     <div 
-                      className="flex items-center px-4 py-3 sm:px-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                      className="flex items-center px-4 py-4 sm:px-6 cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
                       onClick={() => toggleDateGroup(dateKey)}
                     >
+                      <div className="flex items-center gap-4 flex-1">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-50 dark:bg-primary-900/20 border border-primary-100 dark:border-primary-800">
+                          <Calendar className="h-5 w-5 text-primary-500 dark:text-primary-400" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                            {formatDateForDisplay(dateKey)}
+                          </h3>
+                          <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5 flex items-center gap-1.5">
+                            <Clock className="h-3.5 w-3.5" />
+                            {sessions.length} {sessions.length === 1 ? 'sesión' : 'sesiones'}
+                          </p>
+                        </div>
+                      </div>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="mr-2 h-8 w-8"
+                        className="ml-auto"
                       >
                         {expandedDateGroups[dateKey] ? (
-                          <ChevronUp className="h-4 w-4" />
+                          <ChevronUp className="h-4 w-4 text-neutral-500" />
                         ) : (
-                          <ChevronDown className="h-4 w-4" />
+                          <ChevronDown className="h-4 w-4 text-neutral-500" />
                         )}
                       </Button>
-                      <div>
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {formatDateForDisplay(dateKey)}
-                        </h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {sessions.length} {sessions.length === 1 ? 'sesión' : 'sesiones'}
-                        </p>
-                      </div>
                     </div>
                     
-                    {/* Sessions for this date */}
+                    {/* Sessions list for this date */}
                     {expandedDateGroups[dateKey] && (
-                      <ul role="list" className="divide-y divide-gray-200 dark:divide-gray-700">
-                        {sessions.map((session: Session) => (
-                          <SessionListItem
-                            key={session.id}
-                            session={session}
-                            onSelect={() => router.push(`/session/${session.id}`)}
-                            isLoading={isLoading}
-                          />
-                        ))}
-                      </ul>
+                      <div className="border-t border-neutral-200 dark:border-neutral-700">
+                        <ul role="list" className="divide-y divide-neutral-200 dark:divide-neutral-700">
+                          {sessions.map((session: Session) => (
+                            <SessionListItem
+                              key={session.id}
+                              session={session}
+                              onSelect={() => router.push(`/session/${session.id}`)}
+                              isLoading={isLoading}
+                            />
+                          ))}
+                        </ul>
+                      </div>
                     )}
                   </div>
                 ))

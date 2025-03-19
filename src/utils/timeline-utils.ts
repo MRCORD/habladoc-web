@@ -131,7 +131,7 @@ export function groupEventsByDate(events: TimelineEvent[]): TimestampGroups {
 }
 
 /**
- * Group sessions by date (YYYY-MM-DD)
+ * Group sessions by date (YYYY-MM-DD) - Original function
  * @param sessions Array of sessions to group
  * @param dateField Field to use for grouping (defaults to scheduled_for)
  * @returns Record with date keys and arrays of sessions
@@ -171,7 +171,15 @@ export function groupSessionsByDate(
  */
 export function formatDateForDisplay(dateKey: string): string {
   try {
-    const date = new Date(dateKey);
+    // Parse the date key (YYYY-MM-DD) to create a date object
+    const parts = dateKey.split('-');
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]) - 1; // JS months are 0-based
+    const day = parseInt(parts[2]);
+    
+    // Create date at noon to avoid timezone issues with date formatting
+    const date = new Date(year, month, day, 12, 0, 0);
+    
     return date.toLocaleDateString('es-ES', {
       weekday: 'long',
       day: 'numeric',
@@ -181,4 +189,140 @@ export function formatDateForDisplay(dateKey: string): string {
   } catch {
     return dateKey;
   }
+}
+
+// Utility function to convert UTC date to local date key (YYYY-MM-DD)
+export function getLocalDateKey(utcDateString: string): string {
+  const date = new Date(utcDateString);
+  return date.toLocaleDateString('en-CA'); // Returns YYYY-MM-DD format in local timezone
+}
+
+/**
+ * Format time from a UTC string to local time
+ * @param dateStr UTC date string
+ * @returns Formatted time string in local timezone
+ */
+export function getFormattedLocalTime(dateStr?: string | null): string {
+  if (!dateStr) return '---';
+  try {
+    const date = new Date(dateStr);
+    return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  } catch {
+    return '---';
+  }
+}
+
+/**
+ * Group sessions by local date (accounting for timezone)
+ * @param sessions Array of sessions to group
+ * @param dateField Field to use for grouping (defaults to scheduled_for)
+ * @returns Record with date keys and arrays of sessions
+ */
+export function groupSessionsByLocalDate(
+  sessions: any[],
+  dateField: string = 'scheduled_for'
+): Record<string, any[]> {
+  const groups: Record<string, any[]> = {};
+
+  sessions.forEach(session => {
+    if (!session[dateField]) return;
+    
+    // Get local date key (YYYY-MM-DD in local timezone)
+    const dateKey = getLocalDateKey(session[dateField]);
+    
+    if (!groups[dateKey]) {
+      groups[dateKey] = [];
+    }
+    
+    groups[dateKey].push(session);
+  });
+
+  // Sort the groups by date (most recent first)
+  const sortedGroups: Record<string, any[]> = {};
+  Object.keys(groups)
+    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+    .forEach(key => {
+      sortedGroups[key] = groups[key];
+    });
+
+  return sortedGroups;
+}
+
+/**
+ * Debug utility to log date conversions
+ */
+export function debugDate(dateStr: string): void {
+  console.log('Debug date:', dateStr);
+  const date = new Date(dateStr);
+  console.log('Local date parts:', {
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+    day: date.getDate(),
+    hours: date.getHours(),
+    minutes: date.getMinutes()
+  });
+  console.log('Date key:', getLocalDateKeyV2(dateStr));
+}
+
+/**
+ * Get a consistent date key from UTC date string - THE FIXED VERSION
+ */
+export function getLocalDateKeyV2(utcDateString: string): string {
+  // Create date object from the UTC string
+  const date = new Date(utcDateString);
+  
+  // Format date in YYYY-MM-DD format in local timezone
+  // This uses the browser's timezone
+  const localDate = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  );
+  
+  // Format as YYYY-MM-DD
+  return localDate.toISOString().split('T')[0];
+}
+
+/**
+ * Group sessions by local date - FIXED VERSION
+ */
+export function groupSessionsByLocalDateFixed(
+  sessions: any[],
+  dateField: string = 'scheduled_for'
+): Record<string, any[]> {
+  const groups: Record<string, any[]> = {};
+
+  sessions.forEach(session => {
+    if (!session[dateField]) return;
+    
+    // For debugging purposes
+    if (process.env.NODE_ENV !== 'production') {
+      const utc = session[dateField];
+      const date = new Date(utc);
+      const local = date.toLocaleString();
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const displayTime = `${hours}:${minutes}`;
+      console.log(`Grouping session ${session.id}: UTC=${utc}, Local date=${local}, Key=${getLocalDateKeyV2(utc)}`);
+    }
+    
+    // Get local date key using our fixed function
+    const dateKey = getLocalDateKeyV2(session[dateField]);
+    
+    if (!groups[dateKey]) {
+      groups[dateKey] = [];
+    }
+    
+    groups[dateKey].push(session);
+  });
+
+  // Sort the groups by date (most recent first)
+  const sortedGroups: Record<string, any[]> = {};
+  Object.keys(groups)
+    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+    .forEach(key => {
+      sortedGroups[key] = groups[key];
+    });
+
+  return sortedGroups;
 }

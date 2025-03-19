@@ -11,7 +11,7 @@ import SessionListItem from '@/components/dashboard/session-list-item';
 import StatsGrid from '@/components/dashboard/stats-grid';
 import { StatsGridSkeleton, SessionListSkeleton } from '@/components/common/loading-skeletons';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { groupSessionsByDate, formatDateForDisplay } from '@/utils/timeline-utils';
+import { groupSessionsByLocalDateFixed, formatDateForDisplay } from '@/utils/timeline-utils';
 import { Button } from '@/components/ui/button';
 
 import type { Session, SessionStatus, SessionType } from '@/types';
@@ -179,7 +179,7 @@ export default function Dashboard() {
    */
   useEffect(() => {
     if (activeTab === 'history' && !isHistoricalSessionsLoading && historicalSessions.length > 0 && !dateGroupsInitialized) {
-      const groupedSessions = groupSessionsByDate(historicalSessions);
+      const groupedSessions = groupSessionsByLocalDateFixed(historicalSessions, 'scheduled_for');
       const initialExpandState: Record<string, boolean> = {};
       
       Object.keys(groupedSessions).forEach(dateKey => {
@@ -215,9 +215,9 @@ export default function Dashboard() {
     return null;
   }
 
-  // Group sessions by date for the history tab
+  // Group sessions by date for the history tab - using our fixed timezone-aware function
   const groupedHistoricalSessions = activeTab === 'history' 
-    ? groupSessionsByDate(historicalSessions) 
+    ? groupSessionsByLocalDateFixed(historicalSessions, 'scheduled_for') 
     : {};
 
   // If we get this far, we have a user and a doctorProfile.

@@ -1,5 +1,4 @@
 // src/components/dashboard/session-list-item.tsx
-import { format, isValid } from 'date-fns';
 import { SessionStatusBadge } from '@/components/common/status-badges';
 import type { Session } from '@/types';
 
@@ -21,11 +20,15 @@ interface SessionListItemProps {
 }
 
 export function SessionListItem({ session, onSelect, isLoading = false }: SessionListItemProps) {
-  // Helper function to safely format time only
-  const getFormattedTime = (dateStr?: string | null) => {
+  // Format time directly
+  const formatLocalTime = (dateStr?: string | null): string => {
     if (!dateStr) return '---';
-    const date = new Date(dateStr);
-    return isValid(date) ? format(date, 'HH:mm') : '---';
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    } catch {
+      return '---';
+    }
   };
 
   // Helper function to format duration
@@ -36,6 +39,13 @@ export function SessionListItem({ session, onSelect, isLoading = false }: Sessio
   };
 
   const patientInfo = getPatientName(session);
+
+  // Debug this specific session's time
+  console.log(`SessionListItem for ${session.id}:`, {
+    utc: session.scheduled_for,
+    local: new Date(session.scheduled_for).toLocaleString(),
+    displayTime: formatLocalTime(session.scheduled_for)
+  });
 
   return (
     <li 
@@ -61,7 +71,7 @@ export function SessionListItem({ session, onSelect, isLoading = false }: Sessio
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
               </svg>
               <span className="text-sm font-semibold text-blue-700 dark:text-blue-300">
-                {getFormattedTime(session.scheduled_for)}
+                {formatLocalTime(session.scheduled_for)}
               </span>
             </div>
             {session.duration && (

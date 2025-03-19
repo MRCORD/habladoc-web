@@ -22,7 +22,8 @@ import {
   consolidateSimilarEvents, 
   findEventRelationships,
   groupEventsByDate,
-  formatDateForDisplay
+  formatDateForDisplay,
+  getFormattedDateTime
 } from '@/utils/timeline-utils';
 
 // Helper function to get confidence display info - add export
@@ -345,37 +346,4 @@ export default function ConsultationTimeline({
       )}
     </Card>
   );
-}
-
-// Helper function to get formatted datetime values from timestamp
-function getFormattedDateTime(timestamp: string) {
-  try {
-    const date = new Date(timestamp);
-    return {
-      time: date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
-      date: date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-      relativeTime: getRelativeTimeString(date)
-    };
-  } catch (error) {
-    console.error("Error formatting date:", error);
-    return { time: "", date: "", relativeTime: "" };
-  }
-}
-
-// Get relative time string (e.g., "2 minutes ago")
-function getRelativeTimeString(date: Date): string {
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffSec = Math.round(diffMs / 1000);
-  const diffMin = Math.round(diffSec / 60);
-  const diffHr = Math.round(diffMin / 60);
-  const diffDays = Math.round(diffHr / 24);
-
-  if (diffSec < 60) return 'Justo ahora';
-  if (diffMin < 60) return `Hace ${diffMin} ${diffMin === 1 ? 'minuto' : 'minutos'}`;
-  if (diffHr < 24) return `Hace ${diffHr} ${diffHr === 1 ? 'hora' : 'horas'}`;
-  if (diffDays === 1) return 'Ayer';
-  if (diffDays < 7) return `Hace ${diffDays} días`;
-  
-  return '';
 }

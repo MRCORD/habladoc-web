@@ -1,5 +1,6 @@
 // src/components/dashboard/session-list-item.tsx
 import { SessionStatusBadge } from '@/components/common/status-badges';
+import { formatLocalTime } from '@/utils/timeline-utils';
 import type { Session } from '@/types';
 
 // Helper function to get patient name and document
@@ -20,17 +21,6 @@ interface SessionListItemProps {
 }
 
 export function SessionListItem({ session, onSelect, isLoading = false }: SessionListItemProps) {
-  // Format time directly
-  const formatLocalTime = (dateStr?: string | null): string => {
-    if (!dateStr) return '---';
-    try {
-      const date = new Date(dateStr);
-      return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-    } catch {
-      return '---';
-    }
-  };
-
   // Helper function to format duration
   const formatDuration = (duration?: number | null) => {
     if (!duration) return '---';
@@ -41,11 +31,13 @@ export function SessionListItem({ session, onSelect, isLoading = false }: Sessio
   const patientInfo = getPatientName(session);
 
   // Debug this specific session's time
-  console.log(`SessionListItem for ${session.id}:`, {
-    utc: session.scheduled_for,
-    local: new Date(session.scheduled_for).toLocaleString(),
-    displayTime: formatLocalTime(session.scheduled_for)
-  });
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`SessionListItem for ${session.id}:`, {
+      utc: session.scheduled_for,
+      local: new Date(session.scheduled_for).toLocaleString(),
+      displayTime: formatLocalTime(session.scheduled_for)
+    });
+  }
 
   return (
     <li 

@@ -208,22 +208,22 @@ export function debugDate(dateStr: string): void {
 /**
  * Group sessions by local date
  */
-export function groupSessionsByDate(
-  sessions: any[],
-  dateField: string = 'scheduled_for'
-): Record<string, any[]> {
-  const groups: Record<string, any[]> = {};
+export function groupSessionsByDate<T extends Record<string, any>>(
+  sessions: T[],
+  dateField: keyof T = 'scheduled_for' as keyof T
+): Record<string, T[]> {
+  const groups: Record<string, T[]> = {};
 
   sessions.forEach(session => {
     if (!session[dateField]) return;
     
     // Debug logging in development
     if (process.env.NODE_ENV !== 'production') {
-      debugDate(session[dateField]);
+      debugDate(session[dateField] as string);
     }
     
     // Get local date key
-    const dateKey = getLocalDateKey(session[dateField]);
+    const dateKey = getLocalDateKey(session[dateField] as string);
     
     if (!groups[dateKey]) {
       groups[dateKey] = [];

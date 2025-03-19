@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Mic, Calendar, History, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 
 import { useUserStore } from '@/stores/userStore';
-import { useInitialLoad, useTodaySessions, useHistoricalSessions } from '@/hooks/apiHooks';
+import { useInitialLoad, useTodaySessions } from '@/hooks/apiHooks';
+import { useSessionStore } from '@/stores/sessionStore';
 import { ErrorMessage } from '@/components/common/error-message';
 import SessionListItem from '@/components/dashboard/session-list-item';
 import StatsGrid from '@/components/dashboard/stats-grid';
@@ -15,61 +16,6 @@ import { groupSessionsByDate, formatDateForDisplay } from '@/utils/timeline-util
 import { Button } from '@/components/ui/button';
 
 import type { Session, SessionStatus, SessionType } from '@/types';
-
-// Mock data (optional fallback)
-const mockSessions: Session[] = [
-  {
-    id: '1',
-    doctor_id: 'mock-doctor-id',
-    patient_id: 'mock-patient-1',
-    status: 'completed' as SessionStatus,
-    session_type: 'standard' as SessionType,
-    scheduled_for: '2024-01-18T10:00:00Z',
-    started_at: '2024-01-18T10:00:00Z',
-    ended_at: '2024-01-18T10:30:00Z',
-    duration: 1800,
-    created_at: '2024-01-18T09:00:00Z',
-    updated_at: '2024-01-18T10:30:00Z',
-    patient: {
-      id: 'mock-patient-1',
-      first_name: 'Maria',
-      last_name: 'Garcia',
-      document_number: 'DOC123'
-    }
-  },
-  {
-    id: '2',
-    doctor_id: 'mock-doctor-id',
-    patient_id: 'mock-patient-2',
-    status: 'scheduled' as SessionStatus,
-    session_type: 'standard' as SessionType,
-    scheduled_for: '2024-01-18T14:00:00Z',
-    created_at: '2024-01-18T09:00:00Z',
-    updated_at: '2024-01-18T09:00:00Z',
-    patient: {
-      id: 'mock-patient-2',
-      first_name: 'Juan',
-      last_name: 'Rodriguez',
-      document_number: 'DOC456'
-    }
-  },
-  {
-    id: '3',
-    doctor_id: 'mock-doctor-id',
-    patient_id: 'mock-patient-3',
-    status: 'cancelled' as SessionStatus,
-    session_type: 'standard' as SessionType,
-    scheduled_for: '2024-01-17T15:00:00Z',
-    created_at: '2024-01-17T09:00:00Z',
-    updated_at: '2024-01-17T14:00:00Z',
-    patient: {
-      id: 'mock-patient-3',
-      first_name: 'Ana',
-      last_name: 'Martinez',
-      document_number: 'DOC789'
-    }
-  }
-];
 
 interface ErrorResponse {
   status?: number;
@@ -102,6 +48,10 @@ export default function Dashboard() {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
+  
+  // Local loading state for historical sessions
+  const [isHistoricalLoading, setIsHistoricalLoading] = useState(false);
+  const [historicalError, setHistoricalError] = useState<string | null>(null);
 
   // State from our stores
   const { user, doctorProfile, error: userError } = useUserStore();
@@ -112,18 +62,9 @@ export default function Dashboard() {
     error: todaySessionsError,
   } = useTodaySessions(doctorProfile?.id);
 
-  // Historical sessions data
-  const {
-    historicalSessions,
-    isLoading: isHistoricalSessionsLoading,
-    error: historicalSessionsError,
-    fetchHistoricalSessions
-  } = useHistoricalSessions(doctorProfile?.id) as {
-    historicalSessions: Session[];
-    isLoading: boolean;
-    error: string | null;
-    fetchHistoricalSessions: (options?: HistoricalSessionsOptions) => Promise<void>;
-  };
+  // Get historical sessions and fetch functions directly from the store
+  const historicalSessions = useSessionStore((state) => state.historicalSessions);
+  const fetchHistoricalSessions = useSessionStore((state) => state.fetchHistoricalSessions);
 
   // Toggle date group expansion
   const toggleDateGroup = useCallback((dateKey: string) => {
@@ -160,25 +101,49 @@ export default function Dashboard() {
 
   /**
    * 3) Fetch historical sessions when the history tab is selected or month changes
+   * Using our own loading state to avoid conflicts with other API calls
    */
   useEffect(() => {
-    if (activeTab === 'history' && doctorProfile?.id && !isHistoricalSessionsLoading) {
-      const endOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0);
-      endOfMonth.setHours(23, 59, 59, 999);
-      fetchHistoricalSessions({
-        from_date: selectedMonth.toISOString(),
-        to_date: endOfMonth.toISOString()
-      }).catch(error => {
-        console.error('Error fetching historical sessions:', error);
-      });
+    let isMounted = true;
+    
+    async function loadHistoricalSessions() {
+      if (activeTab === 'history' && doctorProfile?.id) {
+        try {
+          setIsHistoricalLoading(true);
+          setHistoricalError(null);
+          
+          const endOfMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0);
+          endOfMonth.setHours(23, 59, 59, 999);
+          
+          await fetchHistoricalSessions(doctorProfile.id, {
+            from_date: selectedMonth.toISOString(),
+            to_date: endOfMonth.toISOString()
+          });
+        } catch (error) {
+          console.error('Error fetching historical sessions:', error);
+          if (isMounted) {
+            setHistoricalError(error instanceof Error ? error.message : 'Error al cargar sesiones históricas');
+          }
+        } finally {
+          if (isMounted) {
+            setIsHistoricalLoading(false);
+          }
+        }
+      }
     }
-  }, [activeTab, doctorProfile?.id, selectedMonth]);
+    
+    loadHistoricalSessions();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [activeTab, doctorProfile?.id, selectedMonth, fetchHistoricalSessions]);
 
   /**
    * 4) Initialize expandedDateGroups after historical sessions are loaded
    */
   useEffect(() => {
-    if (activeTab === 'history' && !isHistoricalSessionsLoading && historicalSessions.length > 0 && !dateGroupsInitialized) {
+    if (activeTab === 'history' && !isHistoricalLoading && historicalSessions.length > 0 && !dateGroupsInitialized) {
       const groupedSessions = groupSessionsByDate(historicalSessions, 'scheduled_for');
       const initialExpandState: Record<string, boolean> = {};
       
@@ -189,7 +154,7 @@ export default function Dashboard() {
       setExpandedDateGroups(initialExpandState);
       setDateGroupsInitialized(true);
     }
-  }, [activeTab, isHistoricalSessionsLoading, historicalSessions, dateGroupsInitialized]);
+  }, [activeTab, isHistoricalLoading, historicalSessions, dateGroupsInitialized]);
 
   /**
    * 5) Reset dateGroupsInitialized when switching tabs
@@ -221,8 +186,8 @@ export default function Dashboard() {
     : {};
 
   // If we get this far, we have a user and a doctorProfile.
-  const isLoading = activeTab === 'today' ? isTodaySessionsLoading : isHistoricalSessionsLoading;
-  const sessionsError = activeTab === 'today' ? todaySessionsError : historicalSessionsError;
+  const isLoading = activeTab === 'today' ? isTodaySessionsLoading : isHistoricalLoading;
+  const sessionsError = activeTab === 'today' ? todaySessionsError : historicalError;
 
   // Helper function to format month display
   const formatMonth = (date: Date) => {
@@ -332,7 +297,7 @@ export default function Dashboard() {
                     key={session.id}
                     session={session}
                     onSelect={() => router.push(`/session/${session.id}`)}
-                    isLoading={isLoading}
+                    isLoading={false} // Never show loading on individual rows
                   />
                 ))
               ) : (
@@ -394,7 +359,7 @@ export default function Dashboard() {
                               key={session.id}
                               session={session}
                               onSelect={() => router.push(`/session/${session.id}`)}
-                              isLoading={isLoading}
+                              isLoading={false} // Never show loading on individual rows
                             />
                           ))}
                         </ul>

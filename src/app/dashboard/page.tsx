@@ -327,9 +327,13 @@ export default function Dashboard() {
                   />
                 ))
               ) : (
-                <li className="px-4 py-6 sm:px-6 text-center">
-                  <p className="text-gray-500 dark:text-gray-400">
-                    No hay sesiones programadas para hoy.
+                <li className="px-4 py-8 sm:px-6 text-center">
+                  <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 mb-4">
+                    <Calendar className="h-6 w-6 text-neutral-500 dark:text-neutral-400" />
+                  </div>
+                  <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-1">No hay sesiones para hoy</h3>
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto">
+                    Las nuevas sesiones que inicies aparecerán aquí.
                   </p>
                 </li>
               )}
@@ -382,9 +386,13 @@ export default function Dashboard() {
                   </div>
                 ))
               ) : (
-                <div className="px-4 py-6 sm:px-6 text-center">
-                  <p className="text-gray-500 dark:text-gray-400">
-                    No hay sesiones anteriores registradas.
+                <div className="px-4 py-8 sm:px-6 text-center">
+                  <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-neutral-100 dark:bg-neutral-800 mb-4">
+                    <History className="h-6 w-6 text-neutral-500 dark:text-neutral-400" />
+                  </div>
+                  <h3 className="text-base font-semibold text-neutral-900 dark:text-neutral-100 mb-1">No hay sesiones en este mes</h3>
+                  <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-sm mx-auto">
+                    Selecciona otro mes o inicia una nueva sesión.
                   </p>
                 </div>
               )}

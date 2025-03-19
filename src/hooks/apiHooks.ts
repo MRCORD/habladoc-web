@@ -98,3 +98,30 @@ export function useTodaySessions(doctorId: string | undefined): TodaySessionsDat
 
   return { todaySessions, isLoading, error };
 }
+
+interface HistoricalSessionsData {
+  historicalSessions: Session[];
+  isLoading: boolean;
+  error: string | null;
+  fetchHistoricalSessions: (options?: { limit?: number, offset?: number, from_date?: string, to_date?: string }) => Promise<void>;
+}
+
+export function useHistoricalSessions(doctorId: string | undefined): HistoricalSessionsData {
+  const fetchHistoricalSessions = useSessionStore((state) => state.fetchHistoricalSessions);
+  const historicalSessions = useSessionStore((state) => state.historicalSessions);
+  const isLoading = useSessionStore((state) => state.isLoading);
+  const error = useSessionStore((state) => state.error);
+
+  const fetchSessions = async (options?: { limit?: number, offset?: number, from_date?: string, to_date?: string }) => {
+    if (doctorId) {
+      await fetchHistoricalSessions(doctorId, options);
+    }
+  };
+
+  return { 
+    historicalSessions, 
+    isLoading, 
+    error,
+    fetchHistoricalSessions: fetchSessions
+  };
+}

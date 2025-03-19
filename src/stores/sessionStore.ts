@@ -102,6 +102,7 @@ interface SessionState {
   clinicalAnalysis: Record<string, AnalysisResult[]>;
   enhancedAnalysis: Record<string, EnhancedConsultation>;
   todaySessions: Session[];
+  historicalSessions: Session[];
   isLoading: boolean;
   error: string | null;
 
@@ -110,6 +111,7 @@ interface SessionState {
   fetchRecordings: (sessionId: string) => Promise<void>;
   fetchSessionState: (sessionId: string) => Promise<void>;
   fetchTodaySessions: (doctorId: string) => Promise<void>;
+  fetchHistoricalSessions: (doctorId: string, options?: FetchHistoricalSessionsOptions) => Promise<void>;
   addRecording: (recording: Recording) => void;
   updateSession: (sessionId: string, data: Partial<Session>) => Promise<void>;
   reset: () => void;
@@ -125,6 +127,13 @@ interface ApiErrorResponse {
   message?: string;
 }
 
+interface FetchHistoricalSessionsOptions {
+  limit?: number;
+  offset?: number;
+  from_date?: string;
+  to_date?: string;
+}
+
 export const useSessionStore = create<SessionState>()(
   devtools(
     (set) => ({
@@ -135,6 +144,7 @@ export const useSessionStore = create<SessionState>()(
       clinicalAnalysis: {},
       enhancedAnalysis: {},
       todaySessions: [],
+      historicalSessions: [],
       isLoading: false,
       error: null,
 
@@ -241,6 +251,52 @@ export const useSessionStore = create<SessionState>()(
         }
       },
 
+      fetchHistoricalSessions: async (doctorId: string, options: FetchHistoricalSessionsOptions = {}) => {
+        try {
+          // If already loading, don't start another request
+          const currentState = useSessionStore.getState();
+          if (currentState.isLoading) return;
+
+          set({ isLoading: true, error: null });
+          
+          // If dates aren't provided, default to one month ago
+          let fromDate = options.from_date;
+          let toDate = options.to_date;
+          
+          if (!fromDate || !toDate) {
+            const today = new Date();
+            const oneMonthAgo = new Date(today);
+            oneMonthAgo.setMonth(today.getMonth() - 1);
+            
+            // Set today's date to end of day to include all of today's sessions
+            today.setHours(23, 59, 59, 999);
+            
+            fromDate = oneMonthAgo.toISOString();
+            toDate = today.toISOString();
+          }
+
+          const response = await api.get<Session[]>(`/api/v1/sessions/doctor/${doctorId}/list`, {
+            params: {
+              from_date: fromDate,
+              to_date: toDate,
+              limit: options.limit || 20,
+              offset: options.offset || 0
+            }
+          });
+          
+          if (response.data) {
+            set({ historicalSessions: response.data });
+          }
+        } catch (error) {
+          const apiError = error as ApiErrorResponse;
+          set({ 
+            error: apiError.response?.data?.message || apiError.message || 'Failed to fetch historical sessions' 
+          });
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
       addRecording: (recording: Recording) => 
         set((state) => ({
           recordings: [...state.recordings, recording]
@@ -287,6 +343,7 @@ export const useSessionStore = create<SessionState>()(
           clinicalAnalysis: {},
           enhancedAnalysis: {},
           todaySessions: [],
+          historicalSessions: [],
           isLoading: false,
           error: null,
         });

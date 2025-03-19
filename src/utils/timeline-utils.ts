@@ -131,6 +131,42 @@ export function groupEventsByDate(events: TimelineEvent[]): TimestampGroups {
 }
 
 /**
+ * Group sessions by date (YYYY-MM-DD)
+ * @param sessions Array of sessions to group
+ * @param dateField Field to use for grouping (defaults to scheduled_for)
+ * @returns Record with date keys and arrays of sessions
+ */
+export function groupSessionsByDate(
+  sessions: any[],
+  dateField: string = 'scheduled_for'
+): Record<string, any[]> {
+  const groups: Record<string, any[]> = {};
+
+  sessions.forEach(session => {
+    if (!session[dateField]) return;
+    
+    const date = new Date(session[dateField]);
+    const dateKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+    
+    if (!groups[dateKey]) {
+      groups[dateKey] = [];
+    }
+    
+    groups[dateKey].push(session);
+  });
+
+  // Sort the groups by date (most recent first)
+  const sortedGroups: Record<string, any[]> = {};
+  Object.keys(groups)
+    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())
+    .forEach(key => {
+      sortedGroups[key] = groups[key];
+    });
+
+  return sortedGroups;
+}
+
+/**
  * Format a date key into a user-friendly display string
  */
 export function formatDateForDisplay(dateKey: string): string {

@@ -287,23 +287,32 @@ export default function Dashboard() {
         
         {/* Month Selection for History Tab */}
         {activeTab === 'history' && (
-          <div className="px-4 sm:px-6 py-3 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
-            <button
+          <div className="px-4 sm:px-6 py-3 flex items-center justify-center gap-4 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50">
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={goToPreviousMonth}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
+              className="h-8 w-8 p-0"
             >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 capitalize">
-              {formatMonth(selectedMonth)}
-            </h3>
-            <button
+              <ChevronLeft className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
+            </Button>
+            
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-primary-500 dark:text-primary-400" />
+              <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 min-w-[140px] text-center capitalize">
+                {formatMonth(selectedMonth)}
+              </h3>
+            </div>
+
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={goToNextMonth}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
               disabled={new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 1) > new Date()}
+              className="h-8 w-8 p-0 disabled:opacity-50"
             >
-              <ChevronRight className="h-5 w-5" />
-            </button>
+              <ChevronRight className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />
+            </Button>
           </div>
         )}
 

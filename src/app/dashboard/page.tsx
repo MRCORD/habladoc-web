@@ -15,7 +15,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { groupSessionsByDate, formatDateForDisplay } from '@/utils/timeline-utils';
 import { Button } from '@/components/ui/button';
 
-import type { Session, SessionStatus, SessionType } from '@/types';
+import type { Session } from '@/types';
 
 interface ErrorResponse {
   status?: number;
@@ -30,13 +30,6 @@ function isErrorResponse(error: unknown): error is ErrorResponse {
     return 'status' in error || 'data' in error || 'message' in error;
   }
   return false;
-}
-
-interface HistoricalSessionsOptions {
-  limit?: number;
-  offset?: number;
-  from_date?: string;
-  to_date?: string;
 }
 
 export default function Dashboard() {

@@ -9,6 +9,10 @@ interface StructuredDataProps {
 }
 
 const StructuredData: FC<StructuredDataProps> = ({ name, description, url, logoUrl }) => {
+  const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL 
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` 
+    : 'http://localhost:3000';
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
@@ -16,7 +20,7 @@ const StructuredData: FC<StructuredDataProps> = ({ name, description, url, logoU
     description,
     applicationCategory: 'HealthApplication',
     operatingSystem: 'Web',
-    url,
+    url: url || baseUrl,
     offers: {
       '@type': 'Offer',
       price: '0',
@@ -25,7 +29,7 @@ const StructuredData: FC<StructuredDataProps> = ({ name, description, url, logoU
     provider: {
       '@type': 'Organization',
       name: 'HablaDoc',
-      logo: logoUrl
+      logo: logoUrl || `${baseUrl}/icons/logo.svg`
     }
   };
 

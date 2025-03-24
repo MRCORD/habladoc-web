@@ -4,14 +4,23 @@ import { Header } from '@/components/layout/header';
 import { ThemeProvider } from '@/components/theme/theme-provider';
 import './globals.css';
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#0066cc',
+};
+
 export const metadata = {
-  metadataBase: new URL('https://habladoc.ai'),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_VERCEL_URL
+      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+      : 'http://localhost:3000'
+  ),
   title: 'HablaDoc | Asistente inteligente para consultas médicas',
   description: 'Simplifica tu práctica médica con un asistente inteligente que escucha, analiza y te ayuda a tomar las mejores decisiones para tus pacientes.',
   keywords: 'consultas médicas, asistente médico, español, doctores hispanohablantes, telemedicina, salud digital',
-  viewport: 'width=device-width, initial-scale=1',
   robots: 'index, follow',
-  canonical: 'https://habladoc.ai', // Updated domain
+  canonical: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000',
   authors: [{ name: 'HablaDoc Team' }],
   creator: 'HablaDoc',
   publisher: 'HablaDoc',
@@ -23,7 +32,7 @@ export const metadata = {
   openGraph: {
     type: 'website',
     locale: 'es_ES',
-    url: 'https://habladoc.ai', // Updated domain
+    url: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000',
     title: 'HablaDoc | Asistente inteligente para consultas médicas',
     description: 'Simplifica tu práctica médica con un asistente inteligente que escucha, analiza y te ayuda a tomar las mejores decisiones.',
     siteName: 'HablaDoc',
@@ -41,7 +50,7 @@ export const metadata = {
     title: 'HablaDoc | Asistente inteligente para consultas médicas',
     description: 'Simplifica tu práctica médica con un asistente inteligente que escucha, analiza y te ayuda a tomar las mejores decisiones.',
     images: ['/icons/og-image.svg'],
-    creator: '@habladoc', // Update with your Twitter handle
+    creator: '@habladoc',
   },
   icons: {
     icon: [
@@ -56,12 +65,11 @@ export const metadata = {
       {
         rel: 'mask-icon',
         url: '/icons/logo.svg',
-        color: '#0066cc', // Using HablaDoc blue
+        color: '#0066cc',
       },
     ],
   },
   manifest: '/site.webmanifest',
-  themeColor: '#0066cc', // HablaDoc blue
   generator: 'Next.js',
 };
 

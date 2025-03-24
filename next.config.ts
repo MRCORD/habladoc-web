@@ -26,7 +26,7 @@ const nextConfig = {
     ];
   },
   images: {
-    domains: ['s.gravatar.com', 'lh3.googleusercontent.com'],
+    domains: ['s.gravatar.com', 'lh3.googleusercontent.com', 'habladoc-web.vercel.app'],
   },
 };
 

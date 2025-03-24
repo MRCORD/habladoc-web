@@ -11,6 +11,9 @@ export default function Home() {
   const router = useRouter();
   const { user, isLoading } = useUserStore();
   useInitialLoad();
+  const baseUrl = process.env.NEXT_PUBLIC_VERCEL_URL 
+    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}` 
+    : 'http://localhost:3000';
 
   // Redirect to dashboard if user is logged in
   useEffect(() => {
@@ -30,8 +33,8 @@ export default function Home() {
       <StructuredData 
         name="HablaDoc - Asistente inteligente para consultas médicas"
         description="Simplifica tu práctica médica con un asistente inteligente que escucha, analiza y te ayuda a tomar las mejores decisiones."
-        url="https://habladoc.ai"
-        logoUrl="https://habladoc.ai/icons/logo.svg"
+        url={baseUrl}
+        logoUrl={`${baseUrl}/icons/logo.svg`}
       />
       
       <div className="mx-auto max-w-2xl py-24 sm:py-36 lg:py-48">

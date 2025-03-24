@@ -5,6 +5,7 @@ import { ThemeProvider } from '@/components/theme/theme-provider';
 import './globals.css';
 
 export const metadata = {
+  metadataBase: new URL('https://habladoc.ai'),
   title: 'HablaDoc | Asistente inteligente para consultas médicas',
   description: 'Simplifica tu práctica médica con un asistente inteligente que escucha, analiza y te ayuda a tomar las mejores decisiones para tus pacientes.',
   keywords: 'consultas médicas, asistente médico, español, doctores hispanohablantes, telemedicina, salud digital',

@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useUserStore } from '@/stores/userStore';
 import { useInitialLoad } from '@/hooks/apiHooks';
 import StructuredData from '@/components/common/structured-data';
-import Head from 'next/head';
 
 export default function Home() {
   const router = useRouter();

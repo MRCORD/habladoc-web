@@ -5,6 +5,8 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { useUserStore } from '@/stores/userStore';
 import { useInitialLoad } from '@/hooks/apiHooks';
+import StructuredData from '@/components/common/structured-data';
+import Head from 'next/head';
 
 export default function Home() {
   const router = useRouter();
@@ -26,6 +28,13 @@ export default function Home() {
   
   return (
     <div className="relative isolate px-6 pt-20 lg:px-8 bg-gradient-to-b from-blue-50 to-white dark:from-blue-950 dark:to-gray-900 min-h-screen">
+      <StructuredData 
+        name="HablaDoc - Asistente inteligente para consultas médicas"
+        description="Simplifica tu práctica médica con un asistente inteligente que escucha, analiza y te ayuda a tomar las mejores decisiones."
+        url="https://habladoc.com"
+        logoUrl="https://habladoc.com/icons/logo.png"
+      />
+      
       <div className="mx-auto max-w-2xl py-24 sm:py-36 lg:py-48">
         <div className="text-center space-y-6">
           {/* Hero Section with Rocket */}

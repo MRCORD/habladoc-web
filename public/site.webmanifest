@@ -1,0 +1,43 @@
+{
+  "name": "HablaDoc - Asistente inteligente para consultas médicas",
+  "short_name": "HablaDoc",
+  "description": "Simplifica tu práctica médica con un asistente inteligente que escucha, analiza y te ayuda a tomar las mejores decisiones.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0066cc",
+  "icons": [
+    {
+      "src": "/icons/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "orientation": "portrait",
+  "lang": "es-ES",
+  "dir": "ltr",
+  "categories": ["medical", "healthcare", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Nueva sesión",
+      "short_name": "Nueva sesión",
+      "description": "Iniciar una nueva sesión de consulta",
+      "url": "/dashboard/new-session",
+      "icons": [{ "src": "/icons/shortcut-new-session.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Ver tu dashboard de sesiones",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icons/shortcut-dashboard.png", "sizes": "192x192" }]
+    }
+  ]
+}

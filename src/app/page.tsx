@@ -31,8 +31,8 @@ export default function Home() {
       <StructuredData 
         name="HablaDoc - Asistente inteligente para consultas médicas"
         description="Simplifica tu práctica médica con un asistente inteligente que escucha, analiza y te ayuda a tomar las mejores decisiones."
-        url="https://habladoc.com"
-        logoUrl="https://habladoc.com/icons/logo.svg"
+        url="https://habladoc.ai"
+        logoUrl="https://habladoc.ai/icons/logo.svg"
       />
       
       <div className="mx-auto max-w-2xl py-24 sm:py-36 lg:py-48">

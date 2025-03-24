@@ -10,7 +10,7 @@ export const metadata = {
   keywords: 'consultas médicas, asistente médico, español, doctores hispanohablantes, telemedicina, salud digital',
   viewport: 'width=device-width, initial-scale=1',
   robots: 'index, follow',
-  canonical: 'https://habladoc.com', // Update with your domain
+  canonical: 'https://habladoc.ai', // Updated domain
   authors: [{ name: 'HablaDoc Team' }],
   creator: 'HablaDoc',
   publisher: 'HablaDoc',
@@ -22,7 +22,7 @@ export const metadata = {
   openGraph: {
     type: 'website',
     locale: 'es_ES',
-    url: 'https://habladoc.com', // Update with your domain
+    url: 'https://habladoc.ai', // Updated domain
     title: 'HablaDoc | Asistente inteligente para consultas médicas',
     description: 'Simplifica tu práctica médica con un asistente inteligente que escucha, analiza y te ayuda a tomar las mejores decisiones.',
     siteName: 'HablaDoc',

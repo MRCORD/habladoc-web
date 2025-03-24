@@ -14,20 +14,23 @@ export function Header() {
   const { user, isLoading } = useUser();
   const { theme, setTheme } = useTheme();
   
-  // Define our new blue color as a variable for inline styles
-  const habladocBlue = 'rgb(0, 102, 204)';
-
   return (
     <header className="bg-background shadow-sm border-b border-gray-200 dark:border-gray-800">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between items-center">
           <div className="flex-shrink-0">
-            <Link 
-              href="/" 
-              className="text-2xl font-bold"
-              style={{ color: habladocBlue }}
-            >
-              HablaDoc
+            <Link href="/" className="flex items-center">
+              <Image
+                src="/icons/logo.svg"
+                alt="HablaDoc"
+                width={32}
+                height={32}
+                priority
+                className="h-8 w-auto"
+              />
+              <span className="ml-2 text-2xl font-bold text-[#0066cc] dark:text-[#3b82f6]">
+                HablaDoc
+              </span>
             </Link>
           </div>
           <div className="flex items-center">

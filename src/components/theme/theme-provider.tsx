@@ -32,72 +32,77 @@ export function ThemeProvider({
 }: ThemeProviderProps) {
   // Read from localStorage synchronously during initialization
   const getInitialTheme = (): Theme => {
-    // For SSR or when localStorage is not available
     if (typeof window === 'undefined') return defaultTheme;
     
     try {
       const savedTheme = window.localStorage.getItem(storageKey) as Theme | null;
-      // Only return valid theme values
       if (savedTheme && ['dark', 'light', 'system'].includes(savedTheme)) {
         return savedTheme;
       }
     } catch (error) {
-      // In case of any localStorage errors (e.g., privacy mode)
       console.warn('Failed to read theme from localStorage:', error);
     }
     
     return defaultTheme;
   };
-  
+
   const [theme, setTheme] = useState<Theme>(getInitialTheme());
   const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
-  
-  // Update document classes and track dark mode state
-  useEffect(() => {
+
+  const applyTheme = (themeToApply: Theme) => {
     const root = window.document.documentElement;
-    
-    // Remove previous class
     root.classList.remove('light', 'dark');
     
     let resolvedTheme: 'light' | 'dark';
-    
-    if (theme === 'system') {
+    if (themeToApply === 'system') {
       resolvedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
         ? 'dark'
         : 'light';
-      
-      // Listen for system preference changes
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const handleChange = () => {
-        const newTheme = mediaQuery.matches ? 'dark' : 'light';
-        root.classList.remove('light', 'dark');
-        root.classList.add(newTheme);
-        setIsDarkMode(mediaQuery.matches);
-      };
-      
-      mediaQuery.addEventListener('change', handleChange);
-      return () => mediaQuery.removeEventListener('change', handleChange);
     } else {
-      resolvedTheme = theme;
+      resolvedTheme = themeToApply;
     }
     
     root.classList.add(resolvedTheme);
     setIsDarkMode(resolvedTheme === 'dark');
     
-    // Save theme to localStorage when it changes
+    // Store in localStorage
     try {
-      localStorage.setItem(storageKey, theme);
+      localStorage.setItem(storageKey, themeToApply);
     } catch (error) {
       console.warn('Failed to save theme to localStorage:', error);
     }
-  }, [theme, storageKey]);
-  
+  };
+
+  // Initialize theme and set up system theme listener
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    // Initial theme application
+    applyTheme(theme);
+
+    // Handle system theme changes
+    const handleChange = () => {
+      if (theme === 'system') {
+        applyTheme('system');
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [theme]);
+
+  // Handle manual theme changes
+  const handleSetTheme = (newTheme: Theme) => {
+    setTheme(newTheme);
+    applyTheme(newTheme);
+  };
+
   const value = {
     theme,
-    setTheme,
+    setTheme: handleSetTheme,
     isDarkMode,
   };
-  
+
   return (
     <ThemeProviderContext.Provider {...props} value={value}>
       {children}

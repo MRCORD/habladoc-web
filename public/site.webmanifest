@@ -8,15 +8,15 @@
   "theme_color": "#0066cc",
   "icons": [
     {
-      "src": "/icons/android-chrome-192x192.png",
+      "src": "/icons/android-chrome-192x192.svg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/android-chrome-512x512.png",
+      "src": "/icons/android-chrome-512x512.svg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],
@@ -30,14 +30,14 @@
       "short_name": "Nueva sesión",
       "description": "Iniciar una nueva sesión de consulta",
       "url": "/dashboard/new-session",
-      "icons": [{ "src": "/icons/shortcut-new-session.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icons/shortcut-new-session.svg", "sizes": "192x192", "type": "image/svg+xml" }]
     },
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "Ver tu dashboard de sesiones",
       "url": "/dashboard",
-      "icons": [{ "src": "/icons/shortcut-dashboard.png", "sizes": "192x192" }]
+      "icons": [{ "src": "/icons/shortcut-dashboard.svg", "sizes": "192x192", "type": "image/svg+xml" }]
     }
   ]
 }

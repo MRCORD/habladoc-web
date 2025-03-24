@@ -28,9 +28,6 @@ export function Header() {
                 priority
                 className="h-8 w-auto"
               />
-              <span className="ml-2 text-2xl font-bold text-[#0066cc] dark:text-[#3b82f6]">
-                HablaDoc
-              </span>
             </Link>
           </div>
           <div className="flex items-center">

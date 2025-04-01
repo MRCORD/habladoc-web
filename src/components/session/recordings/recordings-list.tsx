@@ -264,6 +264,21 @@ export const RecordingsList: React.FC<RecordingsListProps> = ({
                   <span className="w-2 h-2 bg-violet-500 rounded-full mr-2"></span>
                   Procedimientos
                 </>
+              ) : type === 'past_medical_history' ? (
+                <>
+                  <span className="w-2 h-2 bg-amber-500 rounded-full mr-2"></span>
+                  Antecedentes Médicos
+                </>
+              ) : type === 'family_history' ? (
+                <>
+                  <span className="w-2 h-2 bg-emerald-500 rounded-full mr-2"></span>
+                  Antecedentes Familiares
+                </>
+              ) : type === 'vital_sign' ? (
+                <>
+                  <span className="w-2 h-2 bg-cyan-500 rounded-full mr-2"></span>
+                  Signos Vitales
+                </>
               ) : (
                 <>
                   <span className="w-2 h-2 bg-neutral-500 rounded-full mr-2"></span>
